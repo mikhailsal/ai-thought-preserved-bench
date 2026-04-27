@@ -14,6 +14,7 @@ from dotenv import load_dotenv
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = PROJECT_ROOT / "cache"
+PROBES_DIR = PROJECT_ROOT / "probes"
 RESULTS_DIR = PROJECT_ROOT / "results"
 CONFIGS_PATH = PROJECT_ROOT / "configs" / "models.yaml"
 ENV_PATH = PROJECT_ROOT / ".env"
@@ -102,6 +103,7 @@ def slug_to_model_id(slug: str) -> str:
 
 def ensure_dirs() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
+    PROBES_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
 

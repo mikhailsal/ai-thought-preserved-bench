@@ -7,7 +7,7 @@ import re
 from pathlib import Path
 from typing import Any
 
-from src.config import CACHE_DIR
+from src.config import CACHE_DIR, PROBES_DIR
 
 
 def _run_cache_path(config_slug: str, scenario_id: str, run_number: int) -> Path:
@@ -15,7 +15,7 @@ def _run_cache_path(config_slug: str, scenario_id: str, run_number: int) -> Path
 
 
 def _probe_cache_path(config_slug: str) -> Path:
-    return CACHE_DIR / config_slug / "probe.json"
+    return PROBES_DIR / config_slug / "probe.json"
 
 
 def load_run_record(config_slug: str, scenario_id: str, run_number: int) -> dict[str, Any] | None:

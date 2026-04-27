@@ -28,10 +28,12 @@ def _challenge() -> dict:
 
 def test_cache_invalid_json_and_missing_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    probes_dir = tmp_path / "probes"
+    monkeypatch.setattr(cache, "PROBES_DIR", probes_dir)
     bad_run = tmp_path / "cfg" / "plain" / "run_1.json"
     bad_run.parent.mkdir(parents=True)
     bad_run.write_text("{broken", encoding="utf-8")
-    bad_probe = tmp_path / "cfg" / "probe.json"
+    bad_probe = probes_dir / "cfg" / "probe.json"
     bad_probe.parent.mkdir(parents=True, exist_ok=True)
     bad_probe.write_text("{broken", encoding="utf-8")
 

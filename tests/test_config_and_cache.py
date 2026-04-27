@@ -82,7 +82,7 @@ def test_cache_round_trip_and_listings(monkeypatch: pytest.MonkeyPatch, tmp_path
 
 
 def test_probe_round_trip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
-    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(cache, "PROBES_DIR", tmp_path)
     record = {"reasoning_visibility": "plaintext"}
     cache.save_probe_record("grok@minimal-t1.2", record)
 
