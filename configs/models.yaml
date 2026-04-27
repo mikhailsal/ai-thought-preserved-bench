@@ -134,6 +134,25 @@ models:
     notes: >
       Visible reasoning via reasoning.text (structured_text format).
       Upgraded minimal→medium: at minimal effort the model only summarized the task.
+      At 5 runs: 1/5 preserved in plain_chat_history (20%), 2/5 in tool_mediated (40%).
+      High protocol-fail rate (4/5 plain) because model often doesn't compute at medium effort.
+
+  # ───────────────────────────────────────────────────────────────
+  # OpenAI — GPT-OSS-120B (larger MoE sibling of gpt-oss-20b)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: openai/gpt-oss-120b
+    display_label: gpt-oss-120b@medium-t1.2
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: DeepInfra
+    reasoning_type: open
+    active: true
+    notes: >
+      117B MoE (5.1B active). Visible reasoning via reasoning.text.
+      Same provider and reasoning settings as gpt-oss-20b for direct comparison.
+      DeepInfra provides bf16 quantization. Reasoning in supported_parameters confirmed.
+      At 5 runs: 0/5 preserved in both scenarios. All plain runs had no-calculation protocol fail.
+      Model summarizes the task at medium effort instead of picking numbers.
 
   # ───────────────────────────────────────────────────────────────
   # OpenAI — GPT-5-nano (hidden reasoning)

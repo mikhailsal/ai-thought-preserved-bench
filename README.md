@@ -22,7 +22,7 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 
 <!-- leaderboard:start -->
 
-- Plain Chat History: gpt-oss-20b@medium-t1.2 — 1/2 preserved (50%)
+- Plain Chat History: gpt-oss-20b@medium-t1.2 — 1/5 preserved (20%)
 - Plain Chat History: claude-haiku-4.5@xhigh-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: deepseek-v3.2@minimal-t1.2 — 0/2 preserved (0%)
 - Plain Chat History: deepseek-v4-flash@medium-t1.2 — 0/2 preserved (0%)
@@ -39,6 +39,7 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 - Plain Chat History: gpt-5-nano@medium-t1.2 — 0/3 preserved (0%)
 - Plain Chat History: gpt-5-nano@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: gpt-5.4-nano@medium-t1.2 — 0/3 preserved (0%)
+- Plain Chat History: gpt-oss-120b@medium-t1.2 — 0/5 preserved (0%)
 - Plain Chat History: gpt-oss-20b@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: qwen3-8b@medium-t1.2 — 0/2 preserved (0%)
 - Plain Chat History: qwen3-8b@minimal-t1.2 — 0/1 preserved (0%)
@@ -56,6 +57,7 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 - Tool-Mediated Reply: deepseek-v4-flash@medium-t1.2 — 3/5 preserved (60%)
 - Tool-Mediated Reply: stepfun/step-3.5-flash:free@minimal-t1.2 — 1/2 preserved (50%)
 - Tool-Mediated Reply: hy3-preview:free@medium-t1.2 — 1/2 preserved (50%)
+- Tool-Mediated Reply: gpt-oss-20b@medium-t1.2 — 2/5 preserved (40%)
 - Tool-Mediated Reply: gemini-2.5-flash-lite@medium-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: gemma-4-26b-a4b-it:free@minimal-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: gemma-4-31b-it:free@minimal-t1.2 — 0/2 preserved (0%)
@@ -65,7 +67,7 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 - Tool-Mediated Reply: nemotron-3-super-120b:free@medium-t1.2 — 0/2 preserved (0%)
 - Tool-Mediated Reply: gpt-5-nano@medium-t1.2 — 0/3 preserved (0%)
 - Tool-Mediated Reply: gpt-5.4-nano@medium-t1.2 — 0/3 preserved (0%)
-- Tool-Mediated Reply: gpt-oss-20b@medium-t1.2 — 0/2 preserved (0%)
+- Tool-Mediated Reply: gpt-oss-120b@medium-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: qwen3-8b@medium-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: qwen3.5-flash@minimal-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: grok-4.1-fast@medium-t1.2 — 0/5 preserved (0%)
@@ -96,3 +98,11 @@ thought-preserved-bench rerun --force
 - Replay prefers `reasoning_details` and falls back to plaintext `reasoning`.
 - Encrypted reasoning is evaluated through cross-run stability when the chosen number is not directly visible.
 - Provider pinning is explicit in the model registry.
+
+## Methodology Note: Independent Runs vs Fixed Turn-1
+
+The original benchmark design calls for a **fixed turn-1** approach: execute turn 1 once per model/scenario, then reuse that identical turn-1 artifact for all subsequent repetitions, varying only turn 2. This isolates the thought-preservation variable from noise in turn-1 generation.
+
+The **current implementation** generates both turns independently for each run. Each run gets a fresh challenge, fresh turn-1 reasoning, and fresh turn-2 response. This is a valid but different test — it measures whether thought preservation occurs across many independent trials rather than across repeated attempts with a fixed prior state.
+
+This deviation is temporary. A future version will implement the fixed-turn-1 design. See `PLAN.md` ("Known Methodology Deviations") for details and migration plan. Current results should be interpreted with this caveat: preservation rates may change when the turn-1 artifact is held constant.

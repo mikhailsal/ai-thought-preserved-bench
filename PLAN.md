@@ -508,6 +508,20 @@ Suggested sections:
 6. setup and usage
 7. caveats about encrypted reasoning and provider differences
 
+## Known Methodology Deviations
+
+### Turn-1 Regeneration Per Run (Temporary)
+
+**Original design intent:** The benchmark was designed so that turn 1 would be executed once per model/scenario combination, producing a single fixed challenge, reasoning trace, and assistant reply. All subsequent repetitions (runs 2–5) would reuse that identical turn-1 artifact and only regenerate turn 2. This isolates the variable under test — whether the model can recall its own prior reasoning — from the noise of different challenges and different turn-1 reasoning traces across runs.
+
+**Current implementation:** Both turn 1 and turn 2 are generated independently for each run. Every run gets a fresh random challenge (new range boundaries are the same, but the model picks new numbers each time), a fresh turn-1 reasoning trace, and a fresh turn-2 response. This means each run is fully independent, which is still a valid test of thought preservation — it just tests a different thing. Instead of "can the model recall its fixed prior reasoning across many attempts?", we test "does the model exhibit thought preservation behavior in general, across many independent trials?"
+
+**Why the deviation exists:** The current approach was simpler to implement initially and became entrenched as cached results accumulated across dozens of models and hundreds of runs. Switching to fixed-turn-1 design mid-benchmark would invalidate all existing cached results and require expensive re-runs of every model.
+
+**Plan to resolve:** A future version will implement the fixed-turn-1 design as originally planned. The runner will execute turn 1 once, cache it as a shared artifact, and reuse it for all subsequent repetitions within the same model/scenario group. This will require a new cache layout and a one-time re-run of all models. The migration will be coordinated to minimize cost.
+
+**Impact on current results:** The current independent-run approach is methodologically sound but produces noisier signal than the fixed-turn-1 design would. Models that show thought preservation under the current design are genuinely preserving reasoning (each run is a fresh test), but the preservation rate may differ once the turn-1 artifact is held constant. Results should be interpreted with this caveat in mind.
+
 ## Key Risks And Mitigations
 
 ### Risk 1: Some providers strip replayed reasoning silently
