@@ -20,7 +20,6 @@ def _sample_record(config_slug: str, scenario_id: str, run_number: int, outcome:
             "excluded_from_scoring": False,
             "pending_stability_check": visibility in {"encrypted_or_summary", "none"},
             "reasoning_visibility": visibility,
-            "turn1_chosen_number_visible_to_benchmark": 6000 if visibility in {"plaintext", "structured_text"} else None,
             "turn2_extracted_number": 6000,
         },
     }

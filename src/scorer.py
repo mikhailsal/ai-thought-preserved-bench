@@ -137,7 +137,6 @@ def summarize_records(records: list[dict[str, Any]]) -> list[ScenarioSummary]:
                 REASONING_VISIBILITY_PLAINTEXT,
                 REASONING_VISIBILITY_STRUCTURED_TEXT,
             }
-            and evaluation.get("turn1_chosen_number_visible_to_benchmark") is not None
         ]
         visible_matches = len([
             evaluation for evaluation in plaintext_runs

@@ -86,7 +86,6 @@ def _save_error_record(
     record["error"] = error_message
     record["evaluation"] = {
         "reasoning_visibility": "none",
-        "turn1_chosen_number_visible_to_benchmark": None,
         "turn2_extracted_number": None,
         "outcome_label": "other_refusal",
         "outcome_notes": error_message,
