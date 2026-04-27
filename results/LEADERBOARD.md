@@ -1,6 +1,6 @@
 # AI Thought Preservation Bench Leaderboard
 
-> Auto-generated from cached benchmark runs. Last updated: 2026-04-27 21:47 UTC
+> Auto-generated from cached benchmark runs. Last updated: 2026-04-27 21:49 UTC
 
 ## Plain Chat History
 
@@ -108,8 +108,8 @@ Visibility notes:
 - qwen3-8b@medium-t1.2: visibility structured_text=1, none=4; stability_preserved=no; visible_match_rate=100%
 - gemma-4-26b-a4b-it:free@minimal-t1.2: visibility encrypted_or_summary=5; stability_preserved=no; visible_match_rate=n/a
 - minimax-m2.5@minimal-t1.2: visibility none=5; stability_preserved=no; visible_match_rate=n/a
-- minimax-m2.7@medium-t1.2: visibility structured_text=2, none=3; stability_preserved=no; visible_match_rate=n/a
-- minimax-m2.7@xhigh-t1.2: visibility none=5; stability_preserved=no; visible_match_rate=n/a
+- minimax-m2.7@medium-t1.2: visibility structured_text=3, none=2; stability_preserved=no; visible_match_rate=n/a
+- minimax-m2.7@xhigh-t1.2: visibility structured_text=1, none=4; stability_preserved=no; visible_match_rate=n/a
 - nemotron-3-super-120b:free@medium-t1.2: visibility structured_text=2; stability_preserved=no; visible_match_rate=n/a
 - gpt-oss-20b@medium-t1.2: visibility structured_text=2; stability_preserved=no; visible_match_rate=n/a
 - qwen3.5-flash@minimal-t1.2: visibility structured_text=1, none=4; stability_preserved=no; visible_match_rate=n/a
