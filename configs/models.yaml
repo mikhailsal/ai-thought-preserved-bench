@@ -1,0 +1,22 @@
+models:
+  - model_id: google/gemma-4-31b-it:free
+    display_label: gemma-4-31b-it:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "Observed reasoning visibility should be determined via probe results, not assumed."
+
+  - model_id: google/gemma-4-31b-it
+    display_label: gemma-4-31b-it+akashml@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: akashml/bf16
+    active: false
+    notes: "Pinned variant for probing if reasoning visibility differs materially."
+
+  - model_id: x-ai/grok-4.1-fast
+    display_label: grok-4.1-fast@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "Expected to expose encrypted or summarized reasoning details."
