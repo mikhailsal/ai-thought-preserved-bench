@@ -22,7 +22,6 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 
 <!-- leaderboard:start -->
 
-- Plain Chat History: gemma — 5/5 preserved (100%)
 - Plain Chat History: gpt-oss-20b@medium-t1.2 — 1/2 preserved (50%)
 - Plain Chat History: claude-haiku-4.5@xhigh-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: deepseek-v3.2@minimal-t1.2 — 0/2 preserved (0%)
@@ -52,7 +51,6 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 - Plain Chat History: glm-5.1@xhigh-t1.2 — 0/1 preserved (0%)
 - Tool-Mediated Reply: claude-haiku-4.5@xhigh-t1.2 — 1/1 preserved (100%)
 - Tool-Mediated Reply: deepseek-v3.2@minimal-t1.2 — 2/2 preserved (100%)
-- Tool-Mediated Reply: gemma — 5/5 preserved (100%)
 - Tool-Mediated Reply: kimi-k2.6@xhigh-t1.2 — 1/1 preserved (100%)
 - Tool-Mediated Reply: glm-5.1@xhigh-t1.2 — 1/1 preserved (100%)
 - Tool-Mediated Reply: deepseek-v4-flash@medium-t1.2 — 3/5 preserved (60%)

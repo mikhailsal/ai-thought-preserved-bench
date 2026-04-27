@@ -123,7 +123,7 @@ class BrokenToolClient(FakeClient):
 
 
 def _model() -> ModelConfig:
-    return ModelConfig(model_id="google/gemma-4-31b-it:free", display_label="gemma", temperature=1.2, reasoning_effort="minimal")
+    return ModelConfig(model_id="test/fake-bench-model", display_label="fake-bench-model", temperature=1.2, reasoning_effort="minimal")
 
 
 def _open_model() -> ModelConfig:
@@ -188,6 +188,7 @@ def test_runner_returns_cached_records(monkeypatch, tmp_path: Path) -> None:
 
 
 def test_cli_commands(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     fake_client = FakeClient()
     summaries = []
     runner_cli = CliRunner()

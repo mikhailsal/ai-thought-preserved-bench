@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import json
+import logging
 import re
 from pathlib import Path
 from typing import Any
 
 from src.config import CACHE_DIR, PROBES_DIR
+
+log = logging.getLogger(__name__)
 
 
 def _run_cache_path(config_slug: str, scenario_id: str, run_number: int) -> Path:
@@ -91,6 +94,14 @@ def iter_run_records() -> list[dict[str, Any]]:
         for scenario_id in list_cached_scenarios(config_slug):
             for run_number in list_cached_runs(config_slug, scenario_id):
                 record = load_run_record(config_slug, scenario_id, run_number)
-                if record:
-                    records.append(record)
+                if not record:
+                    continue
+                provider = record.get("provider") or record.get("metadata", {}).get("provider")
+                if not provider:
+                    log.warning(
+                        "Skipping orphan cache record without provider: %s/%s/run_%d",
+                        config_slug, scenario_id, run_number,
+                    )
+                    continue
+                records.append(record)
     return records

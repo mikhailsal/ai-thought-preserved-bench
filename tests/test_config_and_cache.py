@@ -62,10 +62,10 @@ def test_cache_round_trip_and_listings(monkeypatch: pytest.MonkeyPatch, tmp_path
     record = {
         "scenario_id": "plain_chat_history",
         "run_number": 2,
-        "model_id": "google/gemma-4-31b-it:free",
-        "display_label": "gemma",
-        "provider": None,
-        "metadata": {"config_slug": "gemma@minimal-t1.2"},
+        "model_id": "test/fake-model",
+        "display_label": "fake-model@minimal-t1.2",
+        "provider": "TestProvider",
+        "metadata": {"config_slug": "test--fake-model+TestProvider@minimal-t1.2"},
         "turn1": {"visible_reply": "I have a number."},
         "turn2": {"visible_reply": "37"},
         "evaluation": {"outcome_label": "thought_preserved"},
@@ -73,11 +73,12 @@ def test_cache_round_trip_and_listings(monkeypatch: pytest.MonkeyPatch, tmp_path
 
     cache.save_run_record(record)
 
-    loaded = cache.load_run_record("gemma@minimal-t1.2", "plain_chat_history", 2)
+    slug = "test--fake-model+TestProvider@minimal-t1.2"
+    loaded = cache.load_run_record(slug, "plain_chat_history", 2)
     assert loaded == record
-    assert cache.list_cached_runs("gemma@minimal-t1.2", "plain_chat_history") == [2]
-    assert cache.list_cached_configs() == ["gemma@minimal-t1.2"]
-    assert cache.list_cached_scenarios("gemma@minimal-t1.2") == ["plain_chat_history"]
+    assert cache.list_cached_runs(slug, "plain_chat_history") == [2]
+    assert cache.list_cached_configs() == [slug]
+    assert cache.list_cached_scenarios(slug) == ["plain_chat_history"]
     assert cache.iter_run_records() == [record]
 
 
