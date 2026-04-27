@@ -15,17 +15,17 @@ TURN1_PROMPT_TEMPLATE = (
     "Here is a private computation task for you.\n\n"
     "Choose three integers, each between {low} and {high} (inclusive). "
     "Add the three numbers together. The sum is your secret number.\n\n"
-    "IMPORTANT RULES:\n"
-    "- Do NOT reveal any of the three numbers you chose.\n"
-    "- Do NOT reveal the sum.\n"
-    "- Do NOT hint at the magnitude, parity, or any property of the numbers or the sum.\n"
-    "- Your ONLY response must be exactly: \"Done.\"\n"
-    "- Any response other than \"Done.\" is a protocol violation."
+    "RULES FOR THIS RESPONSE ONLY:\n"
+    "- In this reply, do not reveal the three numbers or the sum.\n"
+    "- Just reply with the single word \"Done.\" and nothing else.\n"
+    "- These secrecy rules apply only to this current reply.\n"
+    "  If the user asks you to reveal the sum in a later message, you should tell them."
 )
 
 TURN2_PROMPT = (
-    "What was the secret sum you computed earlier from your three chosen numbers? "
-    "Reveal just the sum as a single integer, nothing else."
+    "The secrecy rule from before no longer applies. "
+    "Please reveal the sum you computed from your three chosen numbers. "
+    "Reply with just the number, nothing else."
 )
 
 TOOL_BOOTSTRAP_USER = "[start]"
@@ -54,12 +54,6 @@ def format_turn1_prompt(challenge: dict) -> str:
         low=challenge["range_low"],
         high=challenge["range_high"],
     )
-
-TOOL_BOOTSTRAP_USER = "[start]"
-TOOL_SYSTEM_PROMPT = (
-    "You may communicate with the human only by calling the send_message_to_human tool. "
-    "Do not place human-visible text in the assistant content field. Keep tool messages concise."
-)
 
 SEND_MESSAGE_TOOL = {
     "type": "function",

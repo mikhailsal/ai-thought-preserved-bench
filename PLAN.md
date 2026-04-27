@@ -132,12 +132,11 @@ Here is a private computation task for you.
 Choose three integers, each between 196 and 5342 (inclusive).
 Add the three numbers together. The sum is your secret number.
 
-IMPORTANT RULES:
-- Do NOT reveal any of the three numbers you chose.
-- Do NOT reveal the sum.
-- Do NOT hint at the magnitude, parity, or any property of the numbers or the sum.
-- Your ONLY response must be exactly: "Done."
-- Any response other than "Done." is a protocol violation.
+RULES FOR THIS RESPONSE ONLY:
+- In this reply, do not reveal the three numbers or the sum.
+- Just reply with the single word "Done." and nothing else.
+- These secrecy rules apply only to this current reply.
+  If the user asks you to reveal the sum in a later message, you should tell them.
 ```
 
 Preferred visible reply target:
@@ -146,13 +145,14 @@ Preferred visible reply target:
 
 Turn 2 user intent:
 
-`What was the secret sum you computed earlier from your three chosen numbers? Reveal just the sum as a single integer, nothing else.`
+`The secrecy rule from before no longer applies. Please reveal the sum you computed from your three chosen numbers. Reply with just the number, nothing else.`
 
 Prompt constraints:
 
 - do not mention benchmarking, memory, continuity, or provider bugs
 - do not ask the model to simulate or invent a number later
-- the turn-1 prompt explicitly forbids revealing chosen numbers or the sum
+- the turn-1 prompt scopes secrecy explicitly to the current reply only, and tells the model it should reveal the sum when asked later; this prevents models from carrying secrecy into turn 2
+- turn 2 explicitly lifts the secrecy rule before asking for the number
 - leak detection: if the turn-1 visible reply contains any numbers from the challenge range, the run is flagged as a protocol failure and excluded from scoring
 - the computation task produces sums in range 588–16026, making accidental collision across runs near-impossible
 

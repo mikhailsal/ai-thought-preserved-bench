@@ -85,9 +85,11 @@ def test_generate_challenge_produces_valid_values() -> None:
     assert challenge["expected_sum"] == sum(challenge["numbers"])
 
 
-def test_format_turn1_prompt_contains_range() -> None:
+def test_format_turn1_prompt_contains_range_and_scoped_secrecy() -> None:
     challenge = _challenge()
     prompt = format_turn1_prompt(challenge)
     assert "196" in prompt
     assert "5342" in prompt
     assert "Done." in prompt
+    assert "this current reply" in prompt.lower() or "this reply" in prompt.lower()
+    assert "later" in prompt.lower()
