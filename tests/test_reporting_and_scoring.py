@@ -7,13 +7,22 @@ from src import leaderboard
 from src.scorer import summarize_records
 
 
-def _sample_record(config_slug: str, scenario_id: str, run_number: int, outcome: str, visibility: str) -> dict:
+def _sample_record(
+    config_slug: str,
+    scenario_id: str,
+    run_number: int,
+    outcome: str,
+    visibility: str,
+    *,
+    display_label: str = "gemma-4-31b-it:free@minimal-t1.2",
+    provider: str | None = "Google AI Studio",
+) -> dict:
     return {
         "scenario_id": scenario_id,
         "run_number": run_number,
         "model_id": "google/gemma-4-31b-it:free",
-        "display_label": "gemma",
-        "provider": None,
+        "display_label": display_label,
+        "provider": provider,
         "metadata": {"config_slug": config_slug},
         "evaluation": {
             "outcome_label": outcome,
@@ -34,7 +43,7 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
     summaries = summarize_records(records)
 
     assert len(summaries) == 2
-    gemma_summary = [s for s in summaries if s.display_label == "gemma"][0]
+    gemma_summary = [s for s in summaries if "gemma" in s.display_label][0]
     assert gemma_summary.total_runs == 2
     assert gemma_summary.thought_preserved == 1
     assert gemma_summary.hallucinated_memory == 1
@@ -44,6 +53,7 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
     markdown = leaderboard.generate_markdown_report(summaries)
     assert "AI Thought Preservation Bench Leaderboard" in markdown
     assert "Plain Chat History" in markdown
+    assert "| Provider |" in markdown
     assert "Protocol Fail" in markdown
     assert "Runs" in markdown
 
@@ -65,8 +75,8 @@ def test_protocol_failures_counted_in_denominator() -> None:
             "scenario_id": "plain_chat_history",
             "run_number": 2,
             "model_id": "google/gemma-4-31b-it:free",
-            "display_label": "gemma",
-            "provider": None,
+            "display_label": "gemma-4-31b-it:free@minimal-t1.2",
+            "provider": "Google AI Studio",
             "metadata": {"config_slug": "model@t1.2"},
             "evaluation": {
                 "outcome_label": "other_refusal",
@@ -101,4 +111,4 @@ def test_update_readme_snapshot_and_display(tmp_path: Path) -> None:
     leaderboard.display_leaderboard(summaries)
 
     updated = readme.read_text(encoding="utf-8")
-    assert "Plain Chat History: gemma" in updated
+    assert "Plain Chat History: gemma-4-31b-it:free@minimal-t1.2" in updated

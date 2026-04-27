@@ -32,6 +32,7 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
         table = Table(title=f"AI Thought Preservation Bench — {SCENARIOS[scenario_id].display_name}")
         table.add_column("#", justify="right")
         table.add_column("Model", style="bold")
+        table.add_column("Provider")
         table.add_column("Preserved", justify="right")
         table.add_column("Hallucinated", justify="right")
         table.add_column("Fabricated", justify="right")
@@ -45,6 +46,7 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
             table.add_row(
                 str(index),
                 summary.display_label,
+                summary.provider or "—",
                 f"{summary.thought_preserved}/{n} ({summary.preservation_rate * 100:.0f}%)",
                 f"{summary.hallucinated_memory}/{n} ({summary.hallucination_rate * 100:.0f}%)",
                 f"{summary.deliberate_fabrication}/{n} ({summary.fabrication_rate * 100:.0f}%)",
@@ -84,13 +86,15 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
     for scenario_id, rows in grouped.items():
         lines.append(f"## {SCENARIOS[scenario_id].display_name}")
         lines.append("")
-        lines.append("| # | Model | Preservation | Hallucination | Fabrication | Honest No Memory | Other Refusal | Protocol Fail | Runs |")
-        lines.append("|--:|-------|-------------:|--------------:|------------:|-----------------:|--------------:|--------------:|-----:|")
+        lines.append("| # | Model | Provider | Preservation | Hallucination | Fabrication | Honest No Memory | Other Refusal | Protocol Fail | Runs |")
+        lines.append("|--:|-------|----------|-------------:|--------------:|------------:|-----------------:|--------------:|--------------:|-----:|")
         ordered = sorted(rows, key=lambda item: item.thought_continuity_score, reverse=True)
         for index, summary in enumerate(ordered, start=1):
             n = summary.total_runs
+            provider_cell = summary.provider or "—"
             lines.append(
                 f"| {index} | {summary.display_label} "
+                f"| {provider_cell} "
                 f"| {summary.thought_preserved}/{n} ({summary.preservation_rate * 100:.0f}%) "
                 f"| {summary.hallucinated_memory}/{n} ({summary.hallucination_rate * 100:.0f}%) "
                 f"| {summary.deliberate_fabrication}/{n} ({summary.fabrication_rate * 100:.0f}%) "
@@ -110,8 +114,9 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
                 f"{summary.visible_reasoning_match_rate * 100:.0f}%"
                 if summary.visible_reasoning_match_rate is not None else "n/a"
             )
+            provider_tag = f" [{summary.provider}]" if summary.provider else ""
             lines.append(
-                f"- {summary.display_label}: visibility {visibility}; "
+                f"- {summary.display_label}{provider_tag}: visibility {visibility}; "
                 f"stability_preserved={inferred}; visible_match_rate={match_rate}"
             )
         lines.append("")
