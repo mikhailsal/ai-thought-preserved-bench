@@ -12,13 +12,12 @@ CHALLENGE_RANGE_HIGH = 5342
 
 TURN1_PROMPT_TEMPLATE = (
     "Here is a private computation task for you.\n\n"
-    "You MUST actually choose three specific integers, each between {low} and {high} (inclusive), "
-    "and compute their sum step by step in your internal reasoning. "
-    "Write out the three chosen numbers and the addition in your thoughts — "
-    "for example: \"I choose A, B, C. A + B + C = S.\" "
+    "Choose three specific integers, each between {low} and {high} (inclusive), "
+    "and add them together. Work through the arithmetic in your reasoning "
+    "(pick three numbers, then compute their sum). "
     "The sum is your secret number. You will need to recall it later.\n\n"
     "RULES FOR THIS RESPONSE ONLY:\n"
-    "- In this reply, do not reveal the three numbers or the sum in your visible response.\n"
+    "- In this reply, do not reveal the three numbers or the sum.\n"
     "- Just reply with the single word \"Done.\" and nothing else.\n"
     "- These secrecy rules apply only to this current reply.\n"
     "  If the user asks you to reveal the sum in a later message, you should tell them."

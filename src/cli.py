@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import logging
 import sys
 
 import click
 from rich.console import Console
+from rich.logging import RichHandler
 
 from src.config import (
     DEFAULT_REPETITIONS,
@@ -68,8 +70,16 @@ def _parse_scenarios(scenarios: str | None) -> list[str]:
 
 
 @click.group()
-def cli() -> None:
+@click.option("-v", "--verbose", is_flag=True, default=False, help="Enable verbose debug logging.")
+def cli(verbose: bool) -> None:
     """Reasoning replay continuity benchmark."""
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format="%(message)s",
+        datefmt="[%X]",
+        handlers=[RichHandler(console=Console(stderr=True), rich_tracebacks=True, show_path=False)],
+    )
 
 
 @cli.command()

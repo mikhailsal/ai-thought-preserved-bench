@@ -134,9 +134,11 @@ def run_plain_scenario(
         return cached
 
     challenge = generate_challenge()
+    log.info("[%s] plain run %d: turn1…", model_config.label, run_number)
     turn1_messages = build_plain_turn1_messages(challenge)
     turn1_result = _call_model(client, model_config, turn1_messages)
     turn1_artifact = _assistant_artifact(turn1_result)
+    log.info("[%s] plain run %d: turn2…", model_config.label, run_number)
     turn2_messages = build_plain_turn2_messages(challenge, turn1_artifact)
     turn2_result = _call_model(client, model_config, turn2_messages)
 
@@ -156,6 +158,7 @@ def run_plain_scenario(
 
     judge = None
     if judge_model and not _is_content_filtered(turn2_artifact):
+        log.info("[%s] plain run %d: judge…", model_config.label, run_number)
         judge = judge_turn2_reply(
             client,
             turn2_result.visible_output,
@@ -183,6 +186,7 @@ def run_tool_scenario(
 
     challenge = generate_challenge()
     tools = get_tool_definitions()
+    log.info("[%s] tool run %d: bootstrap…", model_config.label, run_number)
     bootstrap_messages = build_tool_bootstrap_messages()
     bootstrap_result = _call_model(client, model_config, bootstrap_messages, tools=tools)
     bootstrap_artifact = _assistant_artifact(bootstrap_result)
@@ -193,9 +197,11 @@ def run_tool_scenario(
         },
     }
     try:
+        log.info("[%s] tool run %d: turn1…", model_config.label, run_number)
         turn1_messages = build_tool_turn1_messages(challenge, bootstrap_artifact)
         turn1_result = _call_model(client, model_config, turn1_messages, tools=tools)
         turn1_artifact = _assistant_artifact(turn1_result)
+        log.info("[%s] tool run %d: turn2…", model_config.label, run_number)
         turn2_messages = build_tool_turn2_messages(challenge, bootstrap_artifact, turn1_artifact)
         turn2_result = _call_model(client, model_config, turn2_messages, tools=tools)
     except Exception as exc:
@@ -224,6 +230,7 @@ def run_tool_scenario(
 
     judge = None
     if judge_model and not _is_content_filtered(turn2_artifact):
+        log.info("[%s] tool run %d: judge…", model_config.label, run_number)
         judge = judge_turn2_reply(
             client,
             turn2_result.visible_output,

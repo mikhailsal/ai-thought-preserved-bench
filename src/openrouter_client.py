@@ -198,9 +198,12 @@ class OpenRouterClient:
                 if extra_body:
                     request_payload["extra_body"] = extra_body
 
+                provider_tag = f" [{provider}]" if provider else ""
+                log.info("→ %s%s  max_tokens=%d  effort=%s", model, provider_tag, max_tokens, effective_reasoning or "none")
                 started = time.monotonic()
                 response = self._client.chat.completions.create(**request_payload)
                 elapsed = time.monotonic() - started
+                log.info("← %s  %.1fs  tokens=%d", model, elapsed, getattr(getattr(response, "usage", None), "completion_tokens", 0) or 0)
 
                 choice = response.choices[0] if response.choices else None
                 message = getattr(choice, "message", None)
@@ -244,11 +247,22 @@ class OpenRouterClient:
                 )
             except Exception as exc:
                 last_error = exc
+                elapsed_so_far = time.monotonic() - started
                 status_code = getattr(exc, "status_code", None)
-                if status_code in self.RETRYABLE_STATUS_CODES and attempt < self.MAX_RETRIES:
+                is_retryable = (
+                    (status_code in self.RETRYABLE_STATUS_CODES)
+                    or isinstance(exc, (ConnectionError, TimeoutError))
+                    or "connection" in str(exc).lower()
+                    or "timed out" in str(exc).lower()
+                )
+                if is_retryable and attempt < self.MAX_RETRIES:
                     wait_seconds = self.RETRY_BACKOFF_BASE ** (attempt + 1)
-                    log.warning("Retrying OpenRouter request for %s after %s", model, exc)
+                    log.warning(
+                        "⚠ %s failed after %.1fs (HTTP %s), retry %d/%d in %.0fs: %s",
+                        model, elapsed_so_far, status_code, attempt + 1, self.MAX_RETRIES, wait_seconds, exc,
+                    )
                     time.sleep(wait_seconds)
                     continue
+                log.error("✗ %s failed after %.1fs (HTTP %s, no retries left): %s", model, elapsed_so_far, status_code, exc)
                 raise
         raise last_error or RuntimeError("OpenRouter request failed")
