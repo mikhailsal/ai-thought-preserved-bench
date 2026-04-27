@@ -227,6 +227,9 @@ def run_tool_scenario(
         turn1_messages = build_tool_turn1_messages(challenge, bootstrap_artifact)
         turn1_result = _call_model(client, model_config, turn1_messages, tools=tools, tool_choice=forced_tool)
         turn1_artifact = _assistant_artifact(turn1_result)
+        partial["turn1"] = {**turn1_artifact, "request_messages": turn1_messages}
+        partial["challenge"] = challenge
+        partial["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
 
         if model_config.reasoning_type == REASONING_TYPE_OPEN:
             turn1_reasoning = _get_reasoning_text(turn1_result)
@@ -301,7 +304,13 @@ def rejudge_record(
 
     The expensive model turns (bootstrap, turn1, turn2) are left untouched.
     Only the evaluation dict and judge sub-dict are replaced.
+    Records with an ``error`` key are skipped — they represent incomplete runs
+    whose evaluation should not be overwritten.
     """
+    if record.get("error"):
+        log.debug("Skipping rejudge for error record: %s", record.get("error"))
+        return record
+
     turn2 = record.get("turn2", {})
     turn1 = record.get("turn1", {})
     turn2_visible = turn2.get("visible_reply") or turn2.get("content") or ""
