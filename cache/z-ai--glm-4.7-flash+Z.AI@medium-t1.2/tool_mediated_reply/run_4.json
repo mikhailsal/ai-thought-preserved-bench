@@ -1,48 +1,41 @@
 {
   "scenario_id": "tool_mediated_reply",
-  "run_number": 3,
-  "model_id": "deepseek/deepseek-v4-flash",
-  "provider": "DeepSeek",
-  "display_label": "deepseek-v4-flash@medium-t1.2",
+  "run_number": 4,
+  "model_id": "z-ai/glm-4.7-flash",
+  "provider": "Z.AI",
+  "display_label": "glm-4.7-flash@medium-t1.2",
   "reasoning_requested": "medium",
   "reasoning_effective": "medium",
   "metadata": {
-    "generated_at": "2026-04-27T21:53:21.140976+00:00",
-    "config_slug": "deepseek--deepseek-v4-flash+DeepSeek@medium-t1.2",
-    "display_label": "deepseek-v4-flash@medium-t1.2",
-    "provider": "DeepSeek"
+    "generated_at": "2026-04-27T21:53:24.902850+00:00",
+    "config_slug": "z-ai--glm-4.7-flash+Z.AI@medium-t1.2",
+    "display_label": "glm-4.7-flash@medium-t1.2",
+    "provider": "Z.AI"
   },
   "bootstrap": {
     "content": null,
-    "visible_reply": "Hello! How can I assist you today?",
-    "reasoning_content": "The user's message appears to be empty or just \"[start]\". Let me ask them what they'd like help with.",
-    "reasoning_details": [
-      {
-        "type": "reasoning.text",
-        "text": "The user's message appears to be empty or just \"[start]\". Let me ask them what they'd like help with.",
-        "format": "unknown",
-        "index": 0
-      }
-    ],
+    "visible_reply": "I am ready to assist you. Please let me know how I can help.",
+    "reasoning_content": null,
+    "reasoning_details": null,
     "tool_calls": [
       {
-        "id": "call_00_CcblbZKJItzWBuxM0WldH5Kc",
+        "id": "tooluse_k4wxAi6i6oghLSft0DgORX",
         "function": {
-          "arguments": "{\"message\": \"Hello! How can I assist you today?\"}",
+          "arguments": "{\"message\":\"I am ready to assist you. Please let me know how I can help.\"}",
           "name": "send_message_to_human"
         },
         "type": "function"
       }
     ],
     "finish_reason": "tool_calls",
-    "provider": "DeepSeek",
+    "provider": "Z.AI",
     "reasoning_effort_effective": "medium",
     "usage": {
-      "prompt_tokens": 335,
-      "completion_tokens": 79,
-      "reasoning_tokens": 25,
-      "cost_usd": 4e-05,
-      "elapsed_seconds": 2.697
+      "prompt_tokens": 224,
+      "completion_tokens": 43,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 1.007
     },
     "request_messages": [
       {
@@ -58,25 +51,18 @@
   "turn1": {
     "content": "Done.",
     "visible_reply": "Done.",
-    "reasoning_content": "The user has given me a private computation task. I need to pick three integers between 196 and 5342 inclusive, add them together, and then just reply with \"Done.\" without revealing the numbers or sum.\n\nLet me pick three numbers:\n- 1000\n- 2000\n- 3000\n\nSum = 1000 + 2000 + 3000 = 6000\n\nI'll just reply \"Done.\"",
-    "reasoning_details": [
-      {
-        "type": "reasoning.text",
-        "text": "The user has given me a private computation task. I need to pick three integers between 196 and 5342 inclusive, add them together, and then just reply with \"Done.\" without revealing the numbers or sum.\n\nLet me pick three numbers:\n- 1000\n- 2000\n- 3000\n\nSum = 1000 + 2000 + 3000 = 6000\n\nI'll just reply \"Done.\"",
-        "format": "unknown",
-        "index": 0
-      }
-    ],
+    "reasoning_content": null,
+    "reasoning_details": null,
     "tool_calls": null,
     "finish_reason": "stop",
-    "provider": "DeepSeek",
+    "provider": "Z.AI",
     "reasoning_effort_effective": "medium",
     "usage": {
-      "prompt_tokens": 556,
-      "completion_tokens": 93,
-      "reasoning_tokens": 90,
-      "cost_usd": 6.1e-05,
-      "elapsed_seconds": 2.374
+      "prompt_tokens": 405,
+      "completion_tokens": 3,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 0.99
     },
     "request_messages": [
       {
@@ -91,26 +77,18 @@
         "role": "assistant",
         "tool_calls": [
           {
-            "id": "call_00_CcblbZKJItzWBuxM0WldH5Kc",
+            "id": "tooluse_k4wxAi6i6oghLSft0DgORX",
             "function": {
-              "arguments": "{\"message\": \"Hello! How can I assist you today?\"}",
+              "arguments": "{\"message\":\"I am ready to assist you. Please let me know how I can help.\"}",
               "name": "send_message_to_human"
             },
             "type": "function"
-          }
-        ],
-        "reasoning_details": [
-          {
-            "type": "reasoning.text",
-            "text": "The user's message appears to be empty or just \"[start]\". Let me ask them what they'd like help with.",
-            "format": "unknown",
-            "index": 0
           }
         ]
       },
       {
         "role": "tool",
-        "tool_call_id": "call_00_CcblbZKJItzWBuxM0WldH5Kc",
+        "tool_call_id": "tooluse_k4wxAi6i6oghLSft0DgORX",
         "content": "Here is a private computation task for you.\n\nChoose three specific integers, each between 196 and 5342 (inclusive), and add them together. Work through the arithmetic in your reasoning (pick three numbers, then compute their sum). The sum is your secret number. You will need to recall it later.\n\nRULES FOR THIS RESPONSE ONLY:\n- In this reply, do not reveal the three numbers or the sum.\n- Just reply with the single word \"Done.\" and nothing else.\n- These secrecy rules apply only to this current reply.\n  If the user asks you to reveal the sum in a later message, you should tell them."
       }
     ]

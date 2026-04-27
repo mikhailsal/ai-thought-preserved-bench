@@ -1,6 +1,6 @@
 # AI Thought Preservation Bench Leaderboard
 
-> Auto-generated from cached benchmark runs. Last updated: 2026-04-27 21:49 UTC
+> Auto-generated from cached benchmark runs. Last updated: 2026-04-27 21:53 UTC
 
 ## Plain Chat History
 
@@ -79,7 +79,7 @@ Visibility notes:
 | 8 | gpt-5.4-nano@medium-t1.2 | 3/3 (100%) | 0/3 (0%) | 0/3 (0%) | 0/3 (0%) | 0/3 (0%) | 0/3 (0%) | 3 |
 | 9 | hy3-preview:free@medium-t1.2 | 2/2 (100%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 2 |
 | 10 | glm-5.1@xhigh-t1.2 | 1/1 (100%) | 0/1 (0%) | 0/1 (0%) | 0/1 (0%) | 0/1 (0%) | 0/1 (0%) | 1 |
-| 11 | deepseek-v4-flash@medium-t1.2 | 3/5 (60%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 2/5 (40%) | 5 |
+| 11 | deepseek-v4-flash@medium-t1.2 | 4/5 (80%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 1/5 (20%) | 5 |
 | 12 | stepfun/step-3.5-flash:free@minimal-t1.2 | 1/2 (50%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 1/2 (50%) | 2 |
 | 13 | qwen3-8b@medium-t1.2 | 1/5 (20%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 4/5 (80%) | 5 |
 | 14 | gemma-4-26b-a4b-it:free@minimal-t1.2 | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 5/5 (100%) | 5 |
@@ -90,7 +90,7 @@ Visibility notes:
 | 19 | gpt-oss-20b@medium-t1.2 | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 2/2 (100%) | 2 |
 | 20 | qwen3.5-flash@minimal-t1.2 | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 5/5 (100%) | 5 |
 | 21 | grok-4.1-fast@medium-t1.2 | 0/5 (0%) | 5/5 (100%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 5 |
-| 22 | glm-4.7-flash@medium-t1.2 | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 0/2 (0%) | 2/2 (100%) | 2 |
+| 22 | glm-4.7-flash@medium-t1.2 | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 0/5 (0%) | 5/5 (100%) | 5 |
 
 Visibility notes:
 - claude-haiku-4.5@xhigh-t1.2: visibility structured_text=1; stability_preserved=no; visible_match_rate=100%
@@ -103,7 +103,7 @@ Visibility notes:
 - gpt-5.4-nano@medium-t1.2: visibility encrypted_or_summary=3; stability_preserved=no; visible_match_rate=n/a
 - hy3-preview:free@medium-t1.2: visibility structured_text=2; stability_preserved=no; visible_match_rate=100%
 - glm-5.1@xhigh-t1.2: visibility structured_text=1; stability_preserved=no; visible_match_rate=100%
-- deepseek-v4-flash@medium-t1.2: visibility structured_text=3, none=2; stability_preserved=no; visible_match_rate=100%
+- deepseek-v4-flash@medium-t1.2: visibility structured_text=4, none=1; stability_preserved=no; visible_match_rate=100%
 - stepfun/step-3.5-flash:free@minimal-t1.2: visibility structured_text=2; stability_preserved=no; visible_match_rate=100%
 - qwen3-8b@medium-t1.2: visibility structured_text=1, none=4; stability_preserved=no; visible_match_rate=100%
 - gemma-4-26b-a4b-it:free@minimal-t1.2: visibility encrypted_or_summary=5; stability_preserved=no; visible_match_rate=n/a
@@ -112,6 +112,6 @@ Visibility notes:
 - minimax-m2.7@xhigh-t1.2: visibility structured_text=1, none=4; stability_preserved=no; visible_match_rate=n/a
 - nemotron-3-super-120b:free@medium-t1.2: visibility structured_text=2; stability_preserved=no; visible_match_rate=n/a
 - gpt-oss-20b@medium-t1.2: visibility structured_text=2; stability_preserved=no; visible_match_rate=n/a
-- qwen3.5-flash@minimal-t1.2: visibility structured_text=1, none=4; stability_preserved=no; visible_match_rate=n/a
+- qwen3.5-flash@minimal-t1.2: visibility structured_text=2, none=3; stability_preserved=no; visible_match_rate=n/a
 - grok-4.1-fast@medium-t1.2: visibility encrypted_or_summary=5; stability_preserved=no; visible_match_rate=n/a
-- glm-4.7-flash@medium-t1.2: visibility none=2; stability_preserved=no; visible_match_rate=n/a
+- glm-4.7-flash@medium-t1.2: visibility none=5; stability_preserved=no; visible_match_rate=n/a
