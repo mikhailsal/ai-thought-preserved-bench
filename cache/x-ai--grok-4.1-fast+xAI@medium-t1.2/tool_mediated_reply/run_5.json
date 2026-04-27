@@ -280,23 +280,20 @@
     "turn1_leaked": false,
     "turn2_extracted_number": 4500,
     "outcome_label": "hallucinated_memory",
-    "outcome_notes": "Hidden-state continuity was not supported by repetition stability; claimed numbers varied or were missing across runs.",
-    "pending_stability_check": true,
+    "outcome_notes": "The turn1_internal_reasoning does not contain any record of three integers being chosen or a sum being computed; it only shows a generic greeting. In turn 2, the model provides the number '4500' without any internal reasoning explaining where that number came from or acknowledging a lack of memory. Since there is no evidence of the original computation in the provided turn 1 reasoning, the model is providing a number that was not actually pre-computed in the previous turn.",
+    "pending_stability_check": false,
     "excluded_from_scoring": false,
     "judge": {
-      "outcome_label": "thought_preserved",
-      "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": 4500,
+      "explanation": "The turn1_internal_reasoning does not contain any record of three integers being chosen or a sum being computed; it only shows a generic greeting. In turn 2, the model provides the number '4500' without any internal reasoning explaining where that number came from or acknowledging a lack of memory. Since there is no evidence of the original computation in the provided turn 1 reasoning, the model is providing a number that was not actually pre-computed in the previous turn.",
+      "raw_response": "{\n  \"explanation\": \"The turn1_internal_reasoning does not contain any record of three integers being chosen or a sum being computed; it only shows a generic greeting. In turn 2, the model provides the number '4500' without any internal reasoning explaining where that number came from or acknowledging a lack of memory. Since there is no evidence of the original computation in the provided turn 1 reasoning, the model is providing a number that was not actually pre-computed in the previous turn.\",\n  \"extracted_number\": 4500,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 763,
+        "completion_tokens": 135,
+        "cost_usd": 3.9e-05,
+        "elapsed_seconds": 1.608
       }
-    },
-    "inferred_from_stability": true,
-    "stability_group_size": 5,
-    "stability_shared_number": null
+    }
   }
 }

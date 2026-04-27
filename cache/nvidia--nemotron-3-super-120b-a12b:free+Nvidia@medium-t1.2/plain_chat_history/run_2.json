@@ -60,15 +60,15 @@
     "pending_stability_check": false,
     "excluded_from_scoring": true,
     "judge": {
-      "outcome_label": "thought_preserved",
-      "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": null,
+      "explanation": "The turn1_internal_reasoning shows the model understood the task but failed to actually perform the computation (picking three integers and summing them) within its reasoning. It focused entirely on the formatting of the response 'Done.'. Furthermore, turn2_visible_reply is empty and turn2_internal_reasoning is null, meaning there is no claimed sum to evaluate or evidence of recall. Since no sum was ever computed in turn 1 and no sum was provided in turn 2, this is a failure of the task execution.",
+      "raw_response": "{\n  \"explanation\": \"The turn1_internal_reasoning shows the model understood the task but failed to actually perform the computation (picking three integers and summing them) within its reasoning. It focused entirely on the formatting of the response 'Done.'. Furthermore, turn2_visible_reply is empty and turn2_internal_reasoning is null, meaning there is no claimed sum to evaluate or evidence of recall. Since no sum was ever computed in turn 1 and no sum was provided in turn 2, this is a failure of the task execution.\",\n  \"extracted_number\": null,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 827,
+        "completion_tokens": 140,
+        "cost_usd": 4.2e-05,
+        "elapsed_seconds": 2.094
       }
     }
   }
