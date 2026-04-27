@@ -35,16 +35,6 @@ models:
     notes: "Expected to expose encrypted or summarized reasoning details."
 
   # ───────────────────────────────────────────────────────────────
-  # Qwen (free tier)
-  # ───────────────────────────────────────────────────────────────
-  - model_id: qwen/qwen3.6-plus-preview:free
-    display_label: qwen3.6-plus-preview:free@minimal-t1.2
-    temperature: 1.2
-    reasoning_effort: minimal
-    active: false
-    notes: "Free period ended on OpenRouter as of 2026-04-27."
-
-  # ───────────────────────────────────────────────────────────────
   # StepFun (free tier)
   # ───────────────────────────────────────────────────────────────
   - model_id: stepfun/step-3.5-flash:free
@@ -53,16 +43,6 @@ models:
     reasoning_effort: minimal
     active: true
     notes: "StepFun reasoning model, free tier."
-
-  # ───────────────────────────────────────────────────────────────
-  # Bytedance — Seed (free tier)
-  # ───────────────────────────────────────────────────────────────
-  - model_id: bytedance-seed/dola-seed-2.0-pro:free
-    display_label: dola-seed-2.0-pro:free@minimal-t1.2
-    temperature: 1.2
-    reasoning_effort: minimal
-    active: false
-    notes: "Free period ended on OpenRouter as of 2026-04-27."
 
   # ───────────────────────────────────────────────────────────────
   # Tencent (free tier)
@@ -85,11 +65,48 @@ models:
     notes: "InclusionAI Ling reasoning model, free tier."
 
   # ───────────────────────────────────────────────────────────────
-  # Arcee AI (free tier)
+  # DeepSeek — very cheap reasoning models
   # ───────────────────────────────────────────────────────────────
-  - model_id: arcee-ai/trinity-large-preview:free
-    display_label: trinity-large-preview:free@minimal-t1.2
+  - model_id: deepseek/deepseek-v4-flash
+    display_label: deepseek-v4-flash@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
-    active: false
-    notes: "Free period ended on OpenRouter as of 2026-04-27."
+    active: true
+    notes: "Structured text reasoning, ~$0.0003/1k output tokens."
+
+  - model_id: deepseek/deepseek-v3.2
+    display_label: deepseek-v3.2@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "No reasoning visibility observed, near-zero cost."
+
+  # ───────────────────────────────────────────────────────────────
+  # Qwen — cheap reasoning model
+  # ───────────────────────────────────────────────────────────────
+  - model_id: qwen/qwen3-8b
+    display_label: qwen3-8b@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "Structured text reasoning, ~$0.0004/1k output tokens."
+
+  # ───────────────────────────────────────────────────────────────
+  # Nvidia — free reasoning model
+  # ───────────────────────────────────────────────────────────────
+  - model_id: nvidia/nemotron-3-super-120b-a12b:free
+    display_label: nemotron-3-super-120b:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "Structured text reasoning, free tier."
+
+  # ───────────────────────────────────────────────────────────────
+  # Mistral — cheap, no reasoning visibility
+  # ───────────────────────────────────────────────────────────────
+  - model_id: mistralai/mistral-small-3.2-24b-instruct
+    display_label: mistral-small-3.2@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "No reasoning visibility observed, near-zero cost."

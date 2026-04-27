@@ -1,0 +1,14 @@
+---
+description: Validate model availability before adding to models.yaml
+globs: configs/models.yaml
+alwaysApply: false
+---
+
+# Model Validation Before Registry Changes
+
+Before adding any model to `configs/models.yaml`:
+
+1. **Verify the model exists** — send a minimal probe request via the OpenRouter API and confirm it returns a 200 response. Free-tier models (`:free` suffix) are frequently discontinued without notice.
+2. **Confirm reasoning support** — if the model is expected to expose reasoning, check whether the response contains `reasoning_content` or `reasoning_details`. Record the observed visibility format.
+3. **Never add models blindly from another benchmark's registry** — model availability changes over time. Always validate against the live API first.
+4. **Mark discontinued models for removal** — do not leave dead models as `active: false` clutter. Remove them entirely and note the removal in the commit message.

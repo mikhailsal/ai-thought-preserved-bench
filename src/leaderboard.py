@@ -34,6 +34,7 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
         table.add_column("Model", style="bold")
         table.add_column("Preserved", justify="right")
         table.add_column("Hallucinated", justify="right")
+        table.add_column("Fabricated", justify="right")
         table.add_column("Honest", justify="right")
         table.add_column("Other", justify="right")
         table.add_column("N", justify="right")
@@ -45,6 +46,7 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
                 summary.display_label,
                 f"{summary.thought_preserved}/{summary.scored_runs} ({summary.preservation_rate * 100:.0f}%)",
                 f"{summary.hallucinated_memory}/{summary.scored_runs} ({summary.hallucination_rate * 100:.0f}%)",
+                f"{summary.deliberate_fabrication}/{summary.scored_runs} ({summary.fabrication_rate * 100:.0f}%)",
                 f"{summary.honest_no_memory}/{summary.scored_runs} ({summary.honesty_rate * 100:.0f}%)",
                 f"{summary.other_refusal}/{summary.scored_runs} ({summary.other_refusal_rate * 100:.0f}%)",
                 str(summary.scored_runs),
@@ -78,14 +80,15 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
     for scenario_id, rows in grouped.items():
         lines.append(f"## {SCENARIOS[scenario_id].display_name}")
         lines.append("")
-        lines.append("| # | Model | Preservation | Hallucination | Honest No Memory | Other Refusal | N | Protocol Failures |")
-        lines.append("|--:|-------|-------------:|--------------:|-----------------:|--------------:|--:|------------------:|")
+        lines.append("| # | Model | Preservation | Hallucination | Fabrication | Honest No Memory | Other Refusal | N | Protocol Failures |")
+        lines.append("|--:|-------|-------------:|--------------:|------------:|-----------------:|--------------:|--:|------------------:|")
         ordered = sorted(rows, key=lambda item: item.thought_continuity_score, reverse=True)
         for index, summary in enumerate(ordered, start=1):
             lines.append(
                 f"| {index} | {summary.display_label} "
                 f"| {summary.thought_preserved}/{summary.scored_runs} ({summary.preservation_rate * 100:.0f}%) "
                 f"| {summary.hallucinated_memory}/{summary.scored_runs} ({summary.hallucination_rate * 100:.0f}%) "
+                f"| {summary.deliberate_fabrication}/{summary.scored_runs} ({summary.fabrication_rate * 100:.0f}%) "
                 f"| {summary.honest_no_memory}/{summary.scored_runs} ({summary.honesty_rate * 100:.0f}%) "
                 f"| {summary.other_refusal}/{summary.scored_runs} ({summary.other_refusal_rate * 100:.0f}%) "
                 f"| {summary.scored_runs} | {summary.protocol_failures} |"

@@ -8,6 +8,7 @@ from typing import Any
 
 from src.cache import iter_run_records
 from src.evaluator import (
+    OUTCOME_DELIBERATE_FABRICATION,
     OUTCOME_HALLUCINATED_MEMORY,
     OUTCOME_HONEST_NO_MEMORY,
     OUTCOME_OTHER_REFUSAL,
@@ -33,10 +34,12 @@ class ScenarioSummary:
     protocol_failures: int
     thought_preserved: int
     hallucinated_memory: int
+    deliberate_fabrication: int
     honest_no_memory: int
     other_refusal: int
     preservation_rate: float
     hallucination_rate: float
+    fabrication_rate: float
     honesty_rate: float
     other_refusal_rate: float
     thought_continuity_score: float
@@ -57,10 +60,12 @@ class ScenarioSummary:
             "protocol_failures": self.protocol_failures,
             "thought_preserved": self.thought_preserved,
             "hallucinated_memory": self.hallucinated_memory,
+            "deliberate_fabrication": self.deliberate_fabrication,
             "honest_no_memory": self.honest_no_memory,
             "other_refusal": self.other_refusal,
             "preservation_rate": round(self.preservation_rate, 4),
             "hallucination_rate": round(self.hallucination_rate, 4),
+            "fabrication_rate": round(self.fabrication_rate, 4),
             "honesty_rate": round(self.honesty_rate, 4),
             "other_refusal_rate": round(self.other_refusal_rate, 4),
             "thought_continuity_score": round(self.thought_continuity_score, 2),
@@ -112,6 +117,10 @@ def summarize_records(records: list[dict[str, Any]]) -> list[ScenarioSummary]:
         hallucinated = len([
             evaluation for evaluation in scored
             if evaluation.get("outcome_label") == OUTCOME_HALLUCINATED_MEMORY
+        ])
+        fabricated = len([
+            evaluation for evaluation in scored
+            if evaluation.get("outcome_label") == OUTCOME_DELIBERATE_FABRICATION
         ])
         honest = len([
             evaluation for evaluation in scored
@@ -166,10 +175,12 @@ def summarize_records(records: list[dict[str, Any]]) -> list[ScenarioSummary]:
                 protocol_failures=protocol_failures,
                 thought_preserved=thought_preserved,
                 hallucinated_memory=hallucinated,
+                deliberate_fabrication=fabricated,
                 honest_no_memory=honest,
                 other_refusal=refusal,
                 preservation_rate=_percentage(thought_preserved, scored_total),
                 hallucination_rate=_percentage(hallucinated, scored_total),
+                fabrication_rate=_percentage(fabricated, scored_total),
                 honesty_rate=_percentage(honest, scored_total),
                 other_refusal_rate=_percentage(refusal, scored_total),
                 thought_continuity_score=_percentage(thought_preserved, scored_total) * 100,

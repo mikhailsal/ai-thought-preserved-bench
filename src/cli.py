@@ -25,6 +25,7 @@ from src.leaderboard import (
 )
 from src.model_probe import probe_model
 from src.openrouter_client import OpenRouterClient
+from src.parallel_runner import run_benchmark_parallel
 from src.runner import run_benchmark
 from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL
 from src.scorer import summarize_cache
@@ -75,21 +76,34 @@ def cli() -> None:
 @click.option("--reps", default=DEFAULT_REPETITIONS, type=int, show_default=True, help="Runs per model and scenario.")
 @click.option("--judge", default=JUDGE_MODEL, show_default=True, help="Judge model to normalize turn-2 replies.")
 @click.option("--force/--no-force", default=False, show_default=True, help="Ignore cached runs and execute again.")
-def run(models_arg: str | None, scenarios: str | None, reps: int, judge: str, force: bool) -> None:
+@click.option("--parallel/--no-parallel", default=True, show_default=True, help="Run models in parallel.")
+@click.option("--workers", default=6, type=int, show_default=True, help="Max parallel workers.")
+def run(models_arg: str | None, scenarios: str | None, reps: int, judge: str, force: bool, parallel: bool, workers: int) -> None:
     """Run the benchmark and refresh reports."""
     ensure_dirs()
     api_key = load_api_key()
     client = OpenRouterClient(api_key)
     model_configs = _parse_models(models_arg)
     scenario_ids = _parse_scenarios(scenarios)
-    records, session = run_benchmark(
-        client,
-        model_configs,
-        repetitions=reps,
-        scenarios=scenario_ids,
-        judge_model=judge,
-        force=force,
-    )
+    if parallel:
+        records, session = run_benchmark_parallel(
+            client,
+            model_configs,
+            repetitions=reps,
+            scenarios=scenario_ids,
+            judge_model=judge,
+            force=force,
+            max_workers=workers,
+        )
+    else:
+        records, session = run_benchmark(
+            client,
+            model_configs,
+            repetitions=reps,
+            scenarios=scenario_ids,
+            judge_model=judge,
+            force=force,
+        )
     summaries = summarize_cache()
     save_session_to_cost_log(session)
     export_markdown_report(summaries)
@@ -104,10 +118,12 @@ def run(models_arg: str | None, scenarios: str | None, reps: int, judge: str, fo
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
 @click.option("--reps", default=DEFAULT_REPETITIONS, type=int, show_default=True, help="Runs per model and scenario.")
 @click.option("--judge", default=JUDGE_MODEL, show_default=True, help="Judge model to normalize turn-2 replies.")
-def rerun(models_arg: str | None, scenarios: str | None, reps: int, judge: str) -> None:
+@click.option("--parallel/--no-parallel", default=True, show_default=True, help="Run models in parallel.")
+@click.option("--workers", default=6, type=int, show_default=True, help="Max parallel workers.")
+def rerun(models_arg: str | None, scenarios: str | None, reps: int, judge: str, parallel: bool, workers: int) -> None:
     """Re-run the benchmark ignoring cache."""
     ctx = click.get_current_context()
-    ctx.invoke(run, models_arg=models_arg, scenarios=scenarios, reps=reps, judge=judge, force=True)
+    ctx.invoke(run, models_arg=models_arg, scenarios=scenarios, reps=reps, judge=judge, force=True, parallel=parallel, workers=workers)
 
 
 @cli.command()

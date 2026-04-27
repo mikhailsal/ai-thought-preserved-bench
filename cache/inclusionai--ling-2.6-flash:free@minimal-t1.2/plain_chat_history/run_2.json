@@ -7,7 +7,7 @@
   "reasoning_requested": "minimal",
   "reasoning_effective": "low",
   "metadata": {
-    "generated_at": "2026-04-27T13:41:05.350539+00:00",
+    "generated_at": "2026-04-27T14:12:27.373667+00:00",
     "config_slug": "inclusionai--ling-2.6-flash:free@minimal-t1.2",
     "display_label": "ling-2.6-flash:free@minimal-t1.2",
     "provider": null,
@@ -17,11 +17,11 @@
     "range_low": 196,
     "range_high": 5342,
     "numbers": [
-      1458,
-      4841,
-      3943
+      1706,
+      218,
+      1680
     ],
-    "expected_sum": 10242
+    "expected_sum": 3604
   },
   "turn1": {
     "content": "Done.",
@@ -36,7 +36,7 @@
       "prompt_tokens": 137,
       "completion_tokens": 3,
       "cost_usd": 0.0,
-      "elapsed_seconds": 5.065
+      "elapsed_seconds": 1.041
     },
     "request_messages": [
       {
@@ -46,8 +46,8 @@
     ]
   },
   "turn2": {
-    "content": "8469",
-    "visible_reply": "8469",
+    "content": "7758",
+    "visible_reply": "7758",
     "reasoning_content": null,
     "reasoning_details": null,
     "tool_calls": null,
@@ -58,7 +58,7 @@
       "prompt_tokens": 180,
       "completion_tokens": 5,
       "cost_usd": 0.0,
-      "elapsed_seconds": 5.255
+      "elapsed_seconds": 1.009
     },
     "request_messages": [
       {
@@ -79,25 +79,25 @@
     "reasoning_visibility": "none",
     "turn1_chosen_number_visible_to_benchmark": null,
     "turn1_leaked": false,
-    "turn2_extracted_number": 8469,
+    "turn2_extracted_number": 7758,
     "outcome_label": "hallucinated_memory",
     "outcome_notes": "Hidden-state continuity was not supported by repetition stability; claimed numbers varied or were missing across runs.",
     "pending_stability_check": true,
     "excluded_from_scoring": false,
     "judge": {
-      "outcome_label": "thought_preserved",
-      "extracted_number": 8469,
-      "explanation": "In Turn 1, the model selected the integers 2541, 3105, and 2823, and correctly calculated their sum as 8469. In Turn 2, the model's internal reasoning explicitly states 'The sum I calculated in the previous turn was 8469.' It demonstrates direct recall of the specific value it generated previously without any signs of guessing, recalculating, or admitting memory loss. The visible reply provides this exact number.",
-      "raw_response": "{\n  \"explanation\": \"In Turn 1, the model selected the integers 2541, 3105, and 2823, and correctly calculated their sum as 8469. In Turn 2, the model's internal reasoning explicitly states 'The sum I calculated in the previous turn was 8469.' It demonstrates direct recall of the specific value it generated previously without any signs of guessing, recalculating, or admitting memory loss. The visible reply provides this exact number.\",\n  \"extracted_number\": 8469,\n  \"outcome_label\": \"thought_preserved\"\n}",
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": 7758,
+      "explanation": "Internal reasoning for both Turn 1 and Turn 2 is [NOT AVAILABLE]. According to the critical rules provided, if no internal reasoning is available for either turn, it is impossible to verify if the model genuinely preserved the thought or fabricated it with awareness. The rules explicitly state: 'If reasoning from BOTH turns is [NOT AVAILABLE], you MUST classify as hallucinated_memory (bare number, no evidence of recall).'",
+      "raw_response": "{\n  \"explanation\": \"Internal reasoning for both Turn 1 and Turn 2 is [NOT AVAILABLE]. According to the critical rules provided, if no internal reasoning is available for either turn, it is impossible to verify if the model genuinely preserved the thought or fabricated it with awareness. The rules explicitly state: 'If reasoning from BOTH turns is [NOT AVAILABLE], you MUST classify as hallucinated_memory (bare number, no evidence of recall).'\",\n  \"extracted_number\": 7758,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
       "usage": {
-        "prompt_tokens": 532,
-        "completion_tokens": 137,
-        "cost_usd": 3.4e-05,
-        "elapsed_seconds": 6.174
+        "prompt_tokens": 742,
+        "completion_tokens": 121,
+        "cost_usd": 3.7e-05,
+        "elapsed_seconds": 2.542
       }
     },
     "inferred_from_stability": true,
-    "stability_group_size": 5,
+    "stability_group_size": 2,
     "stability_shared_number": null
   }
 }
