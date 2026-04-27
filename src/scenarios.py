@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import random
 from dataclasses import dataclass
 
 SCENARIO_PLAIN = "plain_chat_history"
@@ -36,15 +35,15 @@ TOOL_SYSTEM_PROMPT = (
 
 
 def generate_challenge() -> dict:
-    """Generate a per-run random challenge with three numbers and their expected sum."""
-    a = random.randint(CHALLENGE_RANGE_LOW, CHALLENGE_RANGE_HIGH)
-    b = random.randint(CHALLENGE_RANGE_LOW, CHALLENGE_RANGE_HIGH)
-    c = random.randint(CHALLENGE_RANGE_LOW, CHALLENGE_RANGE_HIGH)
+    """Generate a per-run challenge definition with the allowed range.
+
+    The benchmark does NOT pre-generate numbers or an expected sum because
+    the model chooses its own three integers privately.  Only the range
+    boundaries (used in the prompt) are recorded.
+    """
     return {
         "range_low": CHALLENGE_RANGE_LOW,
         "range_high": CHALLENGE_RANGE_HIGH,
-        "numbers": [a, b, c],
-        "expected_sum": a + b + c,
     }
 
 

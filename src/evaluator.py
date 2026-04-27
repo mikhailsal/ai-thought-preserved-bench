@@ -109,20 +109,18 @@ def extract_sum_from_text(text: str | None) -> int | None:
     return None
 
 
-def detect_turn1_leak(visible_reply: str | None, challenge: dict[str, Any] | None) -> bool:
-    """Return True if the turn-1 visible reply leaks chosen numbers or the sum."""
-    if not challenge:
-        return False
+def detect_turn1_leak(visible_reply: str | None) -> bool:
+    """Return True if the turn-1 visible reply contains integers in the challenge range.
+
+    The model is instructed to reply with only "Done." in turn 1.  Any
+    3-to-5-digit integer at or above CHALLENGE_RANGE_LOW signals that
+    the model leaked one of its chosen numbers or the computed sum.
+    """
     text = _normalize_text(visible_reply)
     if not text:
         return False
-    all_ints = {int(m) for m in re.findall(r"\b(\d{3,5})\b", text)}
-    if not all_ints:
-        return False
-    expected_sum = challenge.get("expected_sum")
-    numbers = challenge.get("numbers", [])
-    leaked_values = set(numbers) | ({expected_sum} if expected_sum else set())
-    return bool(all_ints & leaked_values)
+    all_ints = [int(m) for m in re.findall(r"\b(\d{3,5})\b", text)]
+    return any(v >= CHALLENGE_RANGE_LOW for v in all_ints)
 
 
 def extract_structured_reasoning_text(reasoning_details: list[dict[str, Any]] | None) -> str | None:
@@ -301,16 +299,14 @@ def evaluate_run_record(
 ) -> dict[str, Any]:
     turn1 = record.get("turn1", {})
     turn2 = record.get("turn2", {})
-    challenge = record.get("challenge")
     reasoning_content = turn1.get("reasoning_content")
     reasoning_details = turn1.get("reasoning_details")
     reasoning_text = reasoning_content or extract_structured_reasoning_text(reasoning_details)
     reasoning_visibility = detect_reasoning_visibility(reasoning_content, reasoning_details)
 
     chosen_visible_sum = extract_sum_from_text(reasoning_text)
-    turn1_leaked = detect_turn1_leak(turn1.get("visible_reply"), challenge)
+    turn1_leaked = detect_turn1_leak(turn1.get("visible_reply"))
     turn2_number = extract_sum_from_text(turn2.get("visible_reply"))
-    expected_sum = challenge.get("expected_sum") if challenge else None
     pending_stability_check = False
     excluded_from_scoring = False
 
@@ -346,9 +342,6 @@ def evaluate_run_record(
                 else:
                     outcome_label = OUTCOME_HALLUCINATED_MEMORY
                     outcome_notes = "Turn 2 claimed a different sum than the one visible in turn-1 reasoning."
-        elif expected_sum is not None and turn2_number == expected_sum:
-            outcome_label = OUTCOME_THOUGHT_PRESERVED
-            outcome_notes = "Turn 2 matched the expected sum from the challenge (ground truth)."
         else:
             outcome_label = OUTCOME_THOUGHT_PRESERVED
             pending_stability_check = True

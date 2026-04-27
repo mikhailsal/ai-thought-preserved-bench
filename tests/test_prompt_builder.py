@@ -10,8 +10,6 @@ def _challenge() -> dict:
     return {
         "range_low": 196,
         "range_high": 5342,
-        "numbers": [300, 400, 500],
-        "expected_sum": 1200,
     }
 
 
@@ -80,9 +78,8 @@ def test_generate_challenge_produces_valid_values() -> None:
     challenge = generate_challenge()
     assert challenge["range_low"] == 196
     assert challenge["range_high"] == 5342
-    assert len(challenge["numbers"]) == 3
-    assert all(196 <= n <= 5342 for n in challenge["numbers"])
-    assert challenge["expected_sum"] == sum(challenge["numbers"])
+    assert "numbers" not in challenge
+    assert "expected_sum" not in challenge
 
 
 def test_format_turn1_prompt_contains_range_and_scoped_secrecy() -> None:

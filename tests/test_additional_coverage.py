@@ -23,8 +23,6 @@ def _challenge() -> dict:
     return {
         "range_low": 196,
         "range_high": 5342,
-        "numbers": [1000, 2000, 3000],
-        "expected_sum": 6000,
     }
 
 
