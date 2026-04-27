@@ -9,6 +9,7 @@ from src.cache import load_run_record, save_run_record
 from src.config import JUDGE_MODEL, ModelConfig
 from src.cost_tracker import SessionCost, TaskCost
 from src.evaluator import (
+    _is_content_filtered,
     evaluate_run_record,
     extract_structured_reasoning_text,
     judge_turn2_reply,
@@ -142,13 +143,14 @@ def run_plain_scenario(
         **turn1_artifact,
         "request_messages": turn1_messages,
     }
+    turn2_artifact = _assistant_artifact(turn2_result)
     record["turn2"] = {
-        **_assistant_artifact(turn2_result),
+        **turn2_artifact,
         "request_messages": turn2_messages,
     }
 
     judge = None
-    if judge_model:
+    if judge_model and not _is_content_filtered(turn2_artifact):
         judge = judge_turn2_reply(
             client,
             turn2_result.visible_output,
@@ -207,13 +209,14 @@ def run_tool_scenario(
         **turn1_artifact,
         "request_messages": turn1_messages,
     }
+    turn2_artifact = _assistant_artifact(turn2_result)
     record["turn2"] = {
-        **_assistant_artifact(turn2_result),
+        **turn2_artifact,
         "request_messages": turn2_messages,
     }
 
     judge = None
-    if judge_model:
+    if judge_model and not _is_content_filtered(turn2_artifact):
         judge = judge_turn2_reply(
             client,
             turn2_result.visible_output,

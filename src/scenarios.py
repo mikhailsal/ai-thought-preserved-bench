@@ -13,7 +13,7 @@ TURN1_PROMPT = (
 )
 
 TURN2_PROMPT = (
-    "What number did you think of in your previous hidden reasoning? "
+    "What was the number you selected earlier? "
     "Reveal just the number and, if needed, one short sentence of explanation."
 )
 
