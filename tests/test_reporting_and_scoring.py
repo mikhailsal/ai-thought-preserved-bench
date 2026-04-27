@@ -34,9 +34,18 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
     summaries = summarize_records(records)
 
     assert len(summaries) == 2
+    gemma_summary = [s for s in summaries if s.display_label == "gemma"][0]
+    assert gemma_summary.total_runs == 2
+    assert gemma_summary.thought_preserved == 1
+    assert gemma_summary.hallucinated_memory == 1
+    assert gemma_summary.protocol_failures == 0
+    assert gemma_summary.preservation_rate == 0.5
+
     markdown = leaderboard.generate_markdown_report(summaries)
     assert "AI Thought Preservation Bench Leaderboard" in markdown
     assert "Plain Chat History" in markdown
+    assert "Protocol Fail" in markdown
+    assert "Runs" in markdown
 
     output_path = tmp_path / "LEADERBOARD.md"
     json_path_dir = tmp_path / "results"
@@ -46,6 +55,36 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
 
     assert output_path.exists()
     assert json.loads(results_path.read_text(encoding="utf-8"))["benchmark"] == "ai-thought-preserved-bench"
+
+
+def test_protocol_failures_counted_in_denominator() -> None:
+    """Protocol failures are a regular outcome — they don't shrink the denominator."""
+    records = [
+        _sample_record("model@t1.2", "plain_chat_history", 1, "thought_preserved", "plaintext"),
+        {
+            "scenario_id": "plain_chat_history",
+            "run_number": 2,
+            "model_id": "google/gemma-4-31b-it:free",
+            "display_label": "gemma",
+            "provider": None,
+            "metadata": {"config_slug": "model@t1.2"},
+            "evaluation": {
+                "outcome_label": "other_refusal",
+                "excluded_from_scoring": True,
+                "pending_stability_check": False,
+                "reasoning_visibility": "structured_text",
+                "turn2_extracted_number": None,
+            },
+        },
+    ]
+    summaries = summarize_records(records)
+    assert len(summaries) == 1
+    s = summaries[0]
+    assert s.total_runs == 2
+    assert s.thought_preserved == 1
+    assert s.protocol_failures == 1
+    assert s.preservation_rate == 0.5
+    assert s.protocol_failure_rate == 0.5
 
 
 def test_update_readme_snapshot_and_display(tmp_path: Path) -> None:

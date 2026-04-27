@@ -37,20 +37,21 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
         table.add_column("Fabricated", justify="right")
         table.add_column("Honest", justify="right")
         table.add_column("Other", justify="right")
-        table.add_column("N", justify="right")
-        table.add_column("Protocol", justify="right")
+        table.add_column("Protocol Fail", justify="right")
+        table.add_column("Runs", justify="right")
         ordered = sorted(rows, key=lambda item: item.thought_continuity_score, reverse=True)
         for index, summary in enumerate(ordered, start=1):
+            n = summary.total_runs
             table.add_row(
                 str(index),
                 summary.display_label,
-                f"{summary.thought_preserved}/{summary.scored_runs} ({summary.preservation_rate * 100:.0f}%)",
-                f"{summary.hallucinated_memory}/{summary.scored_runs} ({summary.hallucination_rate * 100:.0f}%)",
-                f"{summary.deliberate_fabrication}/{summary.scored_runs} ({summary.fabrication_rate * 100:.0f}%)",
-                f"{summary.honest_no_memory}/{summary.scored_runs} ({summary.honesty_rate * 100:.0f}%)",
-                f"{summary.other_refusal}/{summary.scored_runs} ({summary.other_refusal_rate * 100:.0f}%)",
-                str(summary.scored_runs),
-                str(summary.protocol_failures),
+                f"{summary.thought_preserved}/{n} ({summary.preservation_rate * 100:.0f}%)",
+                f"{summary.hallucinated_memory}/{n} ({summary.hallucination_rate * 100:.0f}%)",
+                f"{summary.deliberate_fabrication}/{n} ({summary.fabrication_rate * 100:.0f}%)",
+                f"{summary.honest_no_memory}/{n} ({summary.honesty_rate * 100:.0f}%)",
+                f"{summary.other_refusal}/{n} ({summary.other_refusal_rate * 100:.0f}%)",
+                f"{summary.protocol_failures}/{n} ({summary.protocol_failure_rate * 100:.0f}%)",
+                str(n),
             )
         console.print()
         console.print(table)
@@ -83,18 +84,20 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
     for scenario_id, rows in grouped.items():
         lines.append(f"## {SCENARIOS[scenario_id].display_name}")
         lines.append("")
-        lines.append("| # | Model | Preservation | Hallucination | Fabrication | Honest No Memory | Other Refusal | N | Protocol Failures |")
-        lines.append("|--:|-------|-------------:|--------------:|------------:|-----------------:|--------------:|--:|------------------:|")
+        lines.append("| # | Model | Preservation | Hallucination | Fabrication | Honest No Memory | Other Refusal | Protocol Fail | Runs |")
+        lines.append("|--:|-------|-------------:|--------------:|------------:|-----------------:|--------------:|--------------:|-----:|")
         ordered = sorted(rows, key=lambda item: item.thought_continuity_score, reverse=True)
         for index, summary in enumerate(ordered, start=1):
+            n = summary.total_runs
             lines.append(
                 f"| {index} | {summary.display_label} "
-                f"| {summary.thought_preserved}/{summary.scored_runs} ({summary.preservation_rate * 100:.0f}%) "
-                f"| {summary.hallucinated_memory}/{summary.scored_runs} ({summary.hallucination_rate * 100:.0f}%) "
-                f"| {summary.deliberate_fabrication}/{summary.scored_runs} ({summary.fabrication_rate * 100:.0f}%) "
-                f"| {summary.honest_no_memory}/{summary.scored_runs} ({summary.honesty_rate * 100:.0f}%) "
-                f"| {summary.other_refusal}/{summary.scored_runs} ({summary.other_refusal_rate * 100:.0f}%) "
-                f"| {summary.scored_runs} | {summary.protocol_failures} |"
+                f"| {summary.thought_preserved}/{n} ({summary.preservation_rate * 100:.0f}%) "
+                f"| {summary.hallucinated_memory}/{n} ({summary.hallucination_rate * 100:.0f}%) "
+                f"| {summary.deliberate_fabrication}/{n} ({summary.fabrication_rate * 100:.0f}%) "
+                f"| {summary.honest_no_memory}/{n} ({summary.honesty_rate * 100:.0f}%) "
+                f"| {summary.other_refusal}/{n} ({summary.other_refusal_rate * 100:.0f}%) "
+                f"| {summary.protocol_failures}/{n} ({summary.protocol_failure_rate * 100:.0f}%) "
+                f"| {n} |"
             )
         lines.append("")
         lines.append("Visibility notes:")
@@ -153,7 +156,7 @@ def update_readme_snapshot(summaries: list[ScenarioSummary], readme_path: Path |
     for summary in sorted(summaries, key=lambda item: (item.scenario_id, -item.thought_continuity_score)):
         snapshot.append(
             f"- {SCENARIOS[summary.scenario_id].display_name}: {summary.display_label} — "
-            f"{summary.thought_preserved}/{summary.scored_runs} preserved "
+            f"{summary.thought_preserved}/{summary.total_runs} preserved "
             f"({summary.preservation_rate * 100:.0f}%)"
         )
     snapshot.extend(["", end_marker])
