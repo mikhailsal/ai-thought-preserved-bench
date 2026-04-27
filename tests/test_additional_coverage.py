@@ -202,10 +202,98 @@ def test_leaderboard_and_probe_edge_cases(monkeypatch: pytest.MonkeyPatch, tmp_p
     leaderboard.update_readme_snapshot([], readme_path=missing_readme)
 
     monkeypatch.setattr(model_probe, "load_probe_record", lambda _slug: {"cached": True})
-    assert model_probe.probe_model(SimpleNamespace(), config.ModelConfig(model_id="m"), force=False) == {"cached": True}
+    assert model_probe.probe_model(SimpleNamespace(api_key="k"), config.ModelConfig(model_id="m"), force=False) == {"cached": True}
 
 
 def test_scenarios_helpers() -> None:
     assert scenarios.get_scenario("plain_chat_history").display_name == "Plain Chat History"
     assert [scenario.scenario_id for scenario in scenarios.get_scenarios()] == ["plain_chat_history", "tool_mediated_reply"]
     assert [scenario.scenario_id for scenario in scenarios.get_scenarios(["tool_mediated_reply"])] == ["tool_mediated_reply"]
+
+
+def test_detect_hidden_reasoning() -> None:
+    from src.model_probe import detect_hidden_reasoning
+
+    assert detect_hidden_reasoning(
+        40, "Done.", "I chose numbers...", None,
+    ) == "visible"
+
+    assert detect_hidden_reasoning(
+        40, "Done.", None, [{"type": "reasoning.text", "text": "thinking..."}],
+    ) == "visible"
+
+    assert detect_hidden_reasoning(
+        40, "Done.", None, None,
+    ) == "hidden"
+
+    assert detect_hidden_reasoning(
+        2, "Hello world this is a test reply with some tokens", None, None,
+    ) == "none"
+
+    assert detect_hidden_reasoning(
+        0, "", None, None,
+    ) == "none"
+
+
+def test_estimate_visible_token_count() -> None:
+    from src.model_probe import estimate_visible_token_count
+
+    assert estimate_visible_token_count(None) == 0
+    assert estimate_visible_token_count("") == 0
+    assert estimate_visible_token_count("Done.") >= 1
+    assert estimate_visible_token_count("The answer is 42") >= 3
+
+
+def test_check_api_reasoning_support_with_mock(monkeypatch) -> None:
+    from src.model_probe import check_api_reasoning_support, fetch_model_supported_parameters
+
+    def mock_fetch(_api_key, _model_id):
+        return ["temperature", "reasoning", "include_reasoning", "max_tokens"]
+
+    monkeypatch.setattr(model_probe, "fetch_model_supported_parameters", mock_fetch)
+    result = check_api_reasoning_support("key", "deepseek/deepseek-v3.2")
+    assert result["api_confirmed"] is True
+    assert result["has_reasoning_param"] is True
+    assert result["has_include_reasoning_param"] is True
+
+    def mock_fetch_no_reasoning(_api_key, _model_id):
+        return ["temperature", "max_tokens"]
+
+    monkeypatch.setattr(model_probe, "fetch_model_supported_parameters", mock_fetch_no_reasoning)
+    result = check_api_reasoning_support("key", "some/model")
+    assert result["api_confirmed"] is False
+
+    def mock_fetch_none(_api_key, _model_id):
+        return None
+
+    monkeypatch.setattr(model_probe, "fetch_model_supported_parameters", mock_fetch_none)
+    result = check_api_reasoning_support("key", "some/model")
+    assert result["api_confirmed"] is None
+
+
+def test_fetch_model_supported_parameters_with_mock(monkeypatch) -> None:
+    from src.model_probe import fetch_model_supported_parameters
+    import httpx
+
+    class MockResponse:
+        def raise_for_status(self): pass
+        def json(self):
+            return {"data": [
+                {"id": "vendor/model-a", "supported_parameters": ["reasoning", "temperature"]},
+                {"id": "vendor/model-b", "supported_parameters": ["temperature"]},
+            ]}
+
+    monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: MockResponse())
+
+    result = fetch_model_supported_parameters("key", "vendor/model-a")
+    assert result == ["reasoning", "temperature"]
+
+    result = fetch_model_supported_parameters("key", "vendor/model-missing")
+    assert result is None
+
+    def raise_error(*_a, **_kw):
+        raise httpx.HTTPError("connection failed")
+
+    monkeypatch.setattr(httpx, "get", raise_error)
+    result = fetch_model_supported_parameters("key", "vendor/model-a")
+    assert result is None

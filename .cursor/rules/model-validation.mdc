@@ -9,6 +9,7 @@ alwaysApply: false
 Before adding any model to `configs/models.yaml`:
 
 1. **Verify the model exists** — send a minimal probe request via the OpenRouter API and confirm it returns a 200 response. Free-tier models (`:free` suffix) are frequently discontinued without notice.
-2. **Confirm reasoning support** — if the model is expected to expose reasoning, check whether the response contains `reasoning_content` or `reasoning_details`. Record the observed visibility format.
-3. **Never add models blindly from another benchmark's registry** — model availability changes over time. Always validate against the live API first.
-4. **Mark discontinued models for removal** — do not leave dead models as `active: false` clutter. Remove them entirely and note the removal in the commit message.
+2. **Confirm reasoning support** — if the model is expected to expose reasoning, check whether the response contains `reasoning_content` or `reasoning_details`. Record the observed visibility format. Models without reasoning support must NOT be active.
+3. **Pin to a provider** — every active model must have a `provider` field set to the correct OpenRouter provider slug. See `.cursor/rules/provider-binding.mdc` for details.
+4. **Never add models blindly from another benchmark's registry** — model availability changes over time. Always validate against the live API first.
+5. **Mark discontinued models for removal** — do not leave dead models as `active: false` clutter. Remove them entirely and note the removal in the commit message.

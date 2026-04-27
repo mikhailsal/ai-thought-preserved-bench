@@ -222,9 +222,18 @@ def probe(models_arg: str | None, force: bool) -> None:
     client = OpenRouterClient(api_key)
     for model_config in _parse_models(models_arg):
         record = probe_model(client, model_config, force=force)
+        api_support = record.get("api_reasoning_support", {})
+        api_confirmed = api_support.get("api_confirmed")
+        api_tag = "yes" if api_confirmed else ("no" if api_confirmed is False else "unknown")
+        activity = record.get("reasoning_activity", "unknown")
+        tokens = record.get("cost", {}).get("completion_tokens", "?")
         console.print(
-            f"{record['metadata']['display_label']}: visibility={record['reasoning_visibility']} "
-            f"effective_reasoning={record['reasoning_effective']}"
+            f"{record['metadata']['display_label']}: "
+            f"api_reasoning={api_tag} "
+            f"visibility={record['reasoning_visibility']} "
+            f"activity={activity} "
+            f"completion_tokens={tokens} "
+            f"effective={record['reasoning_effective']}"
         )
 
 

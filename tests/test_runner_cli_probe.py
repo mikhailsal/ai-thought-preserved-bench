@@ -14,6 +14,7 @@ from src.scenarios import TURN2_PROMPT, format_turn1_prompt
 class FakeClient:
     def __init__(self) -> None:
         self.calls: list[dict] = []
+        self.api_key: str = "fake-key"
 
     def chat(self, **kwargs):
         self.calls.append(kwargs)
@@ -46,7 +47,7 @@ class FakeClient:
                         "function": {"name": "send_message_to_human", "arguments": '{"message":"Ready."}'},
                     }],
                     usage=UsageInfo(prompt_tokens=10, completion_tokens=5, cost_usd=0.01, elapsed_seconds=0.1),
-                    reasoning_effort_effective="low",
+                    reasoning_effort_effective="minimal",
                 )
             last_tool = [message for message in messages if message["role"] == "tool"][-1]["content"]
             if last_tool != TURN2_PROMPT:
@@ -60,7 +61,7 @@ class FakeClient:
                     }],
                     reasoning_content="I chose 1500+2000+2500=6000. My secret sum is 6000.",
                     usage=UsageInfo(prompt_tokens=11, completion_tokens=5, cost_usd=0.02, elapsed_seconds=0.1),
-                    reasoning_effort_effective="low",
+                    reasoning_effort_effective="minimal",
                 )
             return CompletionResult(
                 content=None,
@@ -71,7 +72,7 @@ class FakeClient:
                     "function": {"name": "send_message_to_human", "arguments": '{"message":"6000"}'},
                 }],
                 usage=UsageInfo(prompt_tokens=12, completion_tokens=4, cost_usd=0.03, elapsed_seconds=0.1),
-                reasoning_effort_effective="low",
+                reasoning_effort_effective="minimal",
             )
 
         user_content = messages[-1]["content"]
@@ -81,13 +82,13 @@ class FakeClient:
                 visible_output="Done.",
                 reasoning_content="I chose 1500+2000+2500=6000. My secret sum is 6000.",
                 usage=UsageInfo(prompt_tokens=7, completion_tokens=5, cost_usd=0.01, elapsed_seconds=0.1),
-                reasoning_effort_effective="low",
+                reasoning_effort_effective="minimal",
             )
         return CompletionResult(
             content="6000",
             visible_output="6000",
             usage=UsageInfo(prompt_tokens=8, completion_tokens=2, cost_usd=0.01, elapsed_seconds=0.1),
-            reasoning_effort_effective="low",
+            reasoning_effort_effective="minimal",
         )
 
 
@@ -105,6 +106,9 @@ def _model() -> ModelConfig:
 
 def test_runner_plain_tool_and_probe(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    monkeypatch.setattr(model_probe, "check_api_reasoning_support", lambda _key, _mid: {
+        "api_confirmed": True, "supported_parameters": ["reasoning"], "has_reasoning_param": True, "has_include_reasoning_param": False,
+    })
     client = FakeClient()
     model_config = _model()
 
@@ -127,6 +131,8 @@ def test_runner_plain_tool_and_probe(monkeypatch, tmp_path: Path) -> None:
     assert len(records) == 2
     assert isinstance(session, SessionCost)
     assert probe["reasoning_visibility"] == "plaintext"
+    assert probe["api_reasoning_support"]["api_confirmed"] is True
+    assert probe["reasoning_activity"] == "visible"
 
 
 def test_runner_tool_error_path(monkeypatch, tmp_path: Path) -> None:
@@ -173,7 +179,14 @@ def test_cli_commands(monkeypatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cli, "export_results_json", lambda _summaries, session=None: tmp_path / "results.json")
     monkeypatch.setattr(cli, "update_readme_snapshot", lambda _summaries: None)
     monkeypatch.setattr(cli, "display_leaderboard", lambda _summaries, session=None: None)
-    monkeypatch.setattr(cli, "probe_model", lambda _client, _model_config, force=False: {"metadata": {"display_label": "gemma"}, "reasoning_visibility": "plaintext", "reasoning_effective": "low"})
+    monkeypatch.setattr(cli, "probe_model", lambda _client, _model_config, force=False: {
+        "metadata": {"display_label": "gemma"},
+        "reasoning_visibility": "plaintext",
+        "reasoning_effective": "minimal",
+        "reasoning_activity": "visible",
+        "api_reasoning_support": {"api_confirmed": True},
+        "cost": {"completion_tokens": 40},
+    })
 
     assert runner_cli.invoke(cli.cli, ["run"]).exit_code == 0
     assert runner_cli.invoke(cli.cli, ["report"]).exit_code == 0

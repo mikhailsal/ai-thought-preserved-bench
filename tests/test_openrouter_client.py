@@ -47,8 +47,10 @@ class DummyResponse:
 class DummyCompletions:
     def __init__(self, responses: list[Any]) -> None:
         self._responses = responses
+        self.last_kwargs: dict[str, Any] = {}
 
-    def create(self, **_: Any) -> Any:
+    def create(self, **kwargs: Any) -> Any:
+        self.last_kwargs = kwargs
         response = self._responses.pop(0)
         if isinstance(response, Exception):
             raise response
@@ -83,7 +85,8 @@ def test_resolve_reasoning_effort() -> None:
     assert client.resolve_reasoning_effort("any-model", None) is None
     assert client.resolve_reasoning_effort("any-model", "none") is None
     assert client.resolve_reasoning_effort("any-model", "off") is None
-    assert client.resolve_reasoning_effort("any-model", "minimal") == "low"
+    assert client.resolve_reasoning_effort("any-model", "minimal") == "minimal"
+    assert client.resolve_reasoning_effort("any-model", "low") == "low"
     assert client.resolve_reasoning_effort("any-model", "high") == "high"
 
 
@@ -121,7 +124,7 @@ def test_chat_extracts_tool_calls_reasoning_details_and_retries(monkeypatch: pyt
 
     assert result.visible_output == "I have a number."
     assert result.reasoning_details == [{"type": "reasoning.summary", "text": "hidden"}]
-    assert result.reasoning_effort_effective == "low"
+    assert result.reasoning_effort_effective == "minimal"
     assert result.tool_calls[0]["id"] == "tool-1"
 
 
@@ -141,5 +144,99 @@ def test_chat_handles_plain_text_content() -> None:
 
     assert result.visible_output == "37"
     assert result.reasoning_content == "I chose 37."
-    assert result.reasoning_effort_effective == "low"
+    assert result.reasoning_effort_effective == "minimal"
     assert isinstance(result.usage, UsageInfo)
+
+
+def test_reasoning_config_excludes_enabled_flag() -> None:
+    """Reasoning requests must set effort+exclude but NOT enabled=True
+    (enabled overrides effort to 'medium' per OpenRouter docs)."""
+    message = DummyMessage(content="ok")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    sdk_client = DummySDKClient([response])
+    client = OpenRouterClient("key")
+    client._client = sdk_client
+
+    client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort="high",
+    )
+
+    extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body", {})
+    reasoning = extra_body.get("reasoning", {})
+    assert reasoning["effort"] == "high"
+    assert reasoning["exclude"] is False
+    assert "enabled" not in reasoning
+
+
+def test_require_parameters_set_when_no_provider_pinned() -> None:
+    """Without a pinned provider, require_parameters must be True to ensure
+    the routed provider actually supports reasoning."""
+    message = DummyMessage(content="ok")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    sdk_client = DummySDKClient([response])
+    client = OpenRouterClient("key")
+    client._client = sdk_client
+
+    client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort="minimal",
+    )
+
+    extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body", {})
+    reasoning = extra_body.get("reasoning", {})
+    assert reasoning["effort"] == "minimal"
+    provider_config = extra_body.get("provider", {})
+    assert provider_config.get("require_parameters") is True
+    assert "order" not in provider_config
+
+
+def test_provider_pinned_no_require_parameters() -> None:
+    """With a pinned provider, require_parameters should not be added
+    (provider.order + allow_fallbacks=False is sufficient)."""
+    message = DummyMessage(content="ok")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    sdk_client = DummySDKClient([response])
+    client = OpenRouterClient("key")
+    client._client = sdk_client
+
+    client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort="minimal",
+        provider="DeepSeek",
+    )
+
+    extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body", {})
+    provider_config = extra_body.get("provider", {})
+    assert provider_config["order"] == ["DeepSeek"]
+    assert provider_config["allow_fallbacks"] is False
+    assert "require_parameters" not in provider_config
+
+
+def test_no_reasoning_no_extra_body() -> None:
+    """When reasoning is disabled, extra_body should not contain reasoning config."""
+    message = DummyMessage(content="ok")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    sdk_client = DummySDKClient([response])
+    client = OpenRouterClient("key")
+    client._client = sdk_client
+
+    client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort=None,
+    )
+
+    extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body")
+    assert extra_body is None

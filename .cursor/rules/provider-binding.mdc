@@ -1,0 +1,69 @@
+---
+description: Provider binding, reasoning verification, and model registry rules
+globs: configs/models.yaml,src/openrouter_client.py,src/config.py,src/model_probe.py
+alwaysApply: true
+---
+
+# Provider Binding and Reasoning Verification
+
+This benchmark tests thought preservation across turns. For results to be meaningful, every model must actually USE reasoning tokens. Different OpenRouter providers handle reasoning differently, so provider pinning and reasoning verification are both mandatory.
+
+## Core Rules
+
+1. **Every active model MUST have a VALID `provider` field** in `configs/models.yaml`. Provider slugs MUST be verified via the OpenRouter endpoints API: `GET /api/v1/models/{model_id}/endpoints`. Each endpoint in the response has a `provider_name` field — use exactly that string. OpenRouter silently ignores invalid provider slugs instead of erroring, so you CANNOT rely on a 200 response to confirm the slug is valid.
+
+2. **The client sends reasoning configuration WITHOUT `enabled: true`** — per OpenRouter docs, `enabled: true` overrides `effort` to `"medium"` and `exclude` to `false`. We send `reasoning.effort` and `reasoning.exclude: false` only, so the specified effort level is respected. When no provider is pinned, `provider.require_parameters: true` restricts routing to reasoning-capable backends.
+
+3. **Provider changes invalidate the cache** — the `config_slug` includes the provider tag, so changing a model's provider creates a new cache namespace.
+
+4. **Provider slug verification is MANDATORY** before adding/modifying models. Run:
+   ```
+   curl -s "https://openrouter.ai/api/v1/models/{model_id}/endpoints" -H "Authorization: Bearer $KEY"
+   ```
+   The response lists all available endpoints with their `provider_name` values. Only use slugs from this list.
+
+## How to Verify a Model Supports Reasoning
+
+NEVER assume a model does or doesn't support reasoning. Use evidence from two sources:
+
+### Source 1: OpenRouter Models API (authoritative)
+
+Query `GET /api/v1/models` and check the `supported_parameters` array for the model. If it contains `reasoning` or `include_reasoning`, the model supports reasoning. This is the ground truth.
+
+```bash
+thought-preserved-bench probe --models "vendor/model-id"
+```
+
+The probe command checks the API automatically and reports `api_reasoning=yes/no`.
+
+### Source 2: Empirical Token Count Analysis
+
+Even when reasoning tokens are not visible in the response, you can detect reasoning activity:
+
+- **Visible reasoning**: `reasoning_content` or `reasoning_details` are returned with text.
+- **Hidden reasoning**: `completion_tokens` significantly exceeds the visible reply token count. The model IS reasoning internally but the provider doesn't expose the text. These models are valid for the benchmark (we use stability analysis).
+- **No reasoning**: `completion_tokens` matches visible content length. The model is NOT reasoning at all. Either (a) it doesn't support reasoning, or (b) our parameters are wrong.
+
+### Decision Matrix
+
+| API says reasoning? | Probe shows tokens? | Action |
+|---------------------|---------------------|--------|
+| Yes | Visible reasoning | Active — ideal case |
+| Yes | Hidden reasoning | Active — use stability analysis |
+| Yes | No reasoning tokens | FIX CONFIG — parameters are wrong, check effort level and provider |
+| No | N/A | Deactivate — model cannot reason |
+| Unknown | Any | Investigate — API might be unreachable |
+
+## Adding a New Model
+
+1. Run `thought-preserved-bench probe --models "vendor/model-id"` to check API support and observe reasoning.
+2. If `api_reasoning=yes` and `activity=visible` or `activity=hidden`: add as active.
+3. If `api_reasoning=yes` but `activity=none`: investigate parameters before adding. Try a different `reasoning_effort` or provider.
+4. If `api_reasoning=no`: do NOT add as active. Document the reason.
+5. Always set the `provider` field.
+
+## Anti-Patterns
+
+- **Deactivating a model because reasoning isn't visible** — check the API first. If the API says it supports reasoning, fix the configuration instead.
+- **Assuming all providers for a model behave identically** — they do not. Always verify with a probe.
+- **Using `provider: null` on an active model** — forbidden. Every active model must have a provider.

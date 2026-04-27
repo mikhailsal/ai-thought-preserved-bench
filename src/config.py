@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
 from dataclasses import dataclass
@@ -150,6 +151,16 @@ def load_model_registry(config_path: Path = CONFIGS_PATH) -> list[ModelConfig]:
     if duplicates:
         duplicate_list = ", ".join(sorted(duplicates))
         raise RuntimeError(f"Duplicate model config labels in registry: {duplicate_list}")
+    log = logging.getLogger(__name__)
+    for config in configs:
+        if config.active and not config.provider:
+            log.warning(
+                "Active model %s has no provider pinned. "
+                "OpenRouter may route to different backends across runs, "
+                "producing inconsistent reasoning visibility. "
+                "Set a provider in configs/models.yaml.",
+                config.model_id,
+            )
     return configs
 
 

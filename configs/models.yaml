@@ -1,112 +1,129 @@
 models:
   # ───────────────────────────────────────────────────────────────
-  # Google — Gemma (free tier, plaintext reasoning expected)
+  # Google — Gemma (free tier)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: google/gemma-4-31b-it:free
     display_label: gemma-4-31b-it:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: Google AI Studio
     active: true
-    notes: "Observed reasoning visibility should be determined via probe results, not assumed."
-
-  - model_id: google/gemma-4-31b-it
-    display_label: gemma-4-31b-it+akashml@minimal-t1.2
-    temperature: 1.2
-    reasoning_effort: minimal
-    provider: akashml/bf16
-    active: false
-    notes: "Pinned variant for probing if reasoning visibility differs materially."
+    notes: "API-confirmed reasoning support. Only provider: Google AI Studio."
 
   - model_id: google/gemma-4-26b-a4b-it:free
     display_label: gemma-4-26b-a4b-it:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: Google AI Studio
     active: true
-    notes: "Smaller Gemma MoE variant, free tier."
+    notes: "API-confirmed reasoning support. Smaller Gemma MoE variant, free tier. Only provider: Google AI Studio."
 
   # ───────────────────────────────────────────────────────────────
   # X-AI — Grok (encrypted reasoning expected)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: x-ai/grok-4.1-fast
     display_label: grok-4.1-fast@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: xAI
     active: true
-    notes: "Expected to expose encrypted or summarized reasoning details."
+    notes: "API-confirmed reasoning support. Only provider: xAI. Encrypted/summarized reasoning details expected."
 
   # ───────────────────────────────────────────────────────────────
-  # StepFun (free tier)
+  # StepFun — paid tier (free variant discontinued)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
-  - model_id: stepfun/step-3.5-flash:free
-    display_label: step-3.5-flash:free@minimal-t1.2
+  - model_id: stepfun/step-3.5-flash
+    display_label: step-3.5-flash@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: StepFun
     active: true
-    notes: "StepFun reasoning model, free tier."
+    notes: "API-confirmed reasoning support. Providers: SiliconFlow, DeepInfra, StepFun. Pinned to StepFun (native)."
 
   # ───────────────────────────────────────────────────────────────
   # Tencent (free tier)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: tencent/hy3-preview:free
     display_label: hy3-preview:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: SiliconFlow
     active: true
-    notes: "Tencent Hunyuan 3 preview, free tier."
+    notes: "API-confirmed reasoning support. Only provider: SiliconFlow (no native Tencent endpoint on OpenRouter)."
 
   # ───────────────────────────────────────────────────────────────
-  # InclusionAI (free tier)
-  # ───────────────────────────────────────────────────────────────
-  - model_id: inclusionai/ling-2.6-flash:free
-    display_label: ling-2.6-flash:free@minimal-t1.2
-    temperature: 1.2
-    reasoning_effort: minimal
-    active: true
-    notes: "InclusionAI Ling reasoning model, free tier."
-
-  # ───────────────────────────────────────────────────────────────
-  # DeepSeek — very cheap reasoning models
+  # DeepSeek — both models have API-confirmed reasoning support
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: deepseek/deepseek-v4-flash
     display_label: deepseek-v4-flash@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: DeepSeek
     active: true
-    notes: "Structured text reasoning, ~$0.0003/1k output tokens."
+    notes: "API-confirmed reasoning support. Providers: DeepSeek, SiliconFlow, DeepInfra, Novita. Pinned to DeepSeek (native). Verified 65 reasoning tokens in empirical test."
 
   - model_id: deepseek/deepseek-v3.2
     display_label: deepseek-v3.2@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
-    active: true
-    notes: "No reasoning visibility observed, near-zero cost."
+    provider: Novita
+    active: false
+    notes: >
+      DEACTIVATED: API lists reasoning in supported_parameters, but empirical testing with
+      VALID provider slugs (Novita, DeepInfra — confirmed via /api/v1/models/.../endpoints)
+      at effort=high produced ZERO reasoning_tokens in completion_tokens_details.
+      Note: "DeepSeek" is NOT a valid provider for v3.2 (no native endpoint).
+      The model does chain-of-thought in visible content only, never in separate reasoning
+      tokens. Without hidden reasoning tokens, thought preservation testing is not applicable.
 
   # ───────────────────────────────────────────────────────────────
   # Qwen — cheap reasoning model
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: qwen/qwen3-8b
     display_label: qwen3-8b@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: Alibaba
     active: true
-    notes: "Structured text reasoning, ~$0.0004/1k output tokens."
+    notes: "API-confirmed reasoning support. Providers: AtlasCloud, Alibaba. Pinned to Alibaba (native Qwen provider). Note: Fireworks is NOT a valid provider for this model."
 
   # ───────────────────────────────────────────────────────────────
   # Nvidia — free reasoning model
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: nvidia/nemotron-3-super-120b-a12b:free
     display_label: nemotron-3-super-120b:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
+    provider: Nvidia
     active: true
-    notes: "Structured text reasoning, free tier."
+    notes: "API-confirmed reasoning support. Only provider: Nvidia. Free tier."
 
   # ───────────────────────────────────────────────────────────────
-  # Mistral — cheap, no reasoning visibility
+  # DEACTIVATED — No reasoning support per OpenRouter models API
   # ───────────────────────────────────────────────────────────────
+  - model_id: inclusionai/ling-2.6-flash:free
+    display_label: ling-2.6-flash:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: InclusionAI
+    active: false
+    notes: >
+      DEACTIVATED: OpenRouter /api/v1/models confirms NO reasoning or include_reasoning
+      in supported_parameters. Not a reasoning model.
+
   - model_id: mistralai/mistral-small-3.2-24b-instruct
     display_label: mistral-small-3.2@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
-    active: true
-    notes: "No reasoning visibility observed, near-zero cost."
+    provider: Mistral
+    active: false
+    notes: >
+      DEACTIVATED: OpenRouter /api/v1/models confirms NO reasoning or include_reasoning
+      in supported_parameters. Instruct-only model.

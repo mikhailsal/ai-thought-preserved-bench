@@ -141,11 +141,13 @@ class OpenRouterClient:
                 "X-Title": OPENROUTER_APP_NAME,
             },
         )
+    VALID_EFFORT_LEVELS = {"xhigh", "high", "medium", "low", "minimal"}
+
     def resolve_reasoning_effort(self, model_id: str, requested: str | None) -> str | None:
         if requested in {None, "none", "off"}:
             return None
-        if requested == "minimal":
-            return "low"
+        if requested in self.VALID_EFFORT_LEVELS:
+            return requested
         return requested
 
     def chat(
@@ -166,13 +168,22 @@ class OpenRouterClient:
             try:
                 extra_body: dict[str, Any] | None = None
                 if effective_reasoning:
-                    extra_body = {"reasoning": {"effort": effective_reasoning}}
+                    extra_body = {
+                        "reasoning": {
+                            "effort": effective_reasoning,
+                            "exclude": False,
+                        },
+                    }
                 if provider:
                     extra_body = extra_body or {}
                     extra_body["provider"] = {
                         "order": [provider],
                         "allow_fallbacks": False,
                     }
+                if effective_reasoning and not provider:
+                    extra_body = extra_body or {}
+                    extra_body.setdefault("provider", {})
+                    extra_body["provider"]["require_parameters"] = True
 
                 request_payload: dict[str, Any] = {
                     "model": model,

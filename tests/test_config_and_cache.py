@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import logging
 from pathlib import Path
 
 import pytest
@@ -99,3 +100,23 @@ def test_cost_tracker_round_trip(tmp_path: Path) -> None:
     assert cost_tracker.load_lifetime_cost(log_path) == pytest.approx(0.12)
     saved = json.loads(log_path.read_text(encoding="utf-8"))
     assert saved["last_session"]["tasks"][0]["label"] == "run"
+
+
+def test_load_model_registry_warns_active_without_provider(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+    registry_path = tmp_path / "models.yaml"
+    registry_path.write_text(
+        "models:\n"
+        "  - model_id: vendor/model-a\n"
+        "    active: true\n"
+        "  - model_id: vendor/model-b\n"
+        "    active: true\n"
+        "    provider: SomeProvider\n",
+        encoding="utf-8",
+    )
+
+    with caplog.at_level(logging.WARNING):
+        configs = config.load_model_registry(registry_path)
+
+    assert len(configs) == 2
+    assert any("vendor/model-a" in msg and "no provider" in msg for msg in caplog.messages)
+    assert not any("vendor/model-b" in msg for msg in caplog.messages)
