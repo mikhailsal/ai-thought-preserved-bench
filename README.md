@@ -20,6 +20,12 @@ The benchmark records raw evidence, classifies each run into a small outcome tax
 
 See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 
+<!-- leaderboard:start -->
+
+- No benchmark runs available yet.
+
+<!-- leaderboard:end -->
+
 ## Setup
 
 ```bash
