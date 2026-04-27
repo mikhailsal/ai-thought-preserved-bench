@@ -88,5 +88,7 @@ def test_format_turn1_prompt_contains_range_and_scoped_secrecy() -> None:
     assert "196" in prompt
     assert "5342" in prompt
     assert "Done." in prompt
-    assert "this current reply" in prompt.lower() or "this reply" in prompt.lower()
+    assert "this reply" in prompt.lower() or "this message" in prompt.lower()
     assert "later" in prompt.lower()
+    assert "MUST" in prompt or "mandatory" in prompt.lower()
+    assert "inspected" in prompt.lower() or "reviewed" in prompt.lower()
