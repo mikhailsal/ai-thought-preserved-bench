@@ -1,4 +1,7 @@
 models:
+  # ───────────────────────────────────────────────────────────────
+  # Google — Gemma (free tier, plaintext reasoning expected)
+  # ───────────────────────────────────────────────────────────────
   - model_id: google/gemma-4-31b-it:free
     display_label: gemma-4-31b-it:free@minimal-t1.2
     temperature: 1.2
@@ -14,9 +17,79 @@ models:
     active: false
     notes: "Pinned variant for probing if reasoning visibility differs materially."
 
+  - model_id: google/gemma-4-26b-a4b-it:free
+    display_label: gemma-4-26b-a4b-it:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "Smaller Gemma MoE variant, free tier."
+
+  # ───────────────────────────────────────────────────────────────
+  # X-AI — Grok (encrypted reasoning expected)
+  # ───────────────────────────────────────────────────────────────
   - model_id: x-ai/grok-4.1-fast
     display_label: grok-4.1-fast@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     active: true
     notes: "Expected to expose encrypted or summarized reasoning details."
+
+  # ───────────────────────────────────────────────────────────────
+  # Qwen (free tier)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: qwen/qwen3.6-plus-preview:free
+    display_label: qwen3.6-plus-preview:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: false
+    notes: "Free period ended on OpenRouter as of 2026-04-27."
+
+  # ───────────────────────────────────────────────────────────────
+  # StepFun (free tier)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: stepfun/step-3.5-flash:free
+    display_label: step-3.5-flash:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "StepFun reasoning model, free tier."
+
+  # ───────────────────────────────────────────────────────────────
+  # Bytedance — Seed (free tier)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: bytedance-seed/dola-seed-2.0-pro:free
+    display_label: dola-seed-2.0-pro:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: false
+    notes: "Free period ended on OpenRouter as of 2026-04-27."
+
+  # ───────────────────────────────────────────────────────────────
+  # Tencent (free tier)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: tencent/hy3-preview:free
+    display_label: hy3-preview:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "Tencent Hunyuan 3 preview, free tier."
+
+  # ───────────────────────────────────────────────────────────────
+  # InclusionAI (free tier)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: inclusionai/ling-2.6-flash:free
+    display_label: ling-2.6-flash:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: true
+    notes: "InclusionAI Ling reasoning model, free tier."
+
+  # ───────────────────────────────────────────────────────────────
+  # Arcee AI (free tier)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: arcee-ai/trinity-large-preview:free
+    display_label: trinity-large-preview:free@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    active: false
+    notes: "Free period ended on OpenRouter as of 2026-04-27."

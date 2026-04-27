@@ -2,8 +2,11 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
+
+log = logging.getLogger(__name__)
 
 from src.cache import load_run_record, save_run_record
 from src.config import JUDGE_MODEL, ModelConfig
@@ -247,23 +250,34 @@ def run_benchmark(
     for model_config in model_configs:
         for scenario_id in scenarios:
             group_records: list[dict[str, Any]] = []
+            model_failed = False
             for run_number in range(1, repetitions + 1):
-                if scenario_id == SCENARIO_PLAIN:
-                    record = run_plain_scenario(
-                        client,
-                        model_config,
-                        run_number=run_number,
-                        force=force,
-                        judge_model=judge_model,
+                if model_failed:
+                    break
+                try:
+                    if scenario_id == SCENARIO_PLAIN:
+                        record = run_plain_scenario(
+                            client,
+                            model_config,
+                            run_number=run_number,
+                            force=force,
+                            judge_model=judge_model,
+                        )
+                    else:
+                        record = run_tool_scenario(
+                            client,
+                            model_config,
+                            run_number=run_number,
+                            force=force,
+                            judge_model=judge_model,
+                        )
+                except Exception as exc:
+                    log.warning(
+                        "Skipping %s/%s run %d after API error: %s",
+                        model_config.label, scenario_id, run_number, exc,
                     )
-                else:
-                    record = run_tool_scenario(
-                        client,
-                        model_config,
-                        run_number=run_number,
-                        force=force,
-                        judge_model=judge_model,
-                    )
+                    model_failed = True
+                    continue
                 group_records.append(record)
                 records.append(record)
 
@@ -293,7 +307,8 @@ def run_benchmark(
                         )
                         session.add_task(judge_task)
 
-            reconcile_stability_group(group_records)
-            for record in group_records:
-                save_run_record(record)
+            if group_records:
+                reconcile_stability_group(group_records)
+                for record in group_records:
+                    save_run_record(record)
     return records, session
