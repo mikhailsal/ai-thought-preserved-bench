@@ -72,14 +72,11 @@ models:
     temperature: 1.2
     reasoning_effort: minimal
     provider: Novita
-    active: false
+    active: true
     notes: >
-      DEACTIVATED: API lists reasoning in supported_parameters, but empirical testing with
-      VALID provider slugs (Novita, DeepInfra — confirmed via /api/v1/models/.../endpoints)
-      at effort=high produced ZERO reasoning_tokens in completion_tokens_details.
-      Note: "DeepSeek" is NOT a valid provider for v3.2 (no native endpoint).
-      The model does chain-of-thought in visible content only, never in separate reasoning
-      tokens. Without hidden reasoning tokens, thought preservation testing is not applicable.
+      REACTIVATED: After proxy config fix, Novita provider returns reasoning_tokens (135 tokens
+      observed with effort=high). Previous 0-token results were caused by the proxy not forwarding
+      reasoning parameters correctly. No native DeepSeek endpoint for v3.2 — using Novita.
 
   # ───────────────────────────────────────────────────────────────
   # Qwen — cheap reasoning model
@@ -104,6 +101,66 @@ models:
     provider: Nvidia
     active: true
     notes: "API-confirmed reasoning support. Only provider: Nvidia. Free tier."
+
+  # ───────────────────────────────────────────────────────────────
+  # OpenAI — GPT-OSS-20B (very cheap reasoning model)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # ───────────────────────────────────────────────────────────────
+  - model_id: openai/gpt-oss-20b
+    display_label: gpt-oss-20b@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: DeepInfra
+    active: true
+    notes: "API-confirmed reasoning support. Providers: DeepInfra, Novita, SiliconFlow, Together, Groq, etc. Pinned to DeepInfra. Probe shows visible structured_text reasoning."
+
+  # ───────────────────────────────────────────────────────────────
+  # OpenAI — GPT-5-nano (cheap, hidden reasoning)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # ───────────────────────────────────────────────────────────────
+  - model_id: openai/gpt-5-nano
+    display_label: gpt-5-nano@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: OpenAI
+    active: true
+    notes: "API-confirmed reasoning support. Providers: Azure, OpenAI. Pinned to OpenAI. Probe shows hidden reasoning (20 completion tokens for minimal reply)."
+
+  # ───────────────────────────────────────────────────────────────
+  # MiniMax — M2.5 (cheap reasoning model)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # ───────────────────────────────────────────────────────────────
+  - model_id: minimax/minimax-m2.5
+    display_label: minimax-m2.5@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: Minimax
+    active: true
+    notes: "API-confirmed reasoning support. Providers: DeepInfra, Minimax, Novita, SiliconFlow, Nebius, etc. Pinned to Minimax (native). Probe shows visible structured_text reasoning."
+
+  # ───────────────────────────────────────────────────────────────
+  # Qwen — 3.5-flash (cheap reasoning model)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # ───────────────────────────────────────────────────────────────
+  - model_id: qwen/qwen3.5-flash-02-23
+    display_label: qwen3.5-flash@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: Alibaba
+    active: true
+    notes: "API-confirmed reasoning support. Only provider: Alibaba. Probe shows visible structured_text reasoning (581 completion tokens)."
+
+  # ───────────────────────────────────────────────────────────────
+  # Google — Gemini 2.5 Flash Lite (cheap reasoning model)
+  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # ───────────────────────────────────────────────────────────────
+  - model_id: google/gemini-2.5-flash-lite
+    display_label: gemini-2.5-flash-lite@minimal-t1.2
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: Google AI Studio
+    active: true
+    notes: "API-confirmed reasoning support. Providers: Google, Google AI Studio. Pinned to Google AI Studio. Probe shows visible structured_text reasoning."
 
   # ───────────────────────────────────────────────────────────────
   # DEACTIVATED — No reasoning support per OpenRouter models API

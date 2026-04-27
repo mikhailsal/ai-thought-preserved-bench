@@ -23,18 +23,26 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 <!-- leaderboard:start -->
 
 - Plain Chat History: deepseek-v4-flash@minimal-t1.2 — 1/1 preserved (100%)
+- Plain Chat History: gemini-2.5-flash-lite@minimal-t1.2 — 1/1 preserved (100%)
 - Plain Chat History: gemma — 5/5 preserved (100%)
+- Plain Chat History: gpt-5-nano@minimal-t1.2 — 1/1 preserved (100%)
+- Plain Chat History: gpt-oss-20b@minimal-t1.2 — 1/1 preserved (100%)
+- Plain Chat History: qwen3-8b@minimal-t1.2 — 1/1 preserved (100%)
 - Plain Chat History: step-3.5-flash:free@minimal-t1.2 — 2/4 preserved (50%)
 - Plain Chat History: ling-2.6-flash:free@minimal-t1.2 — 2/5 preserved (40%)
 - Plain Chat History: nemotron-3-super-120b:free@minimal-t1.2 — 2/5 preserved (40%)
 - Plain Chat History: qwen3-8b@minimal-t1.2 — 2/5 preserved (40%)
 - Plain Chat History: deepseek-v4-flash@minimal-t1.2 — 1/5 preserved (20%)
+- Plain Chat History: deepseek-v3.2@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: deepseek-v3.2@minimal-t1.2 — 0/5 preserved (0%)
 - Plain Chat History: gemma-4-26b-a4b-it:free@minimal-t1.2 — 0/5 preserved (0%)
+- Plain Chat History: minimax-m2.5@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: mistral-small-3.2@minimal-t1.2 — 0/5 preserved (0%)
+- Plain Chat History: qwen3.5-flash@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: hy3-preview:free@minimal-t1.2 — 0/5 preserved (0%)
 - Plain Chat History: grok-4.1-fast@minimal-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: gemma — 5/5 preserved (100%)
+- Tool-Mediated Reply: deepseek-v3.2@minimal-t1.2 — 0/1 preserved (0%)
 
 <!-- leaderboard:end -->
 
