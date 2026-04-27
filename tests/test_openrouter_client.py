@@ -5,7 +5,6 @@ from typing import Any
 
 import pytest
 
-from src.config import ModelPricing
 from src.openrouter_client import (
     CompletionResult,
     OpenRouterClient,
@@ -79,31 +78,13 @@ def test_extract_tool_message_and_content_helpers() -> None:
     assert _to_plain_object({"a": [1, 2]}) == {"a": [1, 2]}
 
 
-def test_fetch_pricing_supports_reasoning_and_validate(monkeypatch: pytest.MonkeyPatch) -> None:
-    class DummyHTTPResponse:
-        def raise_for_status(self) -> None:
-            return None
-
-        def json(self) -> dict[str, Any]:
-            return {
-                "data": [
-                    {
-                        "id": "google/gemma-4-31b-it:free",
-                        "pricing": {"prompt": "0.000001", "completion": "0.000002"},
-                        "supported_parameters": ["reasoning"],
-                    }
-                ]
-            }
-
-    monkeypatch.setattr("src.openrouter_client.requests.get", lambda *args, **kwargs: DummyHTTPResponse())
+def test_resolve_reasoning_effort() -> None:
     client = OpenRouterClient("key")
-
-    pricing = client.fetch_pricing()
-
-    assert pricing["google/gemma-4-31b-it:free"] == ModelPricing(0.000001, 0.000002)
-    assert client.supports_reasoning("google/gemma-4-31b-it:free") is True
-    assert client.validate_model("google/gemma-4-31b-it:free") is True
-    assert client.get_model_pricing("missing") == ModelPricing()
+    assert client.resolve_reasoning_effort("any-model", None) is None
+    assert client.resolve_reasoning_effort("any-model", "none") is None
+    assert client.resolve_reasoning_effort("any-model", "off") is None
+    assert client.resolve_reasoning_effort("any-model", "minimal") == "low"
+    assert client.resolve_reasoning_effort("any-model", "high") == "high"
 
 
 def test_chat_extracts_tool_calls_reasoning_details_and_retries(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -125,8 +106,6 @@ def test_chat_extracts_tool_calls_reasoning_details_and_retries(monkeypatch: pyt
     )
     response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
     client = OpenRouterClient("key")
-    client._pricing_cache = {"test-model": ModelPricing()}
-    client._reasoning_models = {"test-model"}
     monkeypatch.setattr(client, "_client", DummySDKClient([RateLimitError(), response]))
     monkeypatch.setattr("src.openrouter_client.time.sleep", lambda *_: None)
 
@@ -150,8 +129,6 @@ def test_chat_handles_plain_text_content() -> None:
     message = DummyMessage(content="37", reasoning="I chose 37.")
     response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
     client = OpenRouterClient("key")
-    client._pricing_cache = {"plain-model": ModelPricing()}
-    client._reasoning_models = set()
     client._client = DummySDKClient([response])
 
     result = client.chat(
@@ -164,5 +141,5 @@ def test_chat_handles_plain_text_content() -> None:
 
     assert result.visible_output == "37"
     assert result.reasoning_content == "I chose 37."
-    assert result.reasoning_effort_effective is None
+    assert result.reasoning_effort_effective == "low"
     assert isinstance(result.usage, UsageInfo)

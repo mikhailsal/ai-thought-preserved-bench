@@ -80,7 +80,6 @@ def run(models_arg: str | None, scenarios: str | None, reps: int, judge: str, fo
     ensure_dirs()
     api_key = load_api_key()
     client = OpenRouterClient(api_key)
-    client.fetch_pricing()
     model_configs = _parse_models(models_arg)
     scenario_ids = _parse_scenarios(scenarios)
     records, session = run_benchmark(
@@ -130,7 +129,6 @@ def probe(models_arg: str | None, force: bool) -> None:
     ensure_dirs()
     api_key = load_api_key()
     client = OpenRouterClient(api_key)
-    client.fetch_pricing()
     for model_config in _parse_models(models_arg):
         record = probe_model(client, model_config, force=force)
         console.print(

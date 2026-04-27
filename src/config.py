@@ -29,7 +29,7 @@ DEFAULT_REASONING_REQUESTED = "minimal"
 DEFAULT_TEMPERATURE = 1.2
 DEFAULT_REPETITIONS = 5
 DEFAULT_MAX_TOKENS = 1024
-JUDGE_MAX_TOKENS = 256
+JUDGE_MAX_TOKENS = 512
 JUDGE_TEMPERATURE = 0.0
 
 MAX_TOKENS_BY_REASONING: dict[str, int] = {
@@ -39,12 +39,6 @@ MAX_TOKENS_BY_REASONING: dict[str, int] = {
     "medium": 8192,
     "high": 16384,
 }
-
-
-@dataclass(frozen=True)
-class ModelPricing:
-    prompt_price: float = 0.0
-    completion_price: float = 0.0
 
 
 @dataclass(frozen=True)
@@ -125,10 +119,6 @@ def load_api_key() -> str:
 def get_openrouter_base_url() -> str:
     load_dotenv(ENV_PATH)
     return os.environ.get("OPENROUTER_BASE_URL", DEFAULT_OPENROUTER_BASE_URL).strip() or DEFAULT_OPENROUTER_BASE_URL
-
-
-def get_openrouter_models_url() -> str:
-    return f"{get_openrouter_base_url().rstrip('/')}/models"
 
 
 def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:

@@ -15,9 +15,6 @@ class FakeClient:
     def __init__(self) -> None:
         self.calls: list[dict] = []
 
-    def fetch_pricing(self) -> dict:
-        return {}
-
     def chat(self, **kwargs):
         self.calls.append(kwargs)
         messages = kwargs["messages"]

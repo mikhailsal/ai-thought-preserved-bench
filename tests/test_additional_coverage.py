@@ -98,36 +98,15 @@ def test_openrouter_helper_branches(monkeypatch: pytest.MonkeyPatch) -> None:
     class NoUsageResponse:
         usage = None
 
-    assert _usage_from_response(model="m", response=NoUsageResponse(), elapsed=1.0, get_model_pricing=lambda _m: config.ModelPricing()) == UsageInfo(elapsed_seconds=1.0)
+    assert _usage_from_response(response=NoUsageResponse(), elapsed=1.0) == UsageInfo(elapsed_seconds=1.0)
 
     usage = SimpleNamespace(prompt_tokens=2, completion_tokens=3, cost="not-a-number")
     response = SimpleNamespace(usage=usage)
     priced = _usage_from_response(
-        model="m",
         response=response,
         elapsed=1.0,
-        get_model_pricing=lambda _m: config.ModelPricing(prompt_price=1.0, completion_price=2.0),
     )
-    assert priced.cost_usd == 8.0
-
-    class DummyHTTPResponse:
-        calls = 0
-
-        def raise_for_status(self) -> None:
-            return None
-
-        def json(self) -> dict:
-            self.calls += 1
-            return {"data": []}
-
-    dummy_response = DummyHTTPResponse()
-    monkeypatch.setattr("src.openrouter_client.requests.get", lambda *args, **kwargs: dummy_response)
-    client = OpenRouterClient("key")
-    client.fetch_pricing()
-    client.fetch_pricing()
-    assert client.resolve_reasoning_effort("unknown", None) is None
-    assert client.resolve_reasoning_effort("unknown", "off") is None
-    assert client.resolve_reasoning_effort("unknown", "minimal") is None
+    assert priced.cost_usd == 0.0
 
 
 def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -142,8 +121,6 @@ def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) ->
             return SimpleNamespace(choices=[choice], usage=usage, model="m")
 
     client = OpenRouterClient("key")
-    client._pricing_cache = {"m": config.ModelPricing()}
-    client._reasoning_models = {"m"}
     client._client = SimpleNamespace(chat=SimpleNamespace(completions=DummyCompletions()))
 
     result = client.chat(

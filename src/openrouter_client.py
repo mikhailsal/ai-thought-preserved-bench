@@ -10,16 +10,13 @@ from dataclasses import dataclass, field
 from typing import Any
 
 import httpx
-import requests
 from openai import OpenAI
 
 from src.config import (
     API_CALL_TIMEOUT,
     get_openrouter_base_url,
-    get_openrouter_models_url,
     OPENROUTER_APP_NAME,
     OPENROUTER_APP_URL,
-    ModelPricing,
 )
 
 log = logging.getLogger(__name__)
@@ -83,10 +80,8 @@ def _to_plain_object(value: Any) -> Any:
 
 def _usage_from_response(
     *,
-    model: str,
     response: Any,
     elapsed: float,
-    get_model_pricing: Any,
 ) -> "UsageInfo":
     usage = UsageInfo(elapsed_seconds=elapsed)
     response_usage = getattr(response, "usage", None)
@@ -96,23 +91,13 @@ def _usage_from_response(
     usage.completion_tokens = int(getattr(response_usage, "completion_tokens", 0) or 0)
 
     raw_cost = getattr(response_usage, "cost", None)
-    used_api_cost = False
     if isinstance(raw_cost, (int, float)) and not isinstance(raw_cost, bool):
         usage.cost_usd = float(raw_cost)
-        used_api_cost = True
     elif isinstance(raw_cost, str) and raw_cost.strip():
         try:
             usage.cost_usd = float(raw_cost)
-            used_api_cost = True
         except ValueError:
             pass
-
-    if not used_api_cost:
-        pricing = get_model_pricing(model)
-        usage.cost_usd = (
-            usage.prompt_tokens * pricing.prompt_price
-            + usage.completion_tokens * pricing.completion_price
-        )
     return usage
 
 
@@ -156,50 +141,8 @@ class OpenRouterClient:
                 "X-Title": OPENROUTER_APP_NAME,
             },
         )
-        self._pricing_cache: dict[str, ModelPricing] = {}
-        self._reasoning_models: set[str] = set()
-
-    def fetch_pricing(self) -> dict[str, ModelPricing]:
-        if self._pricing_cache:
-            return self._pricing_cache
-        response = requests.get(
-            get_openrouter_models_url(),
-            headers={"Authorization": f"Bearer {self.api_key}"},
-            timeout=30,
-        )
-        response.raise_for_status()
-        data = response.json().get("data", [])
-        for model in data:
-            model_id = model.get("id", "")
-            pricing = model.get("pricing", {})
-            self._pricing_cache[model_id] = ModelPricing(
-                prompt_price=float(pricing.get("prompt", "0")),
-                completion_price=float(pricing.get("completion", "0")),
-            )
-            supported_parameters = model.get("supported_parameters", [])
-            if "reasoning" in supported_parameters:
-                self._reasoning_models.add(model_id)
-        return self._pricing_cache
-
-    def supports_reasoning(self, model_id: str) -> bool:
-        if not self._pricing_cache:
-            self.fetch_pricing()
-        return model_id in self._reasoning_models
-
-    def get_model_pricing(self, model_id: str) -> ModelPricing:
-        if not self._pricing_cache:
-            self.fetch_pricing()
-        return self._pricing_cache.get(model_id, ModelPricing())
-
-    def validate_model(self, model_id: str) -> bool:
-        if not self._pricing_cache:
-            self.fetch_pricing()
-        return model_id in self._pricing_cache
-
     def resolve_reasoning_effort(self, model_id: str, requested: str | None) -> str | None:
         if requested in {None, "none", "off"}:
-            return None
-        if not self.supports_reasoning(model_id):
             return None
         if requested == "minimal":
             return "low"
@@ -272,10 +215,8 @@ class OpenRouterClient:
                             break
 
                 usage = _usage_from_response(
-                    model=model,
                     response=response,
                     elapsed=elapsed,
-                    get_model_pricing=self.get_model_pricing,
                 )
                 return CompletionResult(
                     content=raw_content,

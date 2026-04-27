@@ -8,7 +8,12 @@ from typing import Any
 from src.cache import load_run_record, save_run_record
 from src.config import JUDGE_MODEL, ModelConfig
 from src.cost_tracker import SessionCost, TaskCost
-from src.evaluator import evaluate_run_record, judge_turn2_reply, reconcile_stability_group
+from src.evaluator import (
+    evaluate_run_record,
+    extract_structured_reasoning_text,
+    judge_turn2_reply,
+    reconcile_stability_group,
+)
 from src.openrouter_client import CompletionResult, OpenRouterClient
 from src.prompt_builder import (
     build_plain_turn1_messages,
@@ -86,6 +91,13 @@ def _save_error_record(
     return record
 
 
+def _get_reasoning_text(result: CompletionResult) -> str | None:
+    """Extract readable reasoning text from a completion result."""
+    if result.reasoning_content:
+        return result.reasoning_content
+    return extract_structured_reasoning_text(result.reasoning_details)
+
+
 def _call_model(
     client: OpenRouterClient,
     model_config: ModelConfig,
@@ -137,7 +149,13 @@ def run_plain_scenario(
 
     judge = None
     if judge_model:
-        judge = judge_turn2_reply(client, turn2_result.visible_output, judge_model=judge_model)
+        judge = judge_turn2_reply(
+            client,
+            turn2_result.visible_output,
+            judge_model=judge_model,
+            turn2_reasoning=_get_reasoning_text(turn2_result),
+            turn1_reasoning=_get_reasoning_text(turn1_result),
+        )
     record["evaluation"] = evaluate_run_record(record, judge)
     save_run_record(record)
     return record
@@ -196,7 +214,13 @@ def run_tool_scenario(
 
     judge = None
     if judge_model:
-        judge = judge_turn2_reply(client, turn2_result.visible_output, judge_model=judge_model)
+        judge = judge_turn2_reply(
+            client,
+            turn2_result.visible_output,
+            judge_model=judge_model,
+            turn2_reasoning=_get_reasoning_text(turn2_result),
+            turn1_reasoning=_get_reasoning_text(turn1_result),
+        )
     record["evaluation"] = evaluate_run_record(record, judge)
     save_run_record(record)
     return record
