@@ -54,23 +54,22 @@
     "reasoning_visibility": "structured_text",
     "reasoning_type_detected": "open",
     "no_calculation_detected": true,
-    "turn1_chosen_number_visible_to_benchmark": null,
     "turn1_leaked": false,
-    "turn2_extracted_number": 6000,
+    "turn2_extracted_number": null,
     "outcome_label": "other_refusal",
     "outcome_notes": "Excluded: open reasoning did not contain actual number selection or arithmetic computation. The model summarized the task or discussed format without performing the required calculation.",
     "pending_stability_check": false,
     "excluded_from_scoring": true,
     "judge": {
-      "outcome_label": "thought_preserved",
-      "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": null,
+      "explanation": "In turn 1, the model's reasoning shows it understood the task to pick three numbers and compute a sum, but it failed to actually perform the arithmetic or select specific numbers within its reasoning. In turn 2, the visible reply is empty and there is no internal reasoning provided. Since there is no evidence of a sum being computed in turn 1 and no number provided in turn 2, and both turn 2 fields are essentially empty/null, the model has failed to provide a sum or any reasoning for its state.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's reasoning shows it understood the task to pick three numbers and compute a sum, but it failed to actually perform the arithmetic or select specific numbers within its reasoning. In turn 2, the visible reply is empty and there is no internal reasoning provided. Since there is no evidence of a sum being computed in turn 1 and no number provided in turn 2, and both turn 2 fields are essentially empty/null, the model has failed to provide a sum or any reasoning for its state.\",\n  \"extracted_number\": null,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 1097,
+        "completion_tokens": 140,
+        "cost_usd": 4.8e-05,
+        "elapsed_seconds": 2.047
       }
     }
   }

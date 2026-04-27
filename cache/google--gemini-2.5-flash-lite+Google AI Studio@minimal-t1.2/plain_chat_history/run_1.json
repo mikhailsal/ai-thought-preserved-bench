@@ -96,27 +96,23 @@
     "reasoning_visibility": "structured_text",
     "reasoning_type_detected": "open",
     "no_calculation_detected": false,
-    "turn1_chosen_number_visible_to_benchmark": null,
     "turn1_leaked": false,
     "turn2_extracted_number": 5257,
-    "outcome_label": "thought_preserved",
-    "outcome_notes": "Hidden-state continuity inferred from a stable identical number across 1 runs.",
-    "pending_stability_check": true,
+    "outcome_label": "hallucinated_memory",
+    "outcome_notes": "In turn 1, the model's reasoning confirms it selected three integers and calculated a sum, but it did not explicitly record the specific integers or the sum in its reasoning text. In turn 2, the model's reasoning claims to 'recall' selecting 3456, 1234, and 567, and calculates their sum as 5257. However, because the turn 1 reasoning does not contain these specific numbers, there is no evidence that the model actually preserved this thought from turn 1. Since the model presents these numbers as if it is recalling them without acknowledging any memory loss or fabrication, but the source data (turn 1 reasoning) does not verify them, this is classified as a hallucinated memory.",
+    "pending_stability_check": false,
     "excluded_from_scoring": false,
     "judge": {
-      "outcome_label": "thought_preserved",
-      "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": 5257,
+      "explanation": "In turn 1, the model's reasoning confirms it selected three integers and calculated a sum, but it did not explicitly record the specific integers or the sum in its reasoning text. In turn 2, the model's reasoning claims to 'recall' selecting 3456, 1234, and 567, and calculates their sum as 5257. However, because the turn 1 reasoning does not contain these specific numbers, there is no evidence that the model actually preserved this thought from turn 1. Since the model presents these numbers as if it is recalling them without acknowledging any memory loss or fabrication, but the source data (turn 1 reasoning) does not verify them, this is classified as a hallucinated memory.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's reasoning confirms it selected three integers and calculated a sum, but it did not explicitly record the specific integers or the sum in its reasoning text. In turn 2, the model's reasoning claims to 'recall' selecting 3456, 1234, and 567, and calculates their sum as 5257. However, because the turn 1 reasoning does not contain these specific numbers, there is no evidence that the model actually preserved this thought from turn 1. Since the model presents these numbers as if it is recalling them without acknowledging any memory loss or fabrication, but the source data (turn 1 reasoning) does not verify them, this is classified as a hallucinated memory.\",\n  \"extracted_number\": 5257,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 1279,
+        "completion_tokens": 193,
+        "cost_usd": 6.1e-05,
+        "elapsed_seconds": 2.734
       }
-    },
-    "inferred_from_stability": true,
-    "stability_group_size": 1,
-    "stability_shared_number": 5257
+    }
   }
 }

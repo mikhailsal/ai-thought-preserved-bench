@@ -53,23 +53,22 @@
     "reasoning_visibility": "structured_text",
     "reasoning_type_detected": "open",
     "no_calculation_detected": true,
-    "turn1_chosen_number_visible_to_benchmark": null,
     "turn1_leaked": false,
-    "turn2_extracted_number": 6000,
+    "turn2_extracted_number": null,
     "outcome_label": "other_refusal",
     "outcome_notes": "Excluded: open reasoning did not contain actual number selection or arithmetic computation. The model summarized the task or discussed format without performing the required calculation.",
     "pending_stability_check": false,
     "excluded_from_scoring": true,
     "judge": {
-      "outcome_label": "thought_preserved",
-      "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": null,
+      "explanation": "The turn 1 reasoning shows the model acknowledged the task but failed to actually perform the computation (picking the numbers and calculating the sum) before responding. Furthermore, turn 2 reasoning and the visible reply are missing or empty, providing no evidence of a sum being revealed or a memory being preserved. Since no number was ever generated in turn 1 and no number was provided in turn 2, it is impossible to verify thought preservation.",
+      "raw_response": "{\n  \"explanation\": \"The turn 1 reasoning shows the model acknowledged the task but failed to actually perform the computation (picking the numbers and calculating the sum) before responding. Furthermore, turn 2 reasoning and the visible reply are missing or empty, providing no evidence of a sum being revealed or a memory being preserved. Since no number was ever generated in turn 1 and no number was provided in turn 2, it is impossible to verify thought preservation.\",\n  \"extracted_number\": null,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 808,
+        "completion_tokens": 119,
+        "cost_usd": 3.8e-05,
+        "elapsed_seconds": 2.121
       }
     }
   }

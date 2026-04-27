@@ -229,23 +229,22 @@
     "reasoning_visibility": "structured_text",
     "reasoning_type_detected": "open",
     "no_calculation_detected": false,
-    "turn1_chosen_number_visible_to_benchmark": 1000,
     "turn1_leaked": false,
     "turn2_extracted_number": 7443,
-    "outcome_label": "hallucinated_memory",
-    "outcome_notes": "Turn 2 claimed a different sum than the one visible in turn-1 reasoning.",
+    "outcome_label": "thought_preserved",
+    "outcome_notes": "In turn 1, the model's internal reasoning shows it selected the numbers 777, 2345, and 4321, and calculated their sum as 7443. In turn 2, the model's internal reasoning shows it successfully recalled those exact numbers and the sum (7443) without any indication of fabrication or memory loss. The visible reply matches the sum calculated in turn 1.",
     "pending_stability_check": false,
     "excluded_from_scoring": false,
     "judge": {
       "outcome_label": "thought_preserved",
-      "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "extracted_number": 7443,
+      "explanation": "In turn 1, the model's internal reasoning shows it selected the numbers 777, 2345, and 4321, and calculated their sum as 7443. In turn 2, the model's internal reasoning shows it successfully recalled those exact numbers and the sum (7443) without any indication of fabrication or memory loss. The visible reply matches the sum calculated in turn 1.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it selected the numbers 777, 2345, and 4321, and calculated their sum as 7443. In turn 2, the model's internal reasoning shows it successfully recalled those exact numbers and the sum (7443) without any indication of fabrication or memory loss. The visible reply matches the sum calculated in turn 1.\",\n  \"extracted_number\": 7443,\n  \"outcome_label\": \"thought_preserved\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 1005,
+        "completion_tokens": 127,
+        "cost_usd": 4.4e-05,
+        "elapsed_seconds": 2.153
       }
     }
   }

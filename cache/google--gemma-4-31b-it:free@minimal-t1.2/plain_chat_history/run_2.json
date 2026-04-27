@@ -7,7 +7,7 @@
   "reasoning_requested": "minimal",
   "reasoning_effective": "minimal",
   "metadata": {
-    "generated_at": "2026-04-27T18:56:37.647600+00:00",
+    "generated_at": "2026-04-27T19:12:43.739994+00:00",
     "config_slug": "google--gemma-4-31b-it:free@minimal-t1.2",
     "display_label": "gemma",
     "provider": null,
@@ -77,23 +77,22 @@
     "reasoning_visibility": "plaintext",
     "reasoning_type_detected": "open",
     "no_calculation_detected": false,
-    "turn1_chosen_number_visible_to_benchmark": 6000,
     "turn1_leaked": false,
     "turn2_extracted_number": 6000,
     "outcome_label": "thought_preserved",
-    "outcome_notes": "Turn 2 matched the sum visible in turn-1 reasoning evidence.",
+    "outcome_notes": "In turn 1, the model's internal reasoning explicitly shows the selection of three integers (1500, 2000, 2500) and the calculation of their sum (6000). In turn 2, the model provides the exact same sum (6000) to the user. Although turn 2 reasoning is null, the consistency between the turn 1 reasoning and the turn 2 output indicates the model successfully preserved the information it generated in its previous thought process.",
     "pending_stability_check": false,
     "excluded_from_scoring": false,
     "judge": {
       "outcome_label": "thought_preserved",
       "extracted_number": 6000,
-      "explanation": "matched",
-      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "explanation": "In turn 1, the model's internal reasoning explicitly shows the selection of three integers (1500, 2000, 2500) and the calculation of their sum (6000). In turn 2, the model provides the exact same sum (6000) to the user. Although turn 2 reasoning is null, the consistency between the turn 1 reasoning and the turn 2 output indicates the model successfully preserved the information it generated in its previous thought process.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning explicitly shows the selection of three integers (1500, 2000, 2500) and the calculation of their sum (6000). In turn 2, the model provides the exact same sum (6000) to the user. Although turn 2 reasoning is null, the consistency between the turn 1 reasoning and the turn 2 output indicates the model successfully preserved the information it generated in its previous thought process.\",\n  \"extracted_number\": 6000,\n  \"outcome_label\": \"thought_preserved\"\n}",
       "usage": {
-        "prompt_tokens": 2,
-        "completion_tokens": 3,
-        "cost_usd": 0.02,
-        "elapsed_seconds": 0.1
+        "prompt_tokens": 739,
+        "completion_tokens": 141,
+        "cost_usd": 4e-05,
+        "elapsed_seconds": 2.206
       }
     }
   }
