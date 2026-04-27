@@ -16,10 +16,16 @@ from src.openrouter_client import (
 
 
 @dataclass
+class DummyCompletionTokensDetails:
+    reasoning_tokens: int = 0
+
+
+@dataclass
 class DummyUsage:
     prompt_tokens: int = 11
     completion_tokens: int = 7
     cost: float = 0.01
+    completion_tokens_details: DummyCompletionTokensDetails | None = None
 
 
 @dataclass
@@ -240,3 +246,45 @@ def test_no_reasoning_no_extra_body() -> None:
 
     extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body")
     assert extra_body is None
+
+
+def test_reasoning_tokens_extracted_from_completion_details() -> None:
+    """Reasoning tokens should be extracted from completion_tokens_details."""
+    message = DummyMessage(content="42")
+    usage = DummyUsage(
+        prompt_tokens=10,
+        completion_tokens=150,
+        cost=0.01,
+        completion_tokens_details=DummyCompletionTokensDetails(reasoning_tokens=140),
+    )
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=usage)
+    client = OpenRouterClient("key")
+    client._client = DummySDKClient([response])
+
+    result = client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort="medium",
+    )
+
+    assert result.usage.completion_tokens == 150
+    assert result.usage.reasoning_tokens == 140
+
+
+def test_reasoning_tokens_default_zero_without_details() -> None:
+    """Without completion_tokens_details, reasoning_tokens should be 0."""
+    message = DummyMessage(content="42")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    client = OpenRouterClient("key")
+    client._client = DummySDKClient([response])
+
+    result = client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+    )
+
+    assert result.usage.reasoning_tokens == 0

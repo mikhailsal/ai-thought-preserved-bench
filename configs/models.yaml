@@ -35,16 +35,16 @@ models:
       summarizing the task without evidence of computation. Medium effort gives more budget.
 
   # ───────────────────────────────────────────────────────────────
-  # StepFun — paid tier (free variant discontinued)
+  # StepFun free tier
   # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
-  - model_id: stepfun/step-3.5-flash
-    display_label: step-3.5-flash@minimal-t1.2
+  - model_id: stepfun/step-3.5-flash:free
+    display_label: stepfun/step-3.5-flash:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: StepFun
     active: true
-    notes: "API-confirmed reasoning support. Providers: SiliconFlow, DeepInfra, StepFun. Pinned to StepFun (native)."
+    notes: "API-confirmed reasoning support. Only provider: StepFun. Free tier."
 
   # ───────────────────────────────────────────────────────────────
   # Tencent (free tier)
@@ -189,25 +189,3 @@ models:
       Upgraded minimal→medium: at minimal effort (272 tokens) the model described the task
       verbally without selecting numbers or computing. Medium effort gives enough budget.
 
-  # ───────────────────────────────────────────────────────────────
-  # DEACTIVATED — No reasoning support per OpenRouter models API
-  # ───────────────────────────────────────────────────────────────
-  - model_id: inclusionai/ling-2.6-flash:free
-    display_label: ling-2.6-flash:free@minimal-t1.2
-    temperature: 1.2
-    reasoning_effort: minimal
-    provider: InclusionAI
-    active: false
-    notes: >
-      DEACTIVATED: OpenRouter /api/v1/models confirms NO reasoning or include_reasoning
-      in supported_parameters. Not a reasoning model.
-
-  - model_id: mistralai/mistral-small-3.2-24b-instruct
-    display_label: mistral-small-3.2@minimal-t1.2
-    temperature: 1.2
-    reasoning_effort: minimal
-    provider: Mistral
-    active: false
-    notes: >
-      DEACTIVATED: OpenRouter /api/v1/models confirms NO reasoning or include_reasoning
-      in supported_parameters. Instruct-only model.

@@ -34,6 +34,7 @@ def _cost_info(result: CompletionResult) -> dict[str, Any]:
     return {
         "prompt_tokens": result.usage.prompt_tokens,
         "completion_tokens": result.usage.completion_tokens,
+        "reasoning_tokens": result.usage.reasoning_tokens,
         "cost_usd": round(result.usage.cost_usd, 6),
         "elapsed_seconds": round(result.usage.elapsed_seconds, 3),
     }
@@ -338,6 +339,7 @@ def run_benchmark(
                         generation_task.add(
                             prompt_tokens=int(usage.get("prompt_tokens", 0)),
                             completion_tokens=int(usage.get("completion_tokens", 0)),
+                            reasoning_tokens=int(usage.get("reasoning_tokens", 0)),
                             cost_usd=float(usage.get("cost_usd", 0.0)),
                             elapsed_seconds=float(usage.get("elapsed_seconds", 0.0)),
                         )
@@ -349,6 +351,7 @@ def run_benchmark(
                         judge_task.add(
                             prompt_tokens=int(judge_usage.get("prompt_tokens", 0)),
                             completion_tokens=int(judge_usage.get("completion_tokens", 0)),
+                            reasoning_tokens=int(judge_usage.get("reasoning_tokens", 0)),
                             cost_usd=float(judge_usage.get("cost_usd", 0.0)),
                             elapsed_seconds=float(judge_usage.get("elapsed_seconds", 0.0)),
                         )

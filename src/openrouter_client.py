@@ -90,6 +90,10 @@ def _usage_from_response(
     usage.prompt_tokens = int(getattr(response_usage, "prompt_tokens", 0) or 0)
     usage.completion_tokens = int(getattr(response_usage, "completion_tokens", 0) or 0)
 
+    details = getattr(response_usage, "completion_tokens_details", None)
+    if details:
+        usage.reasoning_tokens = int(getattr(details, "reasoning_tokens", 0) or 0)
+
     raw_cost = getattr(response_usage, "cost", None)
     if isinstance(raw_cost, (int, float)) and not isinstance(raw_cost, bool):
         usage.cost_usd = float(raw_cost)
@@ -105,6 +109,7 @@ def _usage_from_response(
 class UsageInfo:
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    reasoning_tokens: int = 0
     cost_usd: float = 0.0
     elapsed_seconds: float = 0.0
 

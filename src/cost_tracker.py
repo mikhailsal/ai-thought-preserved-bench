@@ -15,6 +15,7 @@ class TaskCost:
     label: str
     prompt_tokens: int = 0
     completion_tokens: int = 0
+    reasoning_tokens: int = 0
     cost_usd: float = 0.0
     elapsed_seconds: float = 0.0
 
@@ -23,11 +24,13 @@ class TaskCost:
         *,
         prompt_tokens: int,
         completion_tokens: int,
+        reasoning_tokens: int = 0,
         cost_usd: float,
         elapsed_seconds: float,
     ) -> None:
         self.prompt_tokens += prompt_tokens
         self.completion_tokens += completion_tokens
+        self.reasoning_tokens += reasoning_tokens
         self.cost_usd += cost_usd
         self.elapsed_seconds += elapsed_seconds
 
@@ -36,6 +39,7 @@ class TaskCost:
             "label": self.label,
             "prompt_tokens": self.prompt_tokens,
             "completion_tokens": self.completion_tokens,
+            "reasoning_tokens": self.reasoning_tokens,
             "cost_usd": round(self.cost_usd, 6),
             "elapsed_seconds": round(self.elapsed_seconds, 3),
         }
@@ -57,6 +61,10 @@ class SessionCost:
         return sum(task.completion_tokens for task in self.tasks)
 
     @property
+    def total_reasoning_tokens(self) -> int:
+        return sum(task.reasoning_tokens for task in self.tasks)
+
+    @property
     def total_cost_usd(self) -> float:
         return sum(task.cost_usd for task in self.tasks)
 
@@ -69,6 +77,7 @@ class SessionCost:
             "tasks": [task.to_dict() for task in self.tasks],
             "total_prompt_tokens": self.total_prompt_tokens,
             "total_completion_tokens": self.total_completion_tokens,
+            "total_reasoning_tokens": self.total_reasoning_tokens,
             "total_cost_usd": round(self.total_cost_usd, 6),
             "total_elapsed_seconds": round(self.total_elapsed_seconds, 3),
         }

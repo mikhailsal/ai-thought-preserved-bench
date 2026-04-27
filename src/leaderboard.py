@@ -56,9 +56,12 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
         console.print(table)
 
     if session is not None:
+        reasoning_note = ""
+        if session.total_reasoning_tokens:
+            reasoning_note = f", {session.total_reasoning_tokens:,} reasoning"
         console.print(
             f"\n[dim]Session cost: ${session.total_cost_usd:.4f} "
-            f"({session.total_prompt_tokens:,} in / {session.total_completion_tokens:,} out)[/dim]"
+            f"({session.total_prompt_tokens:,} in / {session.total_completion_tokens:,} out{reasoning_note})[/dim]"
         )
 
 

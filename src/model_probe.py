@@ -156,6 +156,7 @@ def probe_model(
         "cost": {
             "prompt_tokens": result.usage.prompt_tokens,
             "completion_tokens": result.usage.completion_tokens,
+            "reasoning_tokens": result.usage.reasoning_tokens,
             "cost_usd": round(result.usage.cost_usd, 6),
             "elapsed_seconds": round(result.usage.elapsed_seconds, 3),
         },
