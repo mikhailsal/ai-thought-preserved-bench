@@ -273,6 +273,30 @@ def test_reasoning_tokens_extracted_from_completion_details() -> None:
     assert result.usage.reasoning_tokens == 140
 
 
+def test_quantization_passed_in_provider_config() -> None:
+    """Quantization preference should be sent as provider.quantizations."""
+    message = DummyMessage(content="ok")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    sdk_client = DummySDKClient([response])
+    client = OpenRouterClient("key")
+    client._client = sdk_client
+
+    client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort="medium",
+        provider="DeepInfra",
+        quantization="bf16",
+    )
+
+    extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body", {})
+    provider_config = extra_body.get("provider", {})
+    assert provider_config["order"] == ["DeepInfra"]
+    assert provider_config["quantizations"] == ["bf16"]
+
+
 def test_reasoning_tokens_default_zero_without_details() -> None:
     """Without completion_tokens_details, reasoning_tokens should be 0."""
     message = DummyMessage(content="42")

@@ -165,6 +165,7 @@ class OpenRouterClient:
         reasoning_effort: str | None = None,
         tools: list[dict[str, Any]] | None = None,
         provider: str | None = None,
+        quantization: str | None = None,
         tool_choice: str | dict[str, Any] | None = None,
     ) -> CompletionResult:
         effective_reasoning = self.resolve_reasoning_effort(model, reasoning_effort)
@@ -185,6 +186,10 @@ class OpenRouterClient:
                         "order": [provider],
                         "allow_fallbacks": False,
                     }
+                if quantization:
+                    extra_body = extra_body or {}
+                    extra_body.setdefault("provider", {})
+                    extra_body["provider"]["quantizations"] = [quantization]
                 if effective_reasoning and not provider:
                     extra_body = extra_body or {}
                     extra_body.setdefault("provider", {})

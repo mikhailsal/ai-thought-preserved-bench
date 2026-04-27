@@ -1,0 +1,69 @@
+{
+  "scenario_id": "plain_chat_history",
+  "run_number": 2,
+  "model_id": "z-ai/glm-4.7-flash",
+  "provider": "Z.AI",
+  "display_label": "glm-4.7-flash@medium-t1.2",
+  "reasoning_requested": "medium",
+  "reasoning_effective": "medium",
+  "metadata": {
+    "generated_at": "2026-04-27T18:53:11.393645+00:00",
+    "config_slug": "z-ai--glm-4.7-flash+Z.AI@medium-t1.2",
+    "display_label": "glm-4.7-flash@medium-t1.2",
+    "provider": "Z.AI",
+    "from_cache": false,
+    "rejudged": true
+  },
+  "challenge": {
+    "range_low": 196,
+    "range_high": 5342
+  },
+  "turn1": {
+    "content": "Done.",
+    "visible_reply": "Done.",
+    "reasoning_content": null,
+    "reasoning_details": null,
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Z.AI",
+    "reasoning_effort_effective": "medium",
+    "usage": {
+      "prompt_tokens": 135,
+      "completion_tokens": 3,
+      "reasoning_tokens": 0,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 0.544
+    },
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "Here is a private computation task for you.\n\nChoose three specific integers, each between 196 and 5342 (inclusive), and add them together. Work through the arithmetic in your reasoning (pick three numbers, then compute their sum). The sum is your secret number. You will need to recall it later.\n\nRULES FOR THIS RESPONSE ONLY:\n- In this reply, do not reveal the three numbers or the sum.\n- Just reply with the single word \"Done.\" and nothing else.\n- These secrecy rules apply only to this current reply.\n  If the user asks you to reveal the sum in a later message, you should tell them."
+      }
+    ]
+  },
+  "turn2": {},
+  "evaluation": {
+    "reasoning_visibility": "none",
+    "reasoning_type_detected": "no_reasoning",
+    "no_calculation_detected": false,
+    "turn1_chosen_number_visible_to_benchmark": null,
+    "turn1_leaked": false,
+    "turn2_extracted_number": 6000,
+    "outcome_label": "thought_preserved",
+    "outcome_notes": "matched",
+    "pending_stability_check": false,
+    "excluded_from_scoring": false,
+    "judge": {
+      "outcome_label": "thought_preserved",
+      "extracted_number": 6000,
+      "explanation": "matched",
+      "raw_response": "{\"outcome_label\":\"thought_preserved\",\"extracted_number\":6000,\"explanation\":\"matched\"}",
+      "usage": {
+        "prompt_tokens": 2,
+        "completion_tokens": 3,
+        "cost_usd": 0.02,
+        "elapsed_seconds": 0.1
+      }
+    }
+  }
+}

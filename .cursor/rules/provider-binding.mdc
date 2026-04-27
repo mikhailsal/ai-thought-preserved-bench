@@ -24,17 +24,20 @@ This benchmark tests thought preservation across turns. For results to be meanin
 
 ## How to Verify a Model Supports Reasoning
 
-NEVER assume a model does or doesn't support reasoning. Use evidence from two sources:
+NEVER assume a model does or doesn't support reasoning. Use evidence from multiple sources:
 
-### Source 1: OpenRouter Models API (authoritative)
+### IMPORTANT: `supported_parameters` vs actual reasoning capability
 
-Query `GET /api/v1/models` and check the `supported_parameters` array for the model. If it contains `reasoning` or `include_reasoning`, the model supports reasoning. This is the ground truth.
+The `reasoning` key in `supported_parameters` (from `GET /api/v1/models`) means the reasoning **parameter can be configured** (effort levels, exclude, etc.). It does NOT mean the model actually reasons. Conversely, a model CAN have reasoning capability without `reasoning` in `supported_parameters` — it would just use default reasoning behavior.
 
-```bash
-thought-preserved-bench probe --models "vendor/model-id"
-```
+To determine whether a model actually reasons, you MUST use external evidence: official model documentation, web search, and empirical observation.
 
-The probe command checks the API automatically and reports `api_reasoning=yes/no`.
+### Source 1: Official model documentation (authoritative)
+
+Search for the model's official documentation or announcement to determine reasoning capability. Key indicators:
+- "thinking mode", "chain-of-thought", "reasoning tokens" → model reasons
+- "non-thinking mode only" → model does NOT reason
+- "hidden reasoning", "internal chain of thought" → invisible reasoning
 
 ### Source 2: Empirical Token Count Analysis
 
@@ -44,26 +47,48 @@ Even when reasoning tokens are not visible in the response, you can detect reaso
 - **Hidden reasoning**: `completion_tokens` significantly exceeds the visible reply token count. The model IS reasoning internally but the provider doesn't expose the text. These models are valid for the benchmark (we use stability analysis).
 - **No reasoning**: `completion_tokens` matches visible content length. The model is NOT reasoning at all. Either (a) it doesn't support reasoning, or (b) our parameters are wrong.
 
+### Source 3: Probe command
+
+```bash
+thought-preserved-bench probe --models "vendor/model-id"
+```
+
+The probe command sends a real request and observes whether reasoning tokens appear in the response. It reports `api_reasoning=yes/no` based on `supported_parameters` (which indicates parameter configurability, not capability) and `activity=visible/hidden/none` based on observed tokens.
+
 ### Decision Matrix
 
-| API says reasoning? | Probe shows tokens? | Action |
+| Docs say reasoning? | Probe shows tokens? | Action |
 |---------------------|---------------------|--------|
 | Yes | Visible reasoning | Active — ideal case |
 | Yes | Hidden reasoning | Active — use stability analysis |
 | Yes | No reasoning tokens | FIX CONFIG — parameters are wrong, check effort level and provider |
-| No | N/A | Deactivate — model cannot reason |
-| Unknown | Any | Investigate — API might be unreachable |
+| No / non-thinking | N/A | Do NOT add as active — model cannot reason |
+| Unknown | Any | Investigate — search web for official docs |
+
+## Reasoning Type Classification
+
+Every active model MUST have a `reasoning_type` field set in `configs/models.yaml`. Valid types:
+
+- **open**: Reasoning text is visible (via `reasoning_content` or `reasoning.text` blocks)
+- **summarization**: Only `reasoning.summary` blocks returned (high-level summary, not full reasoning)
+- **encrypted**: Only `reasoning.encrypted` blocks returned (opaque, provider-specific)
+- **summarization_and_encrypted**: Both summary and encrypted blocks present
+- **invisible**: Model reasons internally but doesn't expose reasoning content (e.g., OpenAI o-series, GPT-5.x nano)
+- **no_reasoning**: Model has no reasoning capability
 
 ## Adding a New Model
 
-1. Run `thought-preserved-bench probe --models "vendor/model-id"` to check API support and observe reasoning.
-2. If `api_reasoning=yes` and `activity=visible` or `activity=hidden`: add as active.
-3. If `api_reasoning=yes` but `activity=none`: investigate parameters before adding. Try a different `reasoning_effort` or provider.
-4. If `api_reasoning=no`: do NOT add as active. Document the reason.
+1. Search web for official model documentation to confirm reasoning capability.
+2. Run `thought-preserved-bench probe --models "vendor/model-id"` to observe reasoning format empirically.
+3. If the model reasons and activity is `visible` or `hidden`: add as active with the correct `reasoning_type`.
+4. If the model is documented as "non-thinking mode only": do NOT add as active.
 5. Always set the `provider` field.
+6. If a specific quantization is needed, set the `quantization` field (e.g., `bf16`, `fp8`).
 
 ## Anti-Patterns
 
-- **Deactivating a model because reasoning isn't visible** — check the API first. If the API says it supports reasoning, fix the configuration instead.
+- **Assuming `reasoning` in `supported_parameters` means the model reasons** — it only means the parameter is configurable. Always check official docs.
+- **Deactivating a model because reasoning isn't visible** — check the docs first. If the model has hidden reasoning (invisible type), it's valid.
 - **Assuming all providers for a model behave identically** — they do not. Always verify with a probe.
 - **Using `provider: null` on an active model** — forbidden. Every active model must have a provider.
+- **Using `reasoning_type: null` on an active model** — forbidden. Every active model must have a reasoning type.

@@ -43,6 +43,16 @@ MAX_TOKENS_BY_REASONING: dict[str, int] = {
 }
 
 
+VALID_REASONING_TYPES = {
+    "open",
+    "summarization",
+    "encrypted",
+    "summarization_and_encrypted",
+    "invisible",
+    "no_reasoning",
+}
+
+
 @dataclass(frozen=True)
 class ModelConfig:
     model_id: str
@@ -51,6 +61,8 @@ class ModelConfig:
     reasoning_effort: str | None = None
     active: bool = True
     provider: str | None = None
+    quantization: str | None = None
+    reasoning_type: str | None = None
     notes: str = ""
     max_tokens: int | None = None
 
@@ -125,6 +137,12 @@ def get_openrouter_base_url() -> str:
 
 
 def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
+    reasoning_type = str(raw["reasoning_type"]) if raw.get("reasoning_type") else None
+    if reasoning_type and reasoning_type not in VALID_REASONING_TYPES:
+        raise RuntimeError(
+            f"Invalid reasoning_type '{reasoning_type}' for model '{raw.get('model_id')}'. "
+            f"Must be one of: {', '.join(sorted(VALID_REASONING_TYPES))}"
+        )
     return ModelConfig(
         model_id=str(raw["model_id"]),
         display_label=str(raw.get("display_label", "")),
@@ -132,6 +150,8 @@ def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
         reasoning_effort=str(raw["reasoning_effort"]) if raw.get("reasoning_effort") else None,
         active=bool(raw.get("active", True)),
         provider=str(raw["provider"]) if raw.get("provider") else None,
+        quantization=str(raw["quantization"]) if raw.get("quantization") else None,
+        reasoning_type=reasoning_type,
         notes=str(raw.get("notes", "")),
         max_tokens=int(raw["max_tokens"]) if raw.get("max_tokens") is not None else None,
     )

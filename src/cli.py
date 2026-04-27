@@ -14,6 +14,7 @@ from src.config import (
     JUDGE_MODEL,
     ensure_dirs,
     get_active_model_configs,
+    get_config_by_slug,
     get_model_config,
     list_registered_labels_for_model,
     load_api_key,
@@ -186,11 +187,13 @@ def rejudge(models_arg: str | None, scenarios: str | None, reps: int | None, jud
                 run_numbers = [r for r in run_numbers if r <= reps]
             group_key = (config_slug, scenario_id)
             group_map[group_key] = []
+            model_cfg = get_config_by_slug(config_slug)
+            r_type = model_cfg.reasoning_type if model_cfg else None
             for run_number in run_numbers:
                 record = load_run_record(config_slug, scenario_id, run_number)
                 if record is None:
                     continue
-                rejudge_record(client, record, judge_model=judge)
+                rejudge_record(client, record, judge_model=judge, reasoning_type=r_type)
                 group_map[group_key].append(record)
                 rejudged_count += 1
 

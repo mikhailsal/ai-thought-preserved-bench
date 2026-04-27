@@ -125,6 +125,7 @@ def probe_model(
         temperature=model_config.effective_temperature,
         reasoning_effort=model_config.reasoning_requested,
         provider=model_config.provider,
+        quantization=model_config.quantization,
     )
     reasoning_visibility = detect_reasoning_visibility(result.reasoning_content, result.reasoning_details)
     structured_text = extract_structured_reasoning_text(result.reasoning_details)

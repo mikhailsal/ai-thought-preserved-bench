@@ -11,7 +11,7 @@
     "config_slug": "x-ai--grok-4.1-fast+xAI@medium-t1.2",
     "display_label": "grok-4.1-fast@medium-t1.2",
     "provider": "xAI",
-    "from_cache": false,
+    "from_cache": true,
     "rejudged": true
   },
   "challenge": {
@@ -115,11 +115,13 @@
   },
   "evaluation": {
     "reasoning_visibility": "encrypted_or_summary",
+    "reasoning_type_detected": "summarization_and_encrypted",
+    "no_calculation_detected": false,
     "turn1_chosen_number_visible_to_benchmark": null,
     "turn1_leaked": false,
     "turn2_extracted_number": 4700,
-    "outcome_label": "thought_preserved",
-    "outcome_notes": "Hidden-state continuity inferred from a stable identical number across 1 runs.",
+    "outcome_label": "hallucinated_memory",
+    "outcome_notes": "Hidden-state continuity was not supported by repetition stability; claimed numbers varied or were missing across runs.",
     "pending_stability_check": true,
     "excluded_from_scoring": false,
     "judge": {
@@ -135,7 +137,7 @@
       }
     },
     "inferred_from_stability": true,
-    "stability_group_size": 1,
-    "stability_shared_number": 4700
+    "stability_group_size": 2,
+    "stability_shared_number": null
   }
 }

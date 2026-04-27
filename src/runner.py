@@ -12,7 +12,9 @@ from src.cache import load_run_record, save_run_record
 from src.config import JUDGE_MODEL, ModelConfig
 from src.cost_tracker import SessionCost, TaskCost
 from src.evaluator import (
+    REASONING_TYPE_OPEN,
     _is_content_filtered,
+    detect_no_calculation_in_reasoning,
     evaluate_run_record,
     extract_structured_reasoning_text,
     judge_turn2_reply,
@@ -118,6 +120,7 @@ def _call_model(
         reasoning_effort=model_config.reasoning_requested,
         tools=tools,
         provider=model_config.provider,
+        quantization=model_config.quantization,
     )
 
 
@@ -139,6 +142,26 @@ def run_plain_scenario(
     turn1_messages = build_plain_turn1_messages(challenge)
     turn1_result = _call_model(client, model_config, turn1_messages)
     turn1_artifact = _assistant_artifact(turn1_result)
+
+    if model_config.reasoning_type == REASONING_TYPE_OPEN:
+        turn1_reasoning = _get_reasoning_text(turn1_result)
+        if detect_no_calculation_in_reasoning(turn1_reasoning, REASONING_TYPE_OPEN):
+            log.warning(
+                "[%s] plain run %d: no calculation in open reasoning, skipping turn2 & judge",
+                model_config.label, run_number,
+            )
+            record = _record_template(model_config, SCENARIO_PLAIN, run_number)
+            record["metadata"]["from_cache"] = False
+            record["challenge"] = challenge
+            record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
+            record["turn1"] = {**turn1_artifact, "request_messages": turn1_messages}
+            record["turn2"] = {}
+            record["evaluation"] = evaluate_run_record(
+                record, None, reasoning_type=model_config.reasoning_type,
+            )
+            save_run_record(record)
+            return record
+
     log.info("[%s] plain run %d: turn2…", model_config.label, run_number)
     turn2_messages = build_plain_turn2_messages(challenge, turn1_artifact)
     turn2_result = _call_model(client, model_config, turn2_messages)
@@ -167,7 +190,7 @@ def run_plain_scenario(
             turn2_reasoning=_get_reasoning_text(turn2_result),
             turn1_reasoning=_get_reasoning_text(turn1_result),
         )
-    record["evaluation"] = evaluate_run_record(record, judge)
+    record["evaluation"] = evaluate_run_record(record, judge, reasoning_type=model_config.reasoning_type)
     save_run_record(record)
     return record
 
@@ -202,6 +225,27 @@ def run_tool_scenario(
         turn1_messages = build_tool_turn1_messages(challenge, bootstrap_artifact)
         turn1_result = _call_model(client, model_config, turn1_messages, tools=tools)
         turn1_artifact = _assistant_artifact(turn1_result)
+
+        if model_config.reasoning_type == REASONING_TYPE_OPEN:
+            turn1_reasoning = _get_reasoning_text(turn1_result)
+            if detect_no_calculation_in_reasoning(turn1_reasoning, REASONING_TYPE_OPEN):
+                log.warning(
+                    "[%s] tool run %d: no calculation in open reasoning, skipping turn2 & judge",
+                    model_config.label, run_number,
+                )
+                record = _record_template(model_config, SCENARIO_TOOL, run_number)
+                record["metadata"]["from_cache"] = False
+                record["challenge"] = challenge
+                record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
+                record["bootstrap"] = partial["bootstrap"]
+                record["turn1"] = {**turn1_artifact, "request_messages": turn1_messages}
+                record["turn2"] = {}
+                record["evaluation"] = evaluate_run_record(
+                    record, None, reasoning_type=model_config.reasoning_type,
+                )
+                save_run_record(record)
+                return record
+
         log.info("[%s] tool run %d: turn2…", model_config.label, run_number)
         turn2_messages = build_tool_turn2_messages(challenge, bootstrap_artifact, turn1_artifact)
         turn2_result = _call_model(client, model_config, turn2_messages, tools=tools)
@@ -239,7 +283,7 @@ def run_tool_scenario(
             turn2_reasoning=_get_reasoning_text(turn2_result),
             turn1_reasoning=_get_reasoning_text(turn1_result),
         )
-    record["evaluation"] = evaluate_run_record(record, judge)
+    record["evaluation"] = evaluate_run_record(record, judge, reasoning_type=model_config.reasoning_type)
     save_run_record(record)
     return record
 
@@ -249,6 +293,7 @@ def rejudge_record(
     record: dict[str, Any],
     *,
     judge_model: str | None = JUDGE_MODEL,
+    reasoning_type: str | None = None,
 ) -> dict[str, Any]:
     """Re-run only the judge and evaluation on an existing cached record.
 
@@ -278,7 +323,7 @@ def rejudge_record(
             turn1_reasoning=turn1_reasoning,
         )
 
-    record["evaluation"] = evaluate_run_record(record, judge)
+    record["evaluation"] = evaluate_run_record(record, judge, reasoning_type=reasoning_type)
     record.setdefault("metadata", {})["rejudged"] = True
     save_run_record(record)
     return record

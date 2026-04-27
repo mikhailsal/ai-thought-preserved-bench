@@ -1,191 +1,242 @@
 models:
   # ───────────────────────────────────────────────────────────────
   # Google — Gemma (free tier)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: google/gemma-4-31b-it:free
     display_label: gemma-4-31b-it:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: Google AI Studio
+    reasoning_type: open
     active: true
-    notes: "API-confirmed reasoning support. Only provider: Google AI Studio."
+    notes: "Visible reasoning via plaintext reasoning_content. Only provider: Google AI Studio."
 
   - model_id: google/gemma-4-26b-a4b-it:free
     display_label: gemma-4-26b-a4b-it:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: Google AI Studio
+    reasoning_type: open
     active: true
-    notes: "API-confirmed reasoning support. Smaller Gemma MoE variant, free tier. Only provider: Google AI Studio."
+    notes: "Visible reasoning via plaintext reasoning_content. Smaller Gemma MoE variant, free tier."
 
   # ───────────────────────────────────────────────────────────────
-  # X-AI — Grok (encrypted reasoning expected)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # X-AI — Grok (encrypted + summary reasoning)
   # ───────────────────────────────────────────────────────────────
   - model_id: x-ai/grok-4.1-fast
     display_label: grok-4.1-fast@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: xAI
+    reasoning_type: summarization_and_encrypted
     active: true
     notes: >
-      API-confirmed reasoning support. Only provider: xAI. Encrypted/summarized reasoning details expected.
-      Upgraded minimal→medium: at minimal effort the visible reasoning was a single line
-      summarizing the task without evidence of computation. Medium effort gives more budget.
+      Reasoning via reasoning.summary + reasoning.encrypted blocks (xai-responses-v1 format).
+      Encrypted content preserves state across turns but is not human-readable.
 
   # ───────────────────────────────────────────────────────────────
   # StepFun free tier
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: stepfun/step-3.5-flash:free
     display_label: stepfun/step-3.5-flash:free@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: StepFun
+    reasoning_type: open
     active: true
-    notes: "API-confirmed reasoning support. Only provider: StepFun. Free tier."
+    notes: "Visible reasoning via reasoning field. 196B MoE (11B active), free tier."
 
   # ───────────────────────────────────────────────────────────────
   # Tencent (free tier)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: tencent/hy3-preview:free
     display_label: hy3-preview:free@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: SiliconFlow
+    reasoning_type: open
     active: true
     notes: >
-      API-confirmed reasoning support. Only provider: SiliconFlow (no native Tencent endpoint on OpenRouter).
-      Upgraded minimal→medium: at minimal effort (175 tokens) the model debated whether to pick
-      numbers instead of computing. Medium effort gives enough reasoning budget.
+      Visible reasoning via reasoning.text. Only provider: SiliconFlow.
+      Upgraded minimal→medium: at minimal effort the model debated whether to pick
+      numbers instead of computing.
 
   # ───────────────────────────────────────────────────────────────
-  # DeepSeek — both models have API-confirmed reasoning support
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # DeepSeek
   # ───────────────────────────────────────────────────────────────
   - model_id: deepseek/deepseek-v4-flash
     display_label: deepseek-v4-flash@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: DeepSeek
+    reasoning_type: open
     active: true
     notes: >
-      API-confirmed reasoning support. Providers: DeepSeek, SiliconFlow, DeepInfra, Novita. Pinned to DeepSeek (native).
-      Upgraded minimal→medium: at minimal effort (50 tokens) the model summarized the task
-      without picking numbers or computing. Medium effort gives enough reasoning budget.
+      Visible reasoning via reasoning.text. Pinned to DeepSeek (native).
+      Upgraded minimal→medium: at minimal effort the model summarized the task
+      without picking numbers or computing.
 
   - model_id: deepseek/deepseek-v3.2
     display_label: deepseek-v3.2@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: Novita
+    reasoning_type: open
     active: true
     notes: >
-      REACTIVATED: After proxy config fix, Novita provider returns reasoning_tokens (135 tokens
-      observed with effort=high). Previous 0-token results were caused by the proxy not forwarding
-      reasoning parameters correctly. No native DeepSeek endpoint for v3.2 — using Novita.
+      Visible reasoning via reasoning.text. Using Novita provider.
+      Previous 0-token results were caused by proxy not forwarding reasoning params.
 
   # ───────────────────────────────────────────────────────────────
-  # Qwen — cheap reasoning model
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # Qwen — qwen3-8b
   # ───────────────────────────────────────────────────────────────
   - model_id: qwen/qwen3-8b
     display_label: qwen3-8b@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: Alibaba
+    reasoning_type: open
     active: true
     notes: >
-      API-confirmed reasoning support. Providers: AtlasCloud, Alibaba. Pinned to Alibaba (native Qwen provider).
-      Upgraded minimal→medium: at minimal effort (302 tokens) the model philosophized about whether
-      it can choose numbers instead of actually computing. Medium effort gives enough budget.
-      Note: Fireworks is NOT a valid provider for this model.
+      Visible reasoning via reasoning.text. Pinned to Alibaba (native Qwen provider).
+      Upgraded minimal→medium: at minimal effort the model philosophized instead of computing.
 
   # ───────────────────────────────────────────────────────────────
   # Nvidia — free reasoning model
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
   # ───────────────────────────────────────────────────────────────
   - model_id: nvidia/nemotron-3-super-120b-a12b:free
     display_label: nemotron-3-super-120b:free@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: Nvidia
+    reasoning_type: open
     active: true
     notes: >
-      API-confirmed reasoning support. Only provider: Nvidia. Free tier.
-      Upgraded minimal→medium: at minimal effort (64 tokens) the model only focused on
-      output format without computing. Medium effort gives enough reasoning budget.
+      Visible reasoning via reasoning.text. Free tier.
+      Upgraded minimal→medium: at minimal effort the model only focused on output format.
 
   # ───────────────────────────────────────────────────────────────
-  # OpenAI — GPT-OSS-20B (very cheap reasoning model)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # OpenAI — GPT-OSS-20B
   # ───────────────────────────────────────────────────────────────
   - model_id: openai/gpt-oss-20b
     display_label: gpt-oss-20b@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: DeepInfra
+    reasoning_type: open
     active: true
     notes: >
-      API-confirmed reasoning support. Providers: DeepInfra, Novita, SiliconFlow, Together, Groq, etc.
-      Pinned to DeepInfra. Probe shows visible structured_text reasoning.
-      Upgraded minimal→medium: at minimal effort (52 tokens) the model only summarized the task
-      without computing. Medium effort gives enough reasoning budget.
+      Visible reasoning via reasoning.text (structured_text format).
+      Upgraded minimal→medium: at minimal effort the model only summarized the task.
 
   # ───────────────────────────────────────────────────────────────
-  # OpenAI — GPT-5-nano (cheap, hidden reasoning)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # OpenAI — GPT-5-nano (hidden reasoning)
   # ───────────────────────────────────────────────────────────────
   - model_id: openai/gpt-5-nano
     display_label: gpt-5-nano@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: OpenAI
+    reasoning_type: invisible
     active: true
     notes: >
-      API-confirmed reasoning support. Providers: Azure, OpenAI. Pinned to OpenAI.
-      Hidden reasoning (tokens not exposed). Upgraded minimal→medium: at minimal effort only
-      20 completion tokens — too few for meaningful computation. Medium gives more budget.
+      Hidden reasoning: tokens consumed but content not exposed.
+      Upgraded minimal→medium: at minimal effort only 20 completion tokens.
 
   # ───────────────────────────────────────────────────────────────
-  # MiniMax — M2.5 (cheap reasoning model)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # MiniMax — M2.5
   # ───────────────────────────────────────────────────────────────
   - model_id: minimax/minimax-m2.5
     display_label: minimax-m2.5@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: Minimax
+    reasoning_type: open
     active: true
-    notes: "API-confirmed reasoning support. Providers: DeepInfra, Minimax, Novita, SiliconFlow, Nebius, etc. Pinned to Minimax (native). Probe shows visible structured_text reasoning."
+    notes: "Visible reasoning via reasoning.text (structured_text format)."
 
   # ───────────────────────────────────────────────────────────────
-  # Qwen — 3.5-flash (cheap reasoning model)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # Qwen — 3.5-flash
   # ───────────────────────────────────────────────────────────────
   - model_id: qwen/qwen3.5-flash-02-23
     display_label: qwen3.5-flash@minimal-t1.2
     temperature: 1.2
     reasoning_effort: minimal
     provider: Alibaba
+    reasoning_type: open
     active: true
-    notes: "API-confirmed reasoning support. Only provider: Alibaba. Probe shows visible structured_text reasoning (581 completion tokens)."
+    notes: "Visible reasoning via reasoning.text (structured_text format, 581 tokens)."
 
   # ───────────────────────────────────────────────────────────────
-  # Google — Gemini 2.5 Flash Lite (cheap reasoning model)
-  # API-confirmed: reasoning, include_reasoning in supported_parameters
+  # Google — Gemini 2.5 Flash Lite
   # ───────────────────────────────────────────────────────────────
   - model_id: google/gemini-2.5-flash-lite
     display_label: gemini-2.5-flash-lite@medium-t1.2
     temperature: 1.2
     reasoning_effort: medium
     provider: Google AI Studio
+    reasoning_type: open
     active: true
     notes: >
-      API-confirmed reasoning support. Providers: Google, Google AI Studio.
-      Pinned to Google AI Studio. Probe shows visible structured_text reasoning.
-      Upgraded minimal→medium: at minimal effort (272 tokens) the model described the task
-      verbally without selecting numbers or computing. Medium effort gives enough budget.
+      Visible reasoning via reasoning.text.
+      Upgraded minimal→medium: at minimal effort the model described the task
+      verbally without selecting numbers or computing.
 
+  # ───────────────────────────────────────────────────────────────
+  # NEW: Qwen — 3.6-35B-A3B (MoE, thinking by default)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: qwen/qwen3.6-35b-a3b
+    display_label: qwen3.6-35b-a3b@medium-t1.2
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: AkashML
+    reasoning_type: open
+    active: true
+    notes: >
+      35B MoE (3B active). Thinking mode by default with visible reasoning.
+      Providers: AtlasCloud, AkashML, Parasail. Pinned to AkashML per user request.
+      Tool use not supported by AkashML endpoint (tool_mediated_reply scenario skipped).
+
+  # ───────────────────────────────────────────────────────────────
+  # NEW: OpenAI — GPT-5.4-nano (hidden reasoning)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: openai/gpt-5.4-nano
+    display_label: gpt-5.4-nano@medium-t1.2
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: OpenAI
+    reasoning_type: invisible
+    active: true
+    notes: >
+      Hidden reasoning: tokens consumed but content not exposed (same behavior as GPT-5-nano).
+      Providers: Azure, OpenAI. Pinned to OpenAI per user request.
+
+  # ───────────────────────────────────────────────────────────────
+  # DISABLED: Z.AI — GLM-4.7-flash
+  # ───────────────────────────────────────────────────────────────
+  - model_id: z-ai/glm-4.7-flash
+    display_label: glm-4.7-flash@medium-t1.2
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: Z.AI
+    reasoning_type: no_reasoning
+    active: false
+    notes: >
+      DISABLED: Returns 0 reasoning tokens across all tested providers (DeepInfra/bf16,
+      Z.AI native). Model completely ignores reasoning parameters — responds with only
+      3 completion tokens and no reasoning content. Not usable for this benchmark.
+
+  # ───────────────────────────────────────────────────────────────
+  # NEW: MiniMax — M2.7
+  # ───────────────────────────────────────────────────────────────
+  - model_id: minimax/minimax-m2.7
+    display_label: minimax-m2.7@medium-t1.2
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: Minimax
+    quantization: fp8
+    reasoning_type: open
+    active: true
+    notes: >
+      Successor to M2.5 with self-evolution capabilities. Visible reasoning expected.
+      Providers: Fireworks, Together, Minimax. Pinned to Minimax with fp8 quantization.

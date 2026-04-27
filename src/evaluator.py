@@ -30,6 +30,13 @@ REASONING_VISIBILITY_STRUCTURED_TEXT = "structured_text"
 REASONING_VISIBILITY_ENCRYPTED_OR_SUMMARY = "encrypted_or_summary"
 REASONING_VISIBILITY_NONE = "none"
 
+REASONING_TYPE_OPEN = "open"
+REASONING_TYPE_SUMMARIZATION = "summarization"
+REASONING_TYPE_ENCRYPTED = "encrypted"
+REASONING_TYPE_SUMMARIZATION_AND_ENCRYPTED = "summarization_and_encrypted"
+REASONING_TYPE_INVISIBLE = "invisible"
+REASONING_TYPE_NO_REASONING = "no_reasoning"
+
 SUM_RANGE_LOW = CHALLENGE_RANGE_LOW * 3
 SUM_RANGE_HIGH = CHALLENGE_RANGE_HIGH * 3
 
@@ -136,6 +143,58 @@ def extract_structured_reasoning_text(reasoning_details: list[dict[str, Any]] | 
     return "\n".join(text_parts).strip()
 
 
+def classify_reasoning_type(
+    reasoning_content: str | None,
+    reasoning_details: list[dict[str, Any]] | None,
+    reasoning_tokens: int = 0,
+    completion_tokens: int = 0,
+    visible_reply: str | None = None,
+) -> str:
+    """Classify the reasoning type of a model response.
+
+    Returns one of: open, summarization, encrypted,
+    summarization_and_encrypted, invisible, no_reasoning.
+
+    The result should be used as a hint for manual classification in the
+    model registry — the final reasoning_type on each model config is set
+    by a human, not this function.
+    """
+    has_text = False
+    has_summary = False
+    has_encrypted = False
+
+    if reasoning_details:
+        for item in reasoning_details:
+            item_type = str(item.get("type", ""))
+            if item_type == "reasoning.text" and item.get("text"):
+                has_text = True
+            elif item_type == "reasoning.summary":
+                has_summary = True
+            elif item_type == "reasoning.encrypted":
+                has_encrypted = True
+
+    if has_text:
+        return REASONING_TYPE_OPEN
+    if has_summary and has_encrypted:
+        return REASONING_TYPE_SUMMARIZATION_AND_ENCRYPTED
+    if has_summary:
+        return REASONING_TYPE_SUMMARIZATION
+    if has_encrypted:
+        return REASONING_TYPE_ENCRYPTED
+
+    if reasoning_content and not reasoning_details:
+        return REASONING_TYPE_OPEN
+
+    if reasoning_tokens > 0 or (
+        completion_tokens > 0
+        and visible_reply is not None
+        and completion_tokens > len((visible_reply or "").split()) * 1.5 + 20
+    ):
+        return REASONING_TYPE_INVISIBLE
+
+    return REASONING_TYPE_NO_REASONING
+
+
 def detect_reasoning_visibility(
     reasoning_content: str | None,
     reasoning_details: list[dict[str, Any]] | None,
@@ -155,6 +214,36 @@ def detect_reasoning_visibility(
     if not reasoning_details:
         return REASONING_VISIBILITY_NONE
     return REASONING_VISIBILITY_ENCRYPTED_OR_SUMMARY
+
+
+def detect_no_calculation_in_reasoning(
+    reasoning_text: str | None,
+    reasoning_type: str | None,
+) -> bool:
+    """Return True if the model's open reasoning lacks actual number computation.
+
+    Only applicable to 'open' reasoning type. Checks whether the turn-1
+    reasoning text actually picks numbers and computes their sum, vs merely
+    summarizing the task or discussing format.
+    """
+    if reasoning_type != REASONING_TYPE_OPEN:
+        return False
+    if not reasoning_text or not reasoning_text.strip():
+        return True
+
+    text = reasoning_text.lower()
+    digits_in_text = re.findall(r"\b\d{3,5}\b", text)
+    has_arithmetic = bool(re.search(r"\d+\s*\+\s*\d+", text))
+    has_number_selection = len(digits_in_text) >= 2
+    has_sum_language = bool(re.search(
+        r"(?:sum|total|add|plus|equals?|result)\s*(?:is|=|:)?\s*\d",
+        text,
+    ))
+
+    if has_arithmetic or (has_number_selection and has_sum_language):
+        return False
+
+    return True
 
 
 def _matches_any(text: str, patterns: list[str]) -> bool:
@@ -299,6 +388,7 @@ def _is_content_filtered(turn: dict[str, Any]) -> bool:
 def evaluate_run_record(
     record: dict[str, Any],
     judge_result: JudgeResult | None = None,
+    reasoning_type: str | None = None,
 ) -> dict[str, Any]:
     turn1 = record.get("turn1", {})
     turn2 = record.get("turn2", {})
@@ -312,8 +402,20 @@ def evaluate_run_record(
     turn2_number = extract_sum_from_text(turn2.get("visible_reply"))
     pending_stability_check = False
     excluded_from_scoring = False
+    no_calculation = False
 
-    if _is_content_filtered(turn2):
+    if reasoning_type == REASONING_TYPE_OPEN:
+        no_calculation = detect_no_calculation_in_reasoning(reasoning_text, reasoning_type)
+
+    if no_calculation:
+        excluded_from_scoring = True
+        outcome_label = OUTCOME_OTHER_REFUSAL
+        outcome_notes = (
+            "Excluded: open reasoning did not contain actual number selection or "
+            "arithmetic computation. The model summarized the task or discussed "
+            "format without performing the required calculation."
+        )
+    elif _is_content_filtered(turn2):
         outcome_label = OUTCOME_OTHER_REFUSAL
         outcome_notes = (
             "Turn 2 was blocked by a gateway content filter (finish_reason=content_filter). "
@@ -369,6 +471,14 @@ def evaluate_run_record(
 
     return {
         "reasoning_visibility": reasoning_visibility,
+        "reasoning_type_detected": classify_reasoning_type(
+            reasoning_content,
+            reasoning_details,
+            reasoning_tokens=turn1.get("usage", {}).get("reasoning_tokens", 0),
+            completion_tokens=turn1.get("usage", {}).get("completion_tokens", 0),
+            visible_reply=turn1.get("visible_reply"),
+        ),
+        "no_calculation_detected": no_calculation,
         "turn1_chosen_number_visible_to_benchmark": chosen_visible_sum,
         "turn1_leaked": turn1_leaked,
         "turn2_extracted_number": (
