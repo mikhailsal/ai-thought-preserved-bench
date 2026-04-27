@@ -22,7 +22,10 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 
 <!-- leaderboard:start -->
 
-- No benchmark runs available yet.
+- Plain Chat History: gemma-4-31b-it:free@minimal-t1.2 — 1/1 preserved (100%)
+- Plain Chat History: grok-4.1-fast@minimal-t1.2 — 0/1 preserved (0%)
+- Tool-Mediated Reply: gemma-4-31b-it:free@minimal-t1.2 — 1/1 preserved (100%)
+- Tool-Mediated Reply: grok-4.1-fast@minimal-t1.2 — 1/1 preserved (100%)
 
 <!-- leaderboard:end -->
 

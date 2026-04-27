@@ -46,6 +46,8 @@ def test_extract_integer_and_structured_text_helpers() -> None:
     assert detect_reasoning_visibility("plain", None) == "plaintext"
     assert detect_reasoning_visibility(None, [{"type": "reasoning.text", "text": "x"}]) == "structured_text"
     assert detect_reasoning_visibility(None, [{"type": "reasoning.encrypted", "data": "abc"}]) == "encrypted_or_summary"
+    assert detect_reasoning_visibility("summary text", [{"type": "reasoning.summary", "summary": "hidden"}]) == "encrypted_or_summary"
+    assert detect_reasoning_visibility("plain", [{"type": "reasoning.text", "text": "x"}]) == "structured_text"
     assert detect_reasoning_visibility(None, None) == "none"
 
 

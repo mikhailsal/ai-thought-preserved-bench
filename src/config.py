@@ -18,8 +18,7 @@ CONFIGS_PATH = PROJECT_ROOT / "configs" / "models.yaml"
 ENV_PATH = PROJECT_ROOT / ".env"
 COST_LOG_PATH = RESULTS_DIR / "cost_log.json"
 
-OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
-OPENROUTER_MODELS_URL = f"{OPENROUTER_BASE_URL}/models"
+DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_APP_NAME = "ai-thought-preserved-bench"
 OPENROUTER_APP_URL = "https://github.com/tass/ai-thought-preserved-bench"
 API_CALL_TIMEOUT = 120
@@ -114,11 +113,22 @@ def ensure_dirs() -> None:
 def load_api_key() -> str:
     load_dotenv(ENV_PATH)
     api_key = os.environ.get("OPENROUTER_API_KEY", "").strip()
+    if not api_key:
+        api_key = os.environ.get("OPENROUTER_KEY", "").strip()
     if not api_key or api_key == "your-openrouter-api-key":
         raise RuntimeError(
             "OPENROUTER_API_KEY is not set. Create .env from .env.example before running API commands."
         )
     return api_key
+
+
+def get_openrouter_base_url() -> str:
+    load_dotenv(ENV_PATH)
+    return os.environ.get("OPENROUTER_BASE_URL", DEFAULT_OPENROUTER_BASE_URL).strip() or DEFAULT_OPENROUTER_BASE_URL
+
+
+def get_openrouter_models_url() -> str:
+    return f"{get_openrouter_base_url().rstrip('/')}/models"
 
 
 def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:

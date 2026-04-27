@@ -100,16 +100,20 @@ def detect_reasoning_visibility(
     reasoning_content: str | None,
     reasoning_details: list[dict[str, Any]] | None,
 ) -> str:
+    if reasoning_details:
+        saw_summary_or_encrypted = False
+        for item in reasoning_details:
+            item_type = str(item.get("type", ""))
+            if item_type == "reasoning.text" and item.get("text"):
+                return REASONING_VISIBILITY_STRUCTURED_TEXT
+            if item_type in {"reasoning.encrypted", "reasoning.summary"}:
+                saw_summary_or_encrypted = True
+        if saw_summary_or_encrypted:
+            return REASONING_VISIBILITY_ENCRYPTED_OR_SUMMARY
     if reasoning_content:
         return REASONING_VISIBILITY_PLAINTEXT
     if not reasoning_details:
         return REASONING_VISIBILITY_NONE
-    for item in reasoning_details:
-        item_type = str(item.get("type", ""))
-        if item_type == "reasoning.text" and item.get("text"):
-            return REASONING_VISIBILITY_STRUCTURED_TEXT
-        if item_type in {"reasoning.encrypted", "reasoning.summary"}:
-            return REASONING_VISIBILITY_ENCRYPTED_OR_SUMMARY
     return REASONING_VISIBILITY_ENCRYPTED_OR_SUMMARY
 
 

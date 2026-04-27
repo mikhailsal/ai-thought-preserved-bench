@@ -15,10 +15,10 @@ from openai import OpenAI
 
 from src.config import (
     API_CALL_TIMEOUT,
+    get_openrouter_base_url,
+    get_openrouter_models_url,
     OPENROUTER_APP_NAME,
     OPENROUTER_APP_URL,
-    OPENROUTER_BASE_URL,
-    OPENROUTER_MODELS_URL,
     ModelPricing,
 )
 
@@ -146,8 +146,9 @@ class OpenRouterClient:
 
     def __init__(self, api_key: str, timeout: float = API_CALL_TIMEOUT) -> None:
         self.api_key = api_key
+        self._base_url = get_openrouter_base_url()
         self._client = OpenAI(
-            base_url=OPENROUTER_BASE_URL,
+            base_url=self._base_url,
             api_key=api_key,
             timeout=httpx.Timeout(timeout, connect=10.0),
             default_headers={
@@ -162,7 +163,7 @@ class OpenRouterClient:
         if self._pricing_cache:
             return self._pricing_cache
         response = requests.get(
-            OPENROUTER_MODELS_URL,
+            get_openrouter_models_url(),
             headers={"Authorization": f"Bearer {self.api_key}"},
             timeout=30,
         )
