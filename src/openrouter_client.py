@@ -46,7 +46,7 @@ def _extract_tool_message(raw_args: str) -> str:
     except json.JSONDecodeError:
         text = raw_value.replace("\\n", "\n").replace("\\t", "\t")
         text = text.replace('\\"', '"').replace("\\\\", "\\")
-        return text.strip()
+        return text.rstrip('"} ').strip()
 
 
 def _coerce_text_content(content: Any) -> str | None:
