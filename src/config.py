@@ -40,6 +40,7 @@ MAX_TOKENS_BY_REASONING: dict[str, int] = {
     "low": 4096,
     "medium": 8192,
     "high": 16384,
+    "xhigh": 32768,
 }
 
 
@@ -65,6 +66,7 @@ class ModelConfig:
     reasoning_type: str | None = None
     notes: str = ""
     max_tokens: int | None = None
+    supports_forced_tool_choice: bool = True
 
     @property
     def label(self) -> str:
@@ -154,6 +156,7 @@ def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
         reasoning_type=reasoning_type,
         notes=str(raw.get("notes", "")),
         max_tokens=int(raw["max_tokens"]) if raw.get("max_tokens") is not None else None,
+        supports_forced_tool_choice=bool(raw.get("supports_forced_tool_choice", True)),
     )
 
 

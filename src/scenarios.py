@@ -75,6 +75,11 @@ SEND_MESSAGE_TOOL = {
     },
 }
 
+SEND_MESSAGE_TOOL_CHOICE: dict = {
+    "type": "function",
+    "function": {"name": "send_message_to_human"},
+}
+
 
 @dataclass(frozen=True)
 class ScenarioSpec:

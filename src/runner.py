@@ -29,7 +29,7 @@ from src.prompt_builder import (
     build_tool_turn2_messages,
     get_tool_definitions,
 )
-from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL, generate_challenge
+from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL, SEND_MESSAGE_TOOL_CHOICE, generate_challenge
 
 
 def _cost_info(result: CompletionResult) -> dict[str, Any]:
@@ -110,6 +110,7 @@ def _call_model(
     messages: list[dict[str, Any]],
     *,
     tools: list[dict[str, Any]] | None = None,
+    tool_choice: str | dict[str, Any] | None = None,
 ) -> CompletionResult:
     return client.chat(
         model=model_config.model_id,
@@ -120,6 +121,7 @@ def _call_model(
         tools=tools,
         provider=model_config.provider,
         quantization=model_config.quantization,
+        tool_choice=tool_choice,
     )
 
 
@@ -209,9 +211,10 @@ def run_tool_scenario(
 
     challenge = generate_challenge()
     tools = get_tool_definitions()
+    forced_tool = SEND_MESSAGE_TOOL_CHOICE if model_config.supports_forced_tool_choice else None
     log.info("[%s] tool run %d: bootstrap…", model_config.label, run_number)
     bootstrap_messages = build_tool_bootstrap_messages()
-    bootstrap_result = _call_model(client, model_config, bootstrap_messages, tools=tools)
+    bootstrap_result = _call_model(client, model_config, bootstrap_messages, tools=tools, tool_choice=forced_tool)
     bootstrap_artifact = _assistant_artifact(bootstrap_result)
     partial = {
         "bootstrap": {
@@ -222,7 +225,7 @@ def run_tool_scenario(
     try:
         log.info("[%s] tool run %d: turn1…", model_config.label, run_number)
         turn1_messages = build_tool_turn1_messages(challenge, bootstrap_artifact)
-        turn1_result = _call_model(client, model_config, turn1_messages, tools=tools)
+        turn1_result = _call_model(client, model_config, turn1_messages, tools=tools, tool_choice=forced_tool)
         turn1_artifact = _assistant_artifact(turn1_result)
 
         if model_config.reasoning_type == REASONING_TYPE_OPEN:
@@ -247,7 +250,7 @@ def run_tool_scenario(
 
         log.info("[%s] tool run %d: turn2…", model_config.label, run_number)
         turn2_messages = build_tool_turn2_messages(challenge, bootstrap_artifact, turn1_artifact)
-        turn2_result = _call_model(client, model_config, turn2_messages, tools=tools)
+        turn2_result = _call_model(client, model_config, turn2_messages, tools=tools, tool_choice=forced_tool)
     except Exception as exc:
         return _save_error_record(
             model_config,

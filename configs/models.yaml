@@ -70,11 +70,13 @@ models:
     reasoning_effort: medium
     provider: DeepSeek
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Visible reasoning via reasoning.text. Pinned to DeepSeek (native).
       Upgraded minimal→medium: at minimal effort the model summarized the task
       without picking numbers or computing.
+      DeepSeek reasoner rejects forced tool_choice (HTTP 400).
 
   - model_id: deepseek/deepseek-v3.2
     display_label: deepseek-v3.2@minimal-t1.2
@@ -82,10 +84,12 @@ models:
     reasoning_effort: minimal
     provider: Novita
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Visible reasoning via reasoning.text. Using Novita provider.
       Previous 0-token results were caused by proxy not forwarding reasoning params.
+      DeepSeek reasoner rejects forced tool_choice (HTTP 400).
 
   # ───────────────────────────────────────────────────────────────
   # Qwen — qwen3-8b
@@ -96,10 +100,12 @@ models:
     reasoning_effort: medium
     provider: Alibaba
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Visible reasoning via reasoning.text. Pinned to Alibaba (native Qwen provider).
       Upgraded minimal→medium: at minimal effort the model philosophized instead of computing.
+      Alibaba endpoint does not support forced tool_choice (HTTP 404).
 
   # ───────────────────────────────────────────────────────────────
   # Nvidia — free reasoning model
@@ -152,8 +158,11 @@ models:
     reasoning_effort: minimal
     provider: Minimax
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
-    notes: "Visible reasoning via reasoning.text (structured_text format)."
+    notes: >
+      Visible reasoning via reasoning.text (structured_text format).
+      Minimax accepts tool_choice parameter but does not enforce it.
 
   # ───────────────────────────────────────────────────────────────
   # Qwen — 3.5-flash
@@ -164,8 +173,11 @@ models:
     reasoning_effort: minimal
     provider: Alibaba
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
-    notes: "Visible reasoning via reasoning.text (structured_text format, 581 tokens)."
+    notes: >
+      Visible reasoning via reasoning.text (structured_text format, 581 tokens).
+      Alibaba endpoint does not support forced tool_choice (HTTP 404).
 
   # ───────────────────────────────────────────────────────────────
   # Google — Gemini 2.5 Flash Lite
@@ -191,6 +203,7 @@ models:
     reasoning_effort: medium
     provider: AkashML
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       35B MoE (3B active). Thinking mode by default with visible reasoning.
@@ -212,6 +225,66 @@ models:
       Providers: Azure, OpenAI. Pinned to OpenAI per user request.
 
   # ───────────────────────────────────────────────────────────────
+  # Anthropic — Claude Haiku 4.5 (max reasoning)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: anthropic/claude-haiku-4.5
+    display_label: claude-haiku-4.5@xhigh-t1.2
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Anthropic
+    reasoning_type: open
+    active: true
+    notes: >
+      Visible reasoning via structured_text format. Maximum (xhigh) reasoning effort.
+      Providers: Anthropic, Amazon Bedrock, Google. Pinned to Anthropic (native).
+
+  # ───────────────────────────────────────────────────────────────
+  # MoonshotAI — Kimi K2.6 (max reasoning)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: moonshotai/kimi-k2.6
+    display_label: kimi-k2.6@xhigh-t1.2
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Moonshot AI
+    quantization: int4
+    reasoning_type: open
+    active: true
+    notes: >
+      Visible reasoning via structured_text. Maximum (xhigh) reasoning effort.
+      Pinned to Moonshot AI (native) with int4 quantization per user request.
+
+  # ───────────────────────────────────────────────────────────────
+  # Z.AI — GLM-5.1 (max reasoning)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: z-ai/glm-5.1
+    display_label: glm-5.1@xhigh-t1.2
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Z.AI
+    reasoning_type: open
+    active: true
+    notes: >
+      Visible reasoning via structured_text. Maximum (xhigh) reasoning effort.
+      Successor to GLM-4.7-flash (which had no reasoning). Pinned to Z.AI (native).
+
+  # ───────────────────────────────────────────────────────────────
+  # MiniMax — M2.7 (xhigh reasoning)
+  # ───────────────────────────────────────────────────────────────
+  - model_id: minimax/minimax-m2.7
+    display_label: minimax-m2.7@xhigh-t1.2
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Minimax
+    quantization: fp8
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    notes: >
+      Maximum (xhigh) reasoning variant. Visible reasoning via structured_text.
+      Pinned to Minimax with fp8 quantization per user request.
+      Minimax accepts tool_choice parameter but does not enforce it.
+
+  # ───────────────────────────────────────────────────────────────
   # DISABLED: Z.AI — GLM-4.7-flash
   # ───────────────────────────────────────────────────────────────
   - model_id: z-ai/glm-4.7-flash
@@ -227,7 +300,7 @@ models:
       3 completion tokens and no reasoning content. Not usable for this benchmark.
 
   # ───────────────────────────────────────────────────────────────
-  # NEW: MiniMax — M2.7
+  # MiniMax — M2.7 (medium reasoning)
   # ───────────────────────────────────────────────────────────────
   - model_id: minimax/minimax-m2.7
     display_label: minimax-m2.7@medium-t1.2
@@ -236,7 +309,9 @@ models:
     provider: Minimax
     quantization: fp8
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Successor to M2.5 with self-evolution capabilities. Visible reasoning expected.
       Providers: Fireworks, Together, Minimax. Pinned to Minimax with fp8 quantization.
+      Minimax accepts tool_choice parameter but does not enforce it.
