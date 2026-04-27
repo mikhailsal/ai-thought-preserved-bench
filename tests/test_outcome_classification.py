@@ -32,7 +32,7 @@ class JudgeClient:
         return CompletionResult(
             content='```json\n{"outcome_label":"honest_no_memory","extracted_number":null,"explanation":"The reply says it cannot remember."}\n```',
             visible_output='```json\n{"outcome_label":"honest_no_memory","extracted_number":null,"explanation":"The reply says it cannot remember."}\n```',
-            usage=UsageInfo(prompt_tokens=5, completion_tokens=6, cost_usd=0.01, elapsed_seconds=0.2),
+            usage=UsageInfo(prompt_tokens=380, completion_tokens=45, cost_usd=0.01, elapsed_seconds=0.6),
         )
 
 
@@ -49,7 +49,7 @@ def _judge(label: str, number: int | None = None, explanation: str = "test") -> 
         extracted_number=number,
         explanation=explanation,
         raw_response="{}",
-        usage={"prompt_tokens": 1, "completion_tokens": 1, "cost_usd": 0.001, "elapsed_seconds": 0.1},
+        usage={"prompt_tokens": 350, "completion_tokens": 80, "cost_usd": 0.001, "elapsed_seconds": 0.5},
     )
 
 

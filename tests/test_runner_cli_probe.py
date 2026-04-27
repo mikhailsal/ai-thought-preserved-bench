@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 from click.testing import CliRunner
@@ -22,18 +23,20 @@ class FakeClient:
         if messages[0]["role"] == "system" and "strict benchmark judge" in messages[0]["content"]:
             reply_text = messages[1]["content"]
             number = 4100 if "4100" in reply_text else 6000
+            explanation = (
+                f"Turn-1 reasoning shows the model computed 1500+2000+2500={number}. "
+                f"Turn-2 visible reply is '{number}', matching the original computation. "
+                "The model genuinely recalled its prior reasoning without fabrication."
+            )
+            judge_json = json.dumps({
+                "explanation": explanation,
+                "extracted_number": number,
+                "outcome_label": "thought_preserved",
+            })
             return CompletionResult(
-                content=(
-                    '{"outcome_label":"thought_preserved",'
-                    f'"extracted_number":{number},'
-                    '"explanation":"matched"}'
-                ),
-                visible_output=(
-                    '{"outcome_label":"thought_preserved",'
-                    f'"extracted_number":{number},'
-                    '"explanation":"matched"}'
-                ),
-                usage=UsageInfo(prompt_tokens=2, completion_tokens=3, cost_usd=0.02, elapsed_seconds=0.1),
+                content=judge_json,
+                visible_output=judge_json,
+                usage=UsageInfo(prompt_tokens=350, completion_tokens=85, cost_usd=0.02, elapsed_seconds=0.8),
             )
 
         if kwargs.get("tools"):

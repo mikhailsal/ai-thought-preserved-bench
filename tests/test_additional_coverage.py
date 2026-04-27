@@ -167,7 +167,7 @@ def test_evaluator_additional_branches() -> None:
         extracted_number=None,
         explanation="fallback judge",
         raw_response="{}",
-        usage={"prompt_tokens": 1, "completion_tokens": 1, "cost_usd": 0.1, "elapsed_seconds": 0.1},
+        usage={"prompt_tokens": 350, "completion_tokens": 60, "cost_usd": 0.1, "elapsed_seconds": 0.5},
     )
     evaluated = evaluate_run_record(record, judge)
     untouched = [{"evaluation": {"pending_stability_check": False, "excluded_from_scoring": False}}]

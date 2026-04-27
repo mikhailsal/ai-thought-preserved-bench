@@ -371,11 +371,31 @@ def _resolve_turn2_number(
     return None
 
 
+MIN_JUDGE_PROMPT_TOKENS = 50
+
+
+def _is_valid_judge_result(judge_result: JudgeResult | None) -> bool:
+    """Reject judge results that are obviously fake or from test fixtures.
+
+    A real judge call sends a multi-hundred-token system prompt plus evidence.
+    Anything with fewer than MIN_JUDGE_PROMPT_TOKENS prompt tokens is either a
+    test stub or a corrupted response that should not influence scoring.
+    """
+    if judge_result is None:
+        return False
+    if judge_result.usage.get("prompt_tokens", 0) < MIN_JUDGE_PROMPT_TOKENS:
+        return False
+    return True
+
+
 def evaluate_run_record(
     record: dict[str, Any],
     judge_result: JudgeResult | None = None,
     reasoning_type: str | None = None,
 ) -> dict[str, Any]:
+    if not _is_valid_judge_result(judge_result):
+        judge_result = None
+
     turn1 = record.get("turn1", {})
     turn2 = record.get("turn2", {})
     reasoning_content = turn1.get("reasoning_content")
