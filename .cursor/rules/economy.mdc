@@ -1,0 +1,47 @@
+---
+description: Cost-conscious benchmark operation — avoid unnecessary API spending
+globs: src/**/*.py,configs/**
+alwaysApply: true
+---
+
+# Economy Rules — Minimize Unnecessary API Cost
+
+Every model call costs real money. Treat cached results as valuable artifacts and avoid destroying or regenerating them unless absolutely necessary.
+
+## Core Principles
+
+1. **Never re-run model turns when only the judge is wrong** — if evaluation logic or the judge prompt was buggy, use `thought-preserved-bench rejudge` to re-evaluate existing cached records. This re-runs only the cheap judge call, not the expensive target model.
+2. **Scope operations narrowly** — always use `--models` and `--scenarios` flags to limit runs to exactly the models and scenarios that need work. Never run the full matrix when only one model needs attention.
+3. **Preserve the cache by default** — the `run` command skips cached records automatically (`--no-force`). Only use `--force` or `rerun` when you genuinely need fresh model outputs (e.g., after changing the prompt template or challenge generation).
+4. **Delete cache files selectively** — if specific runs are invalid (e.g., a network error produced a corrupted record), delete only those individual JSON files under `cache/{config_slug}/{scenario_id}/run_N.json`. Never wipe an entire model's cache directory unless every run is tainted.
+5. **Review before bulk operations** — before running `rerun` on multiple models, estimate the cost. Each run involves 2-3 model calls (bootstrap + turn1 + turn2) plus 1 judge call. Multiply by repetitions and models to gauge spend.
+
+## Preferred Workflow for Fixing Judge Errors
+
+```bash
+# Re-judge all cached records (cheapest option)
+thought-preserved-bench rejudge
+
+# Re-judge only specific models
+thought-preserved-bench rejudge --models "model-a,model-b"
+
+# Re-judge with a different judge model
+thought-preserved-bench rejudge --judge "google/gemini-3-flash-preview"
+```
+
+## Preferred Workflow for Partial Cache Invalidation
+
+```bash
+# Delete only the corrupted runs manually
+rm cache/model--name@config/plain_chat_history/run_3.json
+
+# Re-run only the missing runs (the runner skips existing cache)
+thought-preserved-bench run --models "model-name"
+```
+
+## Anti-Patterns to Avoid
+
+- **`rerun` without `--models`** — re-runs ALL models from scratch, maximum cost.
+- **Deleting entire cache directories** — destroys valid runs alongside invalid ones.
+- **Running `--force` globally** — bypasses all caches and regenerates everything.
+- **Changing code and assuming cache is invalid** — most code changes (scorer, leaderboard, reporting) do NOT require re-running models. Only prompt changes, challenge generation changes, or turn structure changes invalidate the cache.

@@ -236,6 +236,46 @@ def run_tool_scenario(
     return record
 
 
+def rejudge_record(
+    client: OpenRouterClient,
+    record: dict[str, Any],
+    *,
+    judge_model: str | None = JUDGE_MODEL,
+) -> dict[str, Any]:
+    """Re-run only the judge and evaluation on an existing cached record.
+
+    The expensive model turns (bootstrap, turn1, turn2) are left untouched.
+    Only the evaluation dict and judge sub-dict are replaced.
+    """
+    turn2 = record.get("turn2", {})
+    turn1 = record.get("turn1", {})
+    turn2_visible = turn2.get("visible_reply") or turn2.get("content") or ""
+
+    turn2_reasoning = (
+        turn2.get("reasoning_content")
+        or extract_structured_reasoning_text(turn2.get("reasoning_details"))
+    )
+    turn1_reasoning = (
+        turn1.get("reasoning_content")
+        or extract_structured_reasoning_text(turn1.get("reasoning_details"))
+    )
+
+    judge = None
+    if judge_model and not _is_content_filtered(turn2):
+        judge = judge_turn2_reply(
+            client,
+            turn2_visible,
+            judge_model=judge_model,
+            turn2_reasoning=turn2_reasoning,
+            turn1_reasoning=turn1_reasoning,
+        )
+
+    record["evaluation"] = evaluate_run_record(record, judge)
+    record.setdefault("metadata", {})["rejudged"] = True
+    save_run_record(record)
+    return record
+
+
 def run_benchmark(
     client: OpenRouterClient,
     model_configs: list[ModelConfig],

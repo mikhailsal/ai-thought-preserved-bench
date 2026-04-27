@@ -179,3 +179,65 @@ def test_cli_commands(monkeypatch, tmp_path: Path) -> None:
     assert runner_cli.invoke(cli.cli, ["report"]).exit_code == 0
     assert runner_cli.invoke(cli.cli, ["probe"]).exit_code == 0
     assert runner_cli.invoke(cli.cli, ["rerun"]).exit_code == 0
+    assert runner_cli.invoke(cli.cli, ["rejudge"]).exit_code == 0
+
+
+def test_rejudge_record_preserves_turns_and_updates_evaluation(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = FakeClient()
+    model = _model()
+
+    original = runner.run_plain_scenario(client, model, run_number=1, force=True)
+    original_turn1 = original["turn1"].copy()
+    original_turn2 = original["turn2"].copy()
+    original_eval = original["evaluation"].copy()
+
+    rejudged = runner.rejudge_record(client, original, judge_model="google/gemini-3-flash-preview")
+
+    assert rejudged["turn1"]["reasoning_content"] == original_turn1["reasoning_content"]
+    assert rejudged["turn1"]["visible_reply"] == original_turn1["visible_reply"]
+    assert rejudged["turn2"]["visible_reply"] == original_turn2["visible_reply"]
+    assert rejudged["metadata"]["rejudged"] is True
+    assert "evaluation" in rejudged
+    assert rejudged["evaluation"]["judge"] is not None
+
+
+def test_rejudge_record_without_judge_model(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = FakeClient()
+    model = _model()
+
+    original = runner.run_plain_scenario(client, model, run_number=1, force=True)
+    call_count_before = len(client.calls)
+
+    rejudged = runner.rejudge_record(client, original, judge_model=None)
+
+    assert len(client.calls) == call_count_before
+    assert rejudged["evaluation"]["judge"] is None
+    assert rejudged["metadata"]["rejudged"] is True
+
+
+def test_rejudge_cli_with_cached_data(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = FakeClient()
+    model = _model()
+
+    runner.run_plain_scenario(client, model, run_number=1, force=True)
+
+    runner_cli = CliRunner()
+    monkeypatch.setattr(cli, "ensure_dirs", lambda: None)
+    monkeypatch.setattr(cli, "load_api_key", lambda: "key")
+    monkeypatch.setattr(cli, "OpenRouterClient", lambda _key: client)
+    monkeypatch.setattr(cli, "get_active_model_configs", lambda: [model])
+    monkeypatch.setattr(cli, "get_model_config", lambda _entry: model)
+    monkeypatch.setattr(cli, "list_registered_labels_for_model", lambda _entry: [])
+    monkeypatch.setattr(cli, "summarize_cache", lambda: [])
+    monkeypatch.setattr(cli, "save_session_to_cost_log", lambda _session: None)
+    monkeypatch.setattr(cli, "export_markdown_report", lambda _summaries: tmp_path / "LEADERBOARD.md")
+    monkeypatch.setattr(cli, "export_results_json", lambda _summaries, session=None: tmp_path / "results.json")
+    monkeypatch.setattr(cli, "update_readme_snapshot", lambda _summaries: None)
+    monkeypatch.setattr(cli, "display_leaderboard", lambda _summaries, session=None: None)
+
+    result = runner_cli.invoke(cli.cli, ["rejudge"])
+    assert result.exit_code == 0
+    assert "Re-judged" in result.output

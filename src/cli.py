@@ -16,7 +16,9 @@ from src.config import (
     list_registered_labels_for_model,
     load_api_key,
 )
-from src.cost_tracker import save_session_to_cost_log
+from src.cache import list_cached_configs, list_cached_runs, list_cached_scenarios, load_run_record, save_run_record
+from src.cost_tracker import SessionCost, TaskCost, save_session_to_cost_log
+from src.evaluator import reconcile_stability_group
 from src.leaderboard import (
     display_leaderboard,
     export_markdown_report,
@@ -26,7 +28,7 @@ from src.leaderboard import (
 from src.model_probe import probe_model
 from src.openrouter_client import OpenRouterClient
 from src.parallel_runner import run_benchmark_parallel
-from src.runner import run_benchmark
+from src.runner import rejudge_record, run_benchmark
 from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL
 from src.scorer import summarize_cache
 
@@ -135,6 +137,79 @@ def report() -> None:
     export_results_json(summaries)
     update_readme_snapshot(summaries)
     display_leaderboard(summaries)
+
+
+@cli.command()
+@click.option("--models", "models_arg", default=None, help="Comma-separated model config labels or model ids.")
+@click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
+@click.option("--reps", default=None, type=int, help="Limit to first N runs per group (default: all cached).")
+@click.option("--judge", default=JUDGE_MODEL, show_default=True, help="Judge model to normalize turn-2 replies.")
+def rejudge(models_arg: str | None, scenarios: str | None, reps: int | None, judge: str) -> None:
+    """Re-run only the judge on existing cached records.
+
+    Model turn outputs (turn1, turn2) are preserved — only the evaluation
+    and judge classification are regenerated. This is much cheaper than a
+    full rerun when the judge prompt or evaluation logic has changed.
+    """
+    ensure_dirs()
+    api_key = load_api_key()
+    client = OpenRouterClient(api_key)
+    scenario_ids = _parse_scenarios(scenarios)
+
+    allowed_slugs: set[str] | None = None
+    if models_arg:
+        model_configs = _parse_models(models_arg)
+        allowed_slugs = {mc.config_slug for mc in model_configs}
+
+    session = SessionCost()
+    rejudged_count = 0
+    group_map: dict[tuple[str, str], list[dict]] = {}
+
+    for config_slug in list_cached_configs():
+        if allowed_slugs is not None and config_slug not in allowed_slugs:
+            continue
+        for scenario_id in list_cached_scenarios(config_slug):
+            if scenario_id not in scenario_ids:
+                continue
+            run_numbers = list_cached_runs(config_slug, scenario_id)
+            if reps is not None:
+                run_numbers = [r for r in run_numbers if r <= reps]
+            group_key = (config_slug, scenario_id)
+            group_map[group_key] = []
+            for run_number in run_numbers:
+                record = load_run_record(config_slug, scenario_id, run_number)
+                if record is None:
+                    continue
+                rejudge_record(client, record, judge_model=judge)
+                group_map[group_key].append(record)
+                rejudged_count += 1
+
+                judge_payload = record.get("evaluation", {}).get("judge")
+                if judge_payload:
+                    judge_usage = judge_payload.get("usage", {})
+                    task = TaskCost(label=f"rejudge:{config_slug}:{scenario_id}:run{run_number}")
+                    task.add(
+                        prompt_tokens=int(judge_usage.get("prompt_tokens", 0)),
+                        completion_tokens=int(judge_usage.get("completion_tokens", 0)),
+                        cost_usd=float(judge_usage.get("cost_usd", 0.0)),
+                        elapsed_seconds=float(judge_usage.get("elapsed_seconds", 0.0)),
+                    )
+                    session.add_task(task)
+                console.print(f"  [green]rejudged[/green]: {config_slug}/{scenario_id}/run_{run_number}")
+
+    for group_records in group_map.values():
+        if group_records:
+            reconcile_stability_group(group_records)
+            for record in group_records:
+                save_run_record(record)
+
+    save_session_to_cost_log(session)
+    summaries = summarize_cache()
+    export_markdown_report(summaries)
+    export_results_json(summaries, session=session)
+    update_readme_snapshot(summaries)
+    display_leaderboard(summaries, session=session)
+    console.print(f"\n[green]Re-judged {rejudged_count} cached records.[/green]")
 
 
 @cli.command()
