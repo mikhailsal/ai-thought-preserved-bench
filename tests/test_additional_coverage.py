@@ -19,6 +19,15 @@ from src.openrouter_client import (
 )
 
 
+def _challenge() -> dict:
+    return {
+        "range_low": 196,
+        "range_high": 5342,
+        "numbers": [1000, 2000, 3000],
+        "expected_sum": 6000,
+    }
+
+
 def test_cache_invalid_json_and_missing_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     bad_run = tmp_path / "cfg" / "plain" / "run_1.json"
@@ -115,7 +124,7 @@ def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) ->
     class DummyCompletions:
         def create(self, **kwargs):
             captured.update(kwargs)
-            message = SimpleNamespace(content=[{"type": "text", "text": " 42 "}], tool_calls=None, reasoning=None, reasoning_content=None, reasoning_details=None)
+            message = SimpleNamespace(content=[{"type": "text", "text": " 6000 "}], tool_calls=None, reasoning=None, reasoning_content=None, reasoning_details=None)
             choice = SimpleNamespace(message=message, finish_reason=None)
             usage = SimpleNamespace(prompt_tokens=1, completion_tokens=1, cost=0.5)
             return SimpleNamespace(choices=[choice], usage=usage, model="m")
@@ -133,7 +142,7 @@ def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) ->
     )
 
     assert captured["tool_choice"] == "required"
-    assert result.visible_output == "42"
+    assert result.visible_output == "6000"
 
     class FatalError(RuntimeError):
         status_code = 400
@@ -148,7 +157,11 @@ def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) ->
 
 
 def test_evaluator_additional_branches() -> None:
-    record = {"turn1": {"visible_reply": "I have a number.", "reasoning_content": None, "reasoning_details": None}, "turn2": {"visible_reply": "unclear"}}
+    record = {
+        "challenge": _challenge(),
+        "turn1": {"visible_reply": "Done.", "reasoning_content": None, "reasoning_details": None},
+        "turn2": {"visible_reply": "unclear"},
+    }
     judge = JudgeResult(
         outcome_label="hallucinated_memory",
         extracted_number=None,
@@ -173,9 +186,9 @@ def test_evaluator_additional_branches() -> None:
                 usage=UsageInfo(prompt_tokens=1, completion_tokens=1, cost_usd=0.1, elapsed_seconds=0.1),
             )
 
-    judged = judge_turn2_reply(RegexJudgeClient(), "The answer is 22")
+    judged = judge_turn2_reply(RegexJudgeClient(), "The sum is 6000")
     assert judged.outcome_label == "other_refusal"
-    assert judged.extracted_number == 22
+    assert judged.extracted_number == 6000
 
 
 def test_leaderboard_and_probe_edge_cases(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

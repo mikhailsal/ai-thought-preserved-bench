@@ -8,7 +8,7 @@ from src import cache, cli, model_probe, runner
 from src.config import ModelConfig
 from src.cost_tracker import SessionCost
 from src.openrouter_client import CompletionResult, UsageInfo
-from src.scenarios import TURN1_PROMPT, TURN2_PROMPT
+from src.scenarios import TURN2_PROMPT, format_turn1_prompt
 
 
 class FakeClient:
@@ -20,7 +20,7 @@ class FakeClient:
         messages = kwargs["messages"]
         if messages[0]["role"] == "system" and "strict benchmark judge" in messages[0]["content"]:
             reply_text = messages[1]["content"]
-            number = 41 if "41" in reply_text else 37
+            number = 4100 if "4100" in reply_text else 6000
             return CompletionResult(
                 content=(
                     '{"outcome_label":"thought_preserved",'
@@ -49,42 +49,43 @@ class FakeClient:
                     reasoning_effort_effective="low",
                 )
             last_tool = [message for message in messages if message["role"] == "tool"][-1]["content"]
-            if last_tool == TURN1_PROMPT:
+            if last_tool != TURN2_PROMPT:
                 return CompletionResult(
                     content=None,
-                    visible_output="I have a number.",
+                    visible_output="Done.",
                     tool_calls=[{
                         "id": "turn1-call",
                         "type": "function",
-                        "function": {"name": "send_message_to_human", "arguments": '{"message":"I have a number."}'},
+                        "function": {"name": "send_message_to_human", "arguments": '{"message":"Done."}'},
                     }],
-                    reasoning_content="I chose 41.",
+                    reasoning_content="I chose 1500+2000+2500=6000. My secret sum is 6000.",
                     usage=UsageInfo(prompt_tokens=11, completion_tokens=5, cost_usd=0.02, elapsed_seconds=0.1),
                     reasoning_effort_effective="low",
                 )
             return CompletionResult(
                 content=None,
-                visible_output="41",
+                visible_output="6000",
                 tool_calls=[{
                     "id": "turn2-call",
                     "type": "function",
-                    "function": {"name": "send_message_to_human", "arguments": '{"message":"41"}'},
+                    "function": {"name": "send_message_to_human", "arguments": '{"message":"6000"}'},
                 }],
                 usage=UsageInfo(prompt_tokens=12, completion_tokens=4, cost_usd=0.03, elapsed_seconds=0.1),
                 reasoning_effort_effective="low",
             )
 
-        if messages[-1]["content"] == TURN1_PROMPT:
+        user_content = messages[-1]["content"]
+        if user_content != TURN2_PROMPT:
             return CompletionResult(
-                content="I have a number.",
-                visible_output="I have a number.",
-                reasoning_content="I chose 37.",
+                content="Done.",
+                visible_output="Done.",
+                reasoning_content="I chose 1500+2000+2500=6000. My secret sum is 6000.",
                 usage=UsageInfo(prompt_tokens=7, completion_tokens=5, cost_usd=0.01, elapsed_seconds=0.1),
                 reasoning_effort_effective="low",
             )
         return CompletionResult(
-            content="37",
-            visible_output="37",
+            content="6000",
+            visible_output="6000",
             usage=UsageInfo(prompt_tokens=8, completion_tokens=2, cost_usd=0.01, elapsed_seconds=0.1),
             reasoning_effort_effective="low",
         )
@@ -119,6 +120,8 @@ def test_runner_plain_tool_and_probe(monkeypatch, tmp_path: Path) -> None:
     probe = model_probe.probe_model(client, model_config, force=True)
 
     assert plain["evaluation"]["outcome_label"] == "thought_preserved"
+    assert plain["challenge"] is not None
+    assert plain["challenge"]["expected_sum"] == sum(plain["challenge"]["numbers"])
     assert tool["evaluation"]["outcome_label"] == "thought_preserved"
     assert len(records) == 2
     assert isinstance(session, SessionCost)

@@ -2,20 +2,58 @@
 
 from __future__ import annotations
 
+import random
 from dataclasses import dataclass
 
 SCENARIO_PLAIN = "plain_chat_history"
 SCENARIO_TOOL = "tool_mediated_reply"
 
-TURN1_PROMPT = (
-    "Think of one integer between 0 and 100. Do not reveal the number. "
-    "Just confirm briefly that you have picked one."
+CHALLENGE_RANGE_LOW = 196
+CHALLENGE_RANGE_HIGH = 5342
+
+TURN1_PROMPT_TEMPLATE = (
+    "Here is a private computation task for you.\n\n"
+    "Choose three integers, each between {low} and {high} (inclusive). "
+    "Add the three numbers together. The sum is your secret number.\n\n"
+    "IMPORTANT RULES:\n"
+    "- Do NOT reveal any of the three numbers you chose.\n"
+    "- Do NOT reveal the sum.\n"
+    "- Do NOT hint at the magnitude, parity, or any property of the numbers or the sum.\n"
+    "- Your ONLY response must be exactly: \"Done.\"\n"
+    "- Any response other than \"Done.\" is a protocol violation."
 )
 
 TURN2_PROMPT = (
-    "What was the number you selected earlier? "
-    "Reveal just the number and, if needed, one short sentence of explanation."
+    "What was the secret sum you computed earlier from your three chosen numbers? "
+    "Reveal just the sum as a single integer, nothing else."
 )
+
+TOOL_BOOTSTRAP_USER = "[start]"
+TOOL_SYSTEM_PROMPT = (
+    "You may communicate with the human only by calling the send_message_to_human tool. "
+    "Do not place human-visible text in the assistant content field. Keep tool messages concise."
+)
+
+
+def generate_challenge() -> dict:
+    """Generate a per-run random challenge with three numbers and their expected sum."""
+    a = random.randint(CHALLENGE_RANGE_LOW, CHALLENGE_RANGE_HIGH)
+    b = random.randint(CHALLENGE_RANGE_LOW, CHALLENGE_RANGE_HIGH)
+    c = random.randint(CHALLENGE_RANGE_LOW, CHALLENGE_RANGE_HIGH)
+    return {
+        "range_low": CHALLENGE_RANGE_LOW,
+        "range_high": CHALLENGE_RANGE_HIGH,
+        "numbers": [a, b, c],
+        "expected_sum": a + b + c,
+    }
+
+
+def format_turn1_prompt(challenge: dict) -> str:
+    """Build the turn-1 user prompt with the challenge range baked in."""
+    return TURN1_PROMPT_TEMPLATE.format(
+        low=challenge["range_low"],
+        high=challenge["range_high"],
+    )
 
 TOOL_BOOTSTRAP_USER = "[start]"
 TOOL_SYSTEM_PROMPT = (

@@ -10,6 +10,7 @@ from src.config import ModelConfig
 from src.evaluator import detect_reasoning_visibility, extract_structured_reasoning_text
 from src.openrouter_client import OpenRouterClient
 from src.prompt_builder import build_plain_turn1_messages
+from src.scenarios import generate_challenge
 
 
 def probe_model(
@@ -25,7 +26,7 @@ def probe_model(
 
     result = client.chat(
         model=model_config.model_id,
-        messages=build_plain_turn1_messages(),
+        messages=build_plain_turn1_messages(generate_challenge()),
         max_tokens=model_config.effective_max_tokens,
         temperature=model_config.effective_temperature,
         reasoning_effort=model_config.reasoning_requested,

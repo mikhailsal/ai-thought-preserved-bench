@@ -24,7 +24,7 @@ from src.prompt_builder import (
     build_tool_turn2_messages,
     get_tool_definitions,
 )
-from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL
+from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL, generate_challenge
 
 
 def _cost_info(result: CompletionResult) -> dict[str, Any]:
@@ -130,14 +130,16 @@ def run_plain_scenario(
         cached.setdefault("metadata", {})["from_cache"] = True
         return cached
 
-    turn1_messages = build_plain_turn1_messages()
+    challenge = generate_challenge()
+    turn1_messages = build_plain_turn1_messages(challenge)
     turn1_result = _call_model(client, model_config, turn1_messages)
     turn1_artifact = _assistant_artifact(turn1_result)
-    turn2_messages = build_plain_turn2_messages(turn1_artifact)
+    turn2_messages = build_plain_turn2_messages(challenge, turn1_artifact)
     turn2_result = _call_model(client, model_config, turn2_messages)
 
     record = _record_template(model_config, SCENARIO_PLAIN, run_number)
     record["metadata"]["from_cache"] = False
+    record["challenge"] = challenge
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
     record["turn1"] = {
         **turn1_artifact,
@@ -176,6 +178,7 @@ def run_tool_scenario(
         cached.setdefault("metadata", {})["from_cache"] = True
         return cached
 
+    challenge = generate_challenge()
     tools = get_tool_definitions()
     bootstrap_messages = build_tool_bootstrap_messages()
     bootstrap_result = _call_model(client, model_config, bootstrap_messages, tools=tools)
@@ -187,10 +190,10 @@ def run_tool_scenario(
         },
     }
     try:
-        turn1_messages = build_tool_turn1_messages(bootstrap_artifact)
+        turn1_messages = build_tool_turn1_messages(challenge, bootstrap_artifact)
         turn1_result = _call_model(client, model_config, turn1_messages, tools=tools)
         turn1_artifact = _assistant_artifact(turn1_result)
-        turn2_messages = build_tool_turn2_messages(bootstrap_artifact, turn1_artifact)
+        turn2_messages = build_tool_turn2_messages(challenge, bootstrap_artifact, turn1_artifact)
         turn2_result = _call_model(client, model_config, turn2_messages, tools=tools)
     except Exception as exc:
         return _save_error_record(
@@ -203,6 +206,7 @@ def run_tool_scenario(
 
     record = _record_template(model_config, SCENARIO_TOOL, run_number)
     record["metadata"]["from_cache"] = False
+    record["challenge"] = challenge
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
     record["bootstrap"] = partial["bootstrap"]
     record["turn1"] = {

@@ -9,8 +9,8 @@ from src.scenarios import (
     SEND_MESSAGE_TOOL,
     TOOL_BOOTSTRAP_USER,
     TOOL_SYSTEM_PROMPT,
-    TURN1_PROMPT,
     TURN2_PROMPT,
+    format_turn1_prompt,
 )
 
 
@@ -44,13 +44,16 @@ def build_replay_assistant_message(assistant_artifact: dict[str, Any]) -> dict[s
     return _without_none_values(message)
 
 
-def build_plain_turn1_messages() -> list[dict[str, Any]]:
-    return [{"role": "user", "content": TURN1_PROMPT}]
+def build_plain_turn1_messages(challenge: dict[str, Any]) -> list[dict[str, Any]]:
+    return [{"role": "user", "content": format_turn1_prompt(challenge)}]
 
 
-def build_plain_turn2_messages(turn1_assistant: dict[str, Any]) -> list[dict[str, Any]]:
+def build_plain_turn2_messages(
+    challenge: dict[str, Any],
+    turn1_assistant: dict[str, Any],
+) -> list[dict[str, Any]]:
     return [
-        {"role": "user", "content": TURN1_PROMPT},
+        {"role": "user", "content": format_turn1_prompt(challenge)},
         build_replay_assistant_message(turn1_assistant),
         {"role": "user", "content": TURN2_PROMPT},
     ]
@@ -63,7 +66,10 @@ def build_tool_bootstrap_messages() -> list[dict[str, Any]]:
     ]
 
 
-def build_tool_turn1_messages(bootstrap_assistant: dict[str, Any]) -> list[dict[str, Any]]:
+def build_tool_turn1_messages(
+    challenge: dict[str, Any],
+    bootstrap_assistant: dict[str, Any],
+) -> list[dict[str, Any]]:
     bootstrap_tool_call_id = get_first_tool_call_id(bootstrap_assistant)
     return [
         {"role": "system", "content": TOOL_SYSTEM_PROMPT},
@@ -72,12 +78,13 @@ def build_tool_turn1_messages(bootstrap_assistant: dict[str, Any]) -> list[dict[
         {
             "role": "tool",
             "tool_call_id": bootstrap_tool_call_id,
-            "content": TURN1_PROMPT,
+            "content": format_turn1_prompt(challenge),
         },
     ]
 
 
 def build_tool_turn2_messages(
+    challenge: dict[str, Any],
     bootstrap_assistant: dict[str, Any],
     turn1_assistant: dict[str, Any],
 ) -> list[dict[str, Any]]:
@@ -89,7 +96,7 @@ def build_tool_turn2_messages(
         {
             "role": "tool",
             "tool_call_id": get_first_tool_call_id(bootstrap_assistant),
-            "content": TURN1_PROMPT,
+            "content": format_turn1_prompt(challenge),
         },
         build_replay_assistant_message(turn1_assistant),
         {
