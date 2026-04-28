@@ -230,7 +230,24 @@ def get_model_config(label_or_model_id: str) -> ModelConfig:
         raise RuntimeError(
             f"Multiple model configs match '{label_or_model_id}'. Use one of: {labels}"
         )
-    return ModelConfig(model_id=label_or_model_id)
+    # Try prefix match: allow omitting the temperature suffix, e.g.
+    # "gpt-oss-20b+Bedrock@medium" matches "gpt-oss-20b+Bedrock@medium-t1.2"
+    prefix_matches = [
+        config
+        for config in MODEL_CONFIGS.values()
+        if config.label.startswith(label_or_model_id)
+    ]
+    if len(prefix_matches) == 1:
+        return prefix_matches[0]
+    if len(prefix_matches) > 1:
+        labels = ", ".join(c.label for c in prefix_matches)
+        raise RuntimeError(
+            f"Ambiguous model label prefix '{label_or_model_id}'. Matches: {labels}"
+        )
+    raise RuntimeError(
+        f"Unknown model label or model_id: '{label_or_model_id}'.\n"
+        f"Run 'make models' to list all registered labels."
+    )
 
 
 def get_active_model_configs() -> list[ModelConfig]:

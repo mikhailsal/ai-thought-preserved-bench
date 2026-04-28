@@ -1,6 +1,6 @@
 # AI Thought Preservation Bench Leaderboard
 
-> Auto-generated from cached benchmark runs. Last updated: 2026-04-28 14:39 UTC
+> Auto-generated from cached benchmark runs. Last updated: 2026-04-28 15:24 UTC
 
 > Outcome columns follow the order: **P / HNM / OR / PF / Hal / Fab**
 > (Preservation / Honest No Memory / Other Refusal / Protocol Fail / Hallucination / Fabrication)

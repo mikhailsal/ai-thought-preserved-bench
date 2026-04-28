@@ -80,6 +80,10 @@ def setup_file_logging(command_name: str) -> Path | None:
     root_logger.setLevel(logging.DEBUG)
     root_logger.addHandler(file_handler)
 
+    # Suppress noisy third-party debug output from the console (httpx, openai, etc.)
+    for noisy in ("httpx", "httpcore", "openai", "openai._base_client"):
+        logging.getLogger(noisy).setLevel(logging.WARNING)
+
     _update_latest_symlink(log_path)
     _cleanup_old_logs()
 
@@ -141,7 +145,12 @@ def _parse_models(models: str | None) -> list:
                     resolved.append(get_model_config(label))
                     seen.add(label)
             continue
-        resolved.append(get_model_config(entry))
+        try:
+            cfg = get_model_config(entry)
+        except RuntimeError as exc:
+            console.print(f"[red]Error:[/red] {exc}")
+            sys.exit(1)
+        resolved.append(cfg)
         seen.add(entry)
     return resolved
 
