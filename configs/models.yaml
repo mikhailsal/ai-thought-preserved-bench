@@ -156,6 +156,24 @@ models:
     valid_provider_aliases:
       - "Io Net"
 
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: nim
+    reasoning_type: open
+    active: true
+    valid_provider_aliases:
+      - "nvidia"
+    extra_reasoning_formats:
+      - top_level_param
+      - chat_template_kwargs
+      - system_prompt
+    notes: >
+      Extra reasoning formats duplicated for NIM/vLLM compatibility:
+      top_level_param (reasoning_effort as top-level param),
+      chat_template_kwargs (vLLM chat template style),
+      system_prompt (Reasoning: <effort> header in system message).
+
   # ───────────────────────────────────────────────────────────────
   # OpenAI — GPT-5-nano (hidden reasoning)
   # ───────────────────────────────────────────────────────────────

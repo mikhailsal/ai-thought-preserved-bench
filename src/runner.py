@@ -171,6 +171,7 @@ def _call_model(
         provider=model_config.provider,
         quantization=model_config.quantization,
         tool_choice=tool_choice,
+        extra_reasoning_formats=model_config.extra_reasoning_formats,
     )
     _verify_provider(result, model_config)
     return result

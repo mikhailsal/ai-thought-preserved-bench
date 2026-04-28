@@ -207,6 +207,33 @@ def _providers_match(configured: str, resolved: str) -> bool:
     return False
 
 
+def _inject_reasoning_system_prompt(
+    messages: list[dict[str, Any]],
+    effective_reasoning: str | None,
+    extra_reasoning_formats: tuple[str, ...],
+) -> list[dict[str, Any]]:
+    """Return a copy of messages with reasoning headers prepended to the system prompt.
+
+    If 'system_prompt' is not in *extra_reasoning_formats* or there is no active
+    reasoning effort, the original list is returned unchanged (no copy made).
+    """
+    if not effective_reasoning or effective_reasoning == "none":
+        return messages
+    if "system_prompt" not in extra_reasoning_formats:
+        return messages
+
+    header = f"Reasoning: {effective_reasoning}\ndetailed thinking on"
+    msgs = list(messages)
+    for i, msg in enumerate(msgs):
+        if msg.get("role") == "system":
+            existing = msg.get("content") or ""
+            msgs[i] = {**msg, "content": f"{header}\n\n{existing}".rstrip()}
+            return msgs
+    # No system message found — insert one at the beginning
+    msgs.insert(0, {"role": "system", "content": header})
+    return msgs
+
+
 class OpenRouterClient:
     MAX_RETRIES = 3
     RETRY_BACKOFF_BASE = 2.0
@@ -250,6 +277,7 @@ class OpenRouterClient:
         provider: str | None = None,
         quantization: str | None = None,
         tool_choice: str | dict[str, Any] | None = None,
+        extra_reasoning_formats: tuple[str, ...] = (),
     ) -> CompletionResult:
         effective_reasoning = self.resolve_reasoning_effort(model, reasoning_effort)
         last_error: Exception | None = None
@@ -282,12 +310,29 @@ class OpenRouterClient:
                     extra_body.setdefault("provider", {})
                     extra_body["provider"]["require_parameters"] = True
 
+                # Extra reasoning formats for non-OpenRouter providers
+                if effective_reasoning and effective_reasoning != "none":
+                    if "chat_template_kwargs" in extra_reasoning_formats:
+                        extra_body = extra_body or {}
+                        extra_body["chat_template_kwargs"] = {
+                            "reasoning_effort": effective_reasoning,
+                            "clear_thinking": False,
+                        }
+
                 request_payload: dict[str, Any] = {
                     "model": model,
-                    "messages": messages,
+                    "messages": _inject_reasoning_system_prompt(
+                        messages, effective_reasoning, extra_reasoning_formats
+                    ),
                     "max_tokens": max_tokens,
                     "temperature": temperature,
                 }
+                if (
+                    effective_reasoning
+                    and effective_reasoning != "none"
+                    and "top_level_param" in extra_reasoning_formats
+                ):
+                    request_payload["reasoning_effort"] = effective_reasoning
                 if tools:
                     request_payload["tools"] = tools
                 if tool_choice is not None:

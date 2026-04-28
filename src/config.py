@@ -56,6 +56,12 @@ VALID_REASONING_TYPES = {
     "no_reasoning",
 }
 
+VALID_EXTRA_REASONING_FORMATS = {
+    "top_level_param",
+    "chat_template_kwargs",
+    "system_prompt",
+}
+
 
 @dataclass(frozen=True)
 class ModelConfig:
@@ -72,6 +78,7 @@ class ModelConfig:
     supports_forced_tool_choice: bool = True
     skip_provider_check: bool = False
     valid_provider_aliases: tuple[str, ...] = ()
+    extra_reasoning_formats: tuple[str, ...] = ()
 
     @property
     def label(self) -> str:
@@ -177,6 +184,9 @@ def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
         skip_provider_check=bool(raw.get("skip_provider_check", False)),
         valid_provider_aliases=tuple(
             str(a) for a in raw.get("valid_provider_aliases", [])
+        ),
+        extra_reasoning_formats=tuple(
+            str(f) for f in raw.get("extra_reasoning_formats", [])
         ),
     )
 
