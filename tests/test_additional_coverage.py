@@ -385,6 +385,8 @@ def test_fetch_model_supported_parameters_with_mock(monkeypatch) -> None:
     from src.model_probe import fetch_model_supported_parameters
     import httpx
 
+    captured_headers: list[dict[str, str]] = []
+
     class MockResponse:
         def raise_for_status(self):
             pass
@@ -400,10 +402,19 @@ def test_fetch_model_supported_parameters_with_mock(monkeypatch) -> None:
                 ]
             }
 
-    monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: MockResponse())
+    def mock_get(*_a, **kwargs):
+        captured_headers.append(kwargs["headers"])
+        return MockResponse()
+
+    monkeypatch.setattr(httpx, "get", mock_get)
 
     result = fetch_model_supported_parameters("key", "vendor/model-a")
     assert result == ["reasoning", "temperature"]
+    assert captured_headers[0] == {
+        "Authorization": "Bearer key",
+        "HTTP-Referer": "https://github.com/tass/ai-thought-preserved-bench",
+        "X-OpenRouter-Title": "ai-thought-preserved-bench",
+    }
 
     result = fetch_model_supported_parameters("key", "vendor/model-missing")
     assert result is None

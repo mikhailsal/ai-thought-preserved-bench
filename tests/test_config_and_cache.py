@@ -59,6 +59,13 @@ def test_load_api_key_success_and_failure(
         config.load_api_key()
 
 
+def test_get_openrouter_attribution_headers() -> None:
+    assert config.get_openrouter_attribution_headers() == {
+        "HTTP-Referer": config.OPENROUTER_APP_URL,
+        "X-OpenRouter-Title": config.OPENROUTER_APP_NAME,
+    }
+
+
 def test_cache_round_trip_and_listings(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:

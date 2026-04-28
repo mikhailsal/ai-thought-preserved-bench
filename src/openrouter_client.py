@@ -15,8 +15,7 @@ from openai import OpenAI
 from src.config import (
     API_CALL_TIMEOUT,
     get_openrouter_base_url,
-    OPENROUTER_APP_NAME,
-    OPENROUTER_APP_URL,
+    get_openrouter_attribution_headers,
 )
 
 log = logging.getLogger(__name__)
@@ -246,10 +245,7 @@ class OpenRouterClient:
             base_url=self._base_url,
             api_key=api_key,
             timeout=httpx.Timeout(timeout, connect=10.0),
-            default_headers={
-                "HTTP-Referer": OPENROUTER_APP_URL,
-                "X-Title": OPENROUTER_APP_NAME,
-            },
+            default_headers=get_openrouter_attribution_headers(),
         )
 
     VALID_EFFORT_LEVELS = {"xhigh", "high", "medium", "low", "minimal"}

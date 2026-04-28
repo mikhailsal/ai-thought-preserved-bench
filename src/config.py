@@ -156,6 +156,13 @@ def get_openrouter_base_url() -> str:
     )
 
 
+def get_openrouter_attribution_headers() -> dict[str, str]:
+    return {
+        "HTTP-Referer": OPENROUTER_APP_URL,
+        "X-OpenRouter-Title": OPENROUTER_APP_NAME,
+    }
+
+
 def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
     reasoning_type = str(raw["reasoning_type"]) if raw.get("reasoning_type") else None
     if reasoning_type and reasoning_type not in VALID_REASONING_TYPES:

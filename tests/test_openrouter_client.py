@@ -5,6 +5,7 @@ from typing import Any
 
 import pytest
 
+import src.openrouter_client as openrouter_client
 from src.openrouter_client import (
     OpenRouterClient,
     UsageInfo,
@@ -76,6 +77,23 @@ class RateLimitError(RuntimeError):
     def __init__(self) -> None:
         super().__init__("rate limited")
         self.status_code = 429
+
+
+def test_openrouter_client_sets_attribution_headers(monkeypatch: pytest.MonkeyPatch) -> None:
+    captured_kwargs: dict[str, Any] = {}
+
+    class DummyOpenAI:
+        def __init__(self, **kwargs: Any) -> None:
+            captured_kwargs.update(kwargs)
+
+    monkeypatch.setattr(openrouter_client, "OpenAI", DummyOpenAI)
+
+    OpenRouterClient("key")
+
+    assert captured_kwargs["default_headers"] == {
+        "HTTP-Referer": "https://github.com/tass/ai-thought-preserved-bench",
+        "X-OpenRouter-Title": "ai-thought-preserved-bench",
+    }
 
 
 def test_extract_tool_message_and_content_helpers() -> None:

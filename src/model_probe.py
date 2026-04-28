@@ -9,7 +9,7 @@ from typing import Any
 import httpx
 
 from src.cache import load_probe_record, save_probe_record
-from src.config import ModelConfig
+from src.config import ModelConfig, get_openrouter_attribution_headers
 from src.evaluator import detect_reasoning_visibility, extract_structured_reasoning_text
 from src.openrouter_client import OpenRouterClient
 from src.prompt_builder import build_plain_turn1_messages
@@ -31,9 +31,13 @@ def fetch_model_supported_parameters(api_key: str, model_id: str) -> list[str] |
     typically available on proxies.
     """
     try:
+        headers = {
+            "Authorization": f"Bearer {api_key}",
+            **get_openrouter_attribution_headers(),
+        }
         resp = httpx.get(
             OPENROUTER_MODELS_URL,
-            headers={"Authorization": f"Bearer {api_key}"},
+            headers=headers,
             timeout=30.0,
         )
         resp.raise_for_status()
