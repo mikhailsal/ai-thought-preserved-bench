@@ -207,7 +207,6 @@ def run_plain_scenario(
                 run_number,
             )
             record = _record_template(model_config, SCENARIO_PLAIN, run_number)
-            record["metadata"]["from_cache"] = False
             record["challenge"] = challenge
             record["reasoning_effective"] = (
                 turn1_result.reasoning_effort_effective or "none"
@@ -227,7 +226,6 @@ def run_plain_scenario(
     turn2_result = _call_model(client, model_config, turn2_messages)
 
     record = _record_template(model_config, SCENARIO_PLAIN, run_number)
-    record["metadata"]["from_cache"] = False
     record["challenge"] = challenge
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
     record["turn1"] = {
@@ -313,7 +311,6 @@ def run_tool_scenario(
                     run_number,
                 )
                 record = _record_template(model_config, SCENARIO_TOOL, run_number)
-                record["metadata"]["from_cache"] = False
                 record["challenge"] = challenge
                 record["reasoning_effective"] = (
                     turn1_result.reasoning_effort_effective or "none"
@@ -346,7 +343,6 @@ def run_tool_scenario(
         )
 
     record = _record_template(model_config, SCENARIO_TOOL, run_number)
-    record["metadata"]["from_cache"] = False
     record["challenge"] = challenge
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
     record["bootstrap"] = partial["bootstrap"]

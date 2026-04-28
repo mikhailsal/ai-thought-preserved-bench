@@ -263,9 +263,9 @@ def test_runner_returns_cached_records(monkeypatch, tmp_path: Path) -> None:
     tool_first = runner.run_tool_scenario(client, model, run_number=1, force=True)
     tool_second = runner.run_tool_scenario(client, model, run_number=1, force=False)
 
-    assert first["metadata"]["from_cache"] is False
+    assert "from_cache" not in first["metadata"]
     assert second["metadata"]["from_cache"] is True
-    assert tool_first["metadata"]["from_cache"] is False
+    assert "from_cache" not in tool_first["metadata"]
     assert tool_second["metadata"]["from_cache"] is True
 
 

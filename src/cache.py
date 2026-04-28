@@ -41,7 +41,12 @@ def save_run_record(record: dict[str, Any]) -> Path:
         int(record["run_number"]),
     )
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(record, ensure_ascii=False, indent=2), encoding="utf-8")
+    # Strip transient in-memory flag — it has no meaning in a persisted file.
+    to_save = {
+        **record,
+        "metadata": {k: v for k, v in metadata.items() if k != "from_cache"},
+    }
+    path.write_text(json.dumps(to_save, ensure_ascii=False, indent=2), encoding="utf-8")
     return path
 
 
