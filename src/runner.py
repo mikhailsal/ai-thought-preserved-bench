@@ -132,7 +132,8 @@ def _verify_provider(result: CompletionResult, model_config: ModelConfig) -> Non
             model_config.label,
         )
         return
-    if not _providers_match(model_config.provider, resolved):
+    all_accepted = (model_config.provider,) + model_config.valid_provider_aliases
+    if not any(_providers_match(accepted, resolved) for accepted in all_accepted):
         log.error(
             "╔══════════════════════════════════════════════════════════════╗\n"
             "║  PROVIDER MISMATCH — run aborted for %s\n"

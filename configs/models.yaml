@@ -113,7 +113,7 @@ models:
       Upgraded minimal→medium: at minimal effort the model only focused on output format.
 
   # ───────────────────────────────────────────────────────────────
-  # OpenAI — GPT-OSS-20B
+  # OpenAI
   # ───────────────────────────────────────────────────────────────
   - model_id: openai/gpt-oss-20b
     temperature: 1.2
@@ -127,9 +127,7 @@ models:
       and prioritizes its own BYOK credentials, routing to Amazon Bedrock instead.
       All historical runs were actually served by Bedrock, not DeepInfra.
 
-  # ───────────────────────────────────────────────────────────────
-  # OpenAI — GPT-OSS-120B (larger MoE sibling of gpt-oss-20b)
-  # ───────────────────────────────────────────────────────────────
+
   - model_id: openai/gpt-oss-120b
     temperature: 1.2
     reasoning_effort: medium
@@ -141,6 +139,22 @@ models:
       Provider changed from DeepInfra→Bedrock: KiloCode gateway ignores provider.order
       and prioritizes its own BYOK credentials, routing to Amazon Bedrock instead.
       All historical runs were actually served by Bedrock, not DeepInfra.
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: DeepInfra
+    reasoning_type: open
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: io-net
+    reasoning_type: open
+    active: true
+    valid_provider_aliases:
+      - "Io Net"
 
   # ───────────────────────────────────────────────────────────────
   # OpenAI — GPT-5-nano (hidden reasoning)

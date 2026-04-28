@@ -22,8 +22,8 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 
 <!-- leaderboard:start -->
 
-- Plain Chat History: gpt-oss-120b+Bedrock@medium-t1.2 — 5/5 preserved (100%)
 - Plain Chat History: gpt-oss-20b+Bedrock@medium-t1.2 — 5/5 preserved (100%)
+- Plain Chat History: gpt-oss-120b+Bedrock@medium-t1.2 — 5/6 preserved (83%)
 - Plain Chat History: deepseek-v4-flash+DeepSeek@medium-t1.2 — 1/5 preserved (20%)
 - Plain Chat History: claude-haiku-4.5+Anthropic@xhigh-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: deepseek-v3.2+Novita@minimal-t1.2 — 0/2 preserved (0%)
@@ -40,6 +40,8 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 - Plain Chat History: gpt-5-nano+OpenAI@medium-t1.2 — 0/3 preserved (0%)
 - Plain Chat History: gpt-5-nano+OpenAI@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: gpt-5.4-nano+OpenAI@medium-t1.2 — 0/3 preserved (0%)
+- Plain Chat History: gpt-oss-120b+DeepInfra@medium-t1.2 — 0/5 preserved (0%)
+- Plain Chat History: gpt-oss-120b+io-net@medium-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: gpt-oss-20b+Bedrock@minimal-t1.2 — 0/1 preserved (0%)
 - Plain Chat History: qwen3-8b+Alibaba@medium-t1.2 — 0/5 preserved (0%)
 - Plain Chat History: qwen3.5-flash-02-23+Alibaba@minimal-t1.2 — 0/6 preserved (0%)
@@ -65,7 +67,8 @@ See [results/LEADERBOARD.md](results/LEADERBOARD.md).
 - Tool-Mediated Reply: minimax-m2.7+Minimax@xhigh-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: gpt-5-nano+OpenAI@medium-t1.2 — 0/3 preserved (0%)
 - Tool-Mediated Reply: gpt-5.4-nano+OpenAI@medium-t1.2 — 0/3 preserved (0%)
-- Tool-Mediated Reply: gpt-oss-120b+Bedrock@medium-t1.2 — 0/5 preserved (0%)
+- Tool-Mediated Reply: gpt-oss-120b+Bedrock@medium-t1.2 — 0/6 preserved (0%)
+- Tool-Mediated Reply: gpt-oss-120b+DeepInfra@medium-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: qwen3-8b+Alibaba@medium-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: qwen3.5-flash-02-23+Alibaba@minimal-t1.2 — 0/5 preserved (0%)
 - Tool-Mediated Reply: grok-4.1-fast+xAI@medium-t1.2 — 0/5 preserved (0%)

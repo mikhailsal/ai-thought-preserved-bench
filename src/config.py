@@ -71,6 +71,7 @@ class ModelConfig:
     max_tokens: int | None = None
     supports_forced_tool_choice: bool = True
     skip_provider_check: bool = False
+    valid_provider_aliases: tuple[str, ...] = ()
 
     @property
     def label(self) -> str:
@@ -174,6 +175,9 @@ def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
         else None,
         supports_forced_tool_choice=bool(raw.get("supports_forced_tool_choice", True)),
         skip_provider_check=bool(raw.get("skip_provider_check", False)),
+        valid_provider_aliases=tuple(
+            str(a) for a in raw.get("valid_provider_aliases", [])
+        ),
     )
 
 
