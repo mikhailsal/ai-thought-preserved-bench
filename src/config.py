@@ -70,6 +70,7 @@ class ModelConfig:
     notes: str = ""
     max_tokens: int | None = None
     supports_forced_tool_choice: bool = True
+    skip_provider_check: bool = False
 
     @property
     def label(self) -> str:
@@ -161,6 +162,7 @@ def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
         notes=str(raw.get("notes", "")),
         max_tokens=int(raw["max_tokens"]) if raw.get("max_tokens") is not None else None,
         supports_forced_tool_choice=bool(raw.get("supports_forced_tool_choice", True)),
+        skip_provider_check=bool(raw.get("skip_provider_check", False)),
     )
 
 

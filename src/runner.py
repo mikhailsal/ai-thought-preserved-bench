@@ -20,7 +20,7 @@ from src.evaluator import (
     judge_turn2_reply,
     reconcile_stability_group,
 )
-from src.openrouter_client import CompletionResult, OpenRouterClient
+from src.openrouter_client import CompletionResult, OpenRouterClient, ProviderMismatchError, _providers_match
 from src.prompt_builder import (
     build_plain_turn1_messages,
     build_plain_turn2_messages,
@@ -51,6 +51,7 @@ def _assistant_artifact(result: CompletionResult) -> dict[str, Any]:
         "tool_calls": result.tool_calls,
         "finish_reason": result.finish_reason,
         "provider": result.provider,
+        "resolved_provider": result.resolved_provider,
         "reasoning_effort_effective": result.reasoning_effort_effective,
         "usage": _cost_info(result),
     }
@@ -104,6 +105,39 @@ def _get_reasoning_text(result: CompletionResult) -> str | None:
     return extract_structured_reasoning_text(result.reasoning_details)
 
 
+def _verify_provider(result: CompletionResult, model_config: ModelConfig) -> None:
+    """Check that the gateway actually used the configured provider.
+
+    Raises ProviderMismatchError when a mismatch is detected and
+    skip_provider_check is not set on the model config.
+    """
+    if model_config.skip_provider_check or not model_config.provider:
+        return
+    resolved = result.resolved_provider
+    if resolved is None:
+        log.debug(
+            "[%s] Could not determine resolved provider from response — skipping check",
+            model_config.label,
+        )
+        return
+    if not _providers_match(model_config.provider, resolved):
+        log.error(
+            "╔══════════════════════════════════════════════════════════════╗\n"
+            "║  PROVIDER MISMATCH — run aborted for %s\n"
+            "║  Configured: %s\n"
+            "║  Actual:     %s\n"
+            "║  The gateway ignored the provider constraint.\n"
+            "║  Fix the gateway routing or set skip_provider_check: true.\n"
+            "╚══════════════════════════════════════════════════════════════╝",
+            model_config.label, model_config.provider, resolved,
+        )
+        raise ProviderMismatchError(
+            expected=model_config.provider,
+            actual=resolved,
+            model=model_config.model_id,
+        )
+
+
 def _call_model(
     client: OpenRouterClient,
     model_config: ModelConfig,
@@ -112,7 +146,7 @@ def _call_model(
     tools: list[dict[str, Any]] | None = None,
     tool_choice: str | dict[str, Any] | None = None,
 ) -> CompletionResult:
-    return client.chat(
+    result = client.chat(
         model=model_config.model_id,
         messages=messages,
         max_tokens=model_config.effective_max_tokens,
@@ -123,6 +157,8 @@ def _call_model(
         quantization=model_config.quantization,
         tool_choice=tool_choice,
     )
+    _verify_provider(result, model_config)
+    return result
 
 
 def run_plain_scenario(

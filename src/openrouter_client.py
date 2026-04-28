@@ -125,8 +125,82 @@ class CompletionResult:
     reasoning_details: list[dict[str, Any]] | None = None
     tool_calls: list[dict[str, Any]] | None = None
     provider: str | None = None
+    resolved_provider: str | None = None
     reasoning_effort_requested: str | None = None
     reasoning_effort_effective: str | None = None
+
+
+class ProviderMismatchError(RuntimeError):
+    """Raised when the gateway routed the request to a different provider than configured."""
+
+    def __init__(self, expected: str, actual: str, model: str) -> None:
+        self.expected = expected
+        self.actual = actual
+        self.model = model
+        super().__init__(
+            f"Provider mismatch for {model}: expected '{expected}', "
+            f"gateway resolved to '{actual}'. The gateway ignored the provider "
+            f"constraint. Set skip_provider_check: true in models.yaml to bypass."
+        )
+
+
+def _extract_resolved_provider(response: Any) -> str | None:
+    """Extract the actual provider that served the request.
+
+    Two gateway formats are supported:
+
+    1. OpenRouter: top-level ``provider`` field in the response body.
+    2. KiloCode: nested under
+       ``choices[].message.provider_metadata.gateway.routing.finalProvider``.
+    """
+    top_level = getattr(response, "provider", None)
+    if isinstance(top_level, str) and top_level.strip():
+        return top_level.strip()
+
+    choices = getattr(response, "choices", None) or []
+    if not choices:
+        return None
+    message = getattr(choices[0], "message", None)
+    if message is None:
+        return None
+
+    pm = getattr(message, "provider_metadata", None)
+    if pm is None:
+        raw = _to_plain_object(message)
+        pm = raw.get("provider_metadata") if isinstance(raw, dict) else None
+    else:
+        pm = _to_plain_object(pm)
+
+    if not isinstance(pm, dict):
+        return None
+    gateway = pm.get("gateway")
+    if not isinstance(gateway, dict):
+        return None
+    routing = gateway.get("routing")
+    if not isinstance(routing, dict):
+        return None
+    final = routing.get("finalProvider")
+    if isinstance(final, str) and final.strip():
+        return final.strip()
+    return None
+
+
+def _providers_match(configured: str, resolved: str) -> bool:
+    """Case-insensitive comparison with common alias handling."""
+    c = configured.lower().strip()
+    r = resolved.lower().strip()
+    if c == r:
+        return True
+    ALIASES: dict[str, set[str]] = {
+        "amazon bedrock": {"bedrock", "amazon-bedrock", "aws-bedrock"},
+        "google ai studio": {"google", "google-ai-studio"},
+        "moonshot ai": {"moonshot", "moonshot-ai"},
+    }
+    for canonical, aliases in ALIASES.items():
+        group = aliases | {canonical}
+        if c in group and r in group:
+            return True
+    return False
 
 
 class OpenRouterClient:
@@ -238,6 +312,8 @@ class OpenRouterClient:
                             visible_output = _extract_tool_message(function_payload.get("arguments", ""))
                             break
 
+                resolved_provider = _extract_resolved_provider(response)
+
                 usage = _usage_from_response(
                     response=response,
                     elapsed=elapsed,
@@ -252,6 +328,7 @@ class OpenRouterClient:
                     reasoning_details=reasoning_details,
                     tool_calls=tool_calls,
                     provider=provider,
+                    resolved_provider=resolved_provider,
                     reasoning_effort_requested=reasoning_effort,
                     reasoning_effort_effective=effective_reasoning,
                 )

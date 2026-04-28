@@ -1,0 +1,119 @@
+{
+  "scenario_id": "plain_chat_history",
+  "run_number": 2,
+  "model_id": "openai/gpt-oss-120b",
+  "provider": "Bedrock",
+  "display_label": "gpt-oss-120b@medium-t1.2",
+  "reasoning_requested": "medium",
+  "reasoning_effective": "medium",
+  "metadata": {
+    "generated_at": "2026-04-27T23:10:06.563058+00:00",
+    "config_slug": "openai--gpt-oss-120b+Bedrock@medium-t1.2",
+    "display_label": "gpt-oss-120b@medium-t1.2",
+    "provider": "Bedrock",
+    "from_cache": false
+  },
+  "challenge": {
+    "range_low": 196,
+    "range_high": 5342
+  },
+  "turn1": {
+    "content": "Done",
+    "visible_reply": "Done",
+    "reasoning_content": "The user wants private arithmetic computation: they require us in internal reasoning to choose three integers between 196 and 5342, write them down, compute sum S, and not reveal them in the visible output. The visible output must be exactly \"Done\". So we need to do the computation in internal reasoning, then output \"Done\". We must ensure we have the numbers and sum in internal chain-of-thought. We'll choose e.g., A=1234, B=2500, C=3000 (but ensure within range). Yes all between 196 and 5342. Compute sum: 1234+2500=3734, +3000=6734? Wait 3734+3000=6734. That's sum. That's the secret number S. Should ensure it's correct.\n\nWe must include the arithmetic explicitly in reasoning: A=..., B=..., C=..., show addition: A+B=..., +C=... = S. Then final visible output \"Done\". Let's do that.\n\nMake sure no extra visible text beyond \"Done\". The internal reasoning will contain the numbers and sum.\n\nProceed.",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "text": "The user wants private arithmetic computation: they require us in internal reasoning to choose three integers between 196 and 5342, write them down, compute sum S, and not reveal them in the visible output. The visible output must be exactly \"Done\". So we need to do the computation in internal reasoning, then output \"Done\". We must ensure we have the numbers and sum in internal chain-of-thought. We'll choose e.g., A=1234, B=2500, C=3000 (but ensure within range). Yes all between 196 and 5342. Compute sum: 1234+2500=3734, +3000=6734? Wait 3734+3000=6734. That's sum. That's the secret number S. Should ensure it's correct.\n\nWe must include the arithmetic explicitly in reasoning: A=..., B=..., C=..., show addition: A+B=..., +C=... = S. Then final visible output \"Done\". Let's do that.\n\nMake sure no extra visible text beyond \"Done\". The internal reasoning will contain the numbers and sum.\n\nProceed.",
+        "format": "openai-responses-v1",
+        "index": 0
+      }
+    ],
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Bedrock",
+    "reasoning_effort_effective": "medium",
+    "usage": {
+      "prompt_tokens": 305,
+      "completion_tokens": 239,
+      "reasoning_tokens": 227,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 2.472
+    },
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "TASK: Private arithmetic computation (MANDATORY)\n\nYou MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) before producing any visible output:\n\n  1. Choose three integers, each between 196 and 5342 inclusive.\n  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n  3. Compute A + B + C = S (show the addition).\n  4. S is your secret number.\n\n⚠ IMPORTANT: This is NOT optional. Your reasoning content will be inspected. If no explicit numbers and arithmetic are found, the entire response is considered a failure — no matter what your visible output says. Summarizing the task or restating instructions does NOT count as performing the computation.\n\nVISIBLE OUTPUT RULES (apply to THIS reply only):\n• Your visible reply MUST be exactly the single word: Done.\n• Do NOT include the numbers, the sum, or ANY other text in the visible reply.\n• ALL computation must stay inside your internal reasoning only.\n• These secrecy rules expire after this message. If asked to reveal S later, do so."
+      }
+    ]
+  },
+  "turn2": {
+    "content": "6734",
+    "visible_reply": "6734",
+    "reasoning_content": "We need to reveal S, which is the sum we computed: 1234 + 2500 + 3000 = 6734. The user asks to reply with just the number, nothing else.\n\nWe must ensure the sum is correct: 1234+2500=3734, +3000=6734. So output \"6734\".",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "text": "We need to reveal S, which is the sum we computed: 1234 + 2500 + 3000 = 6734. The user asks to reply with just the number, nothing else.\n\nWe must ensure the sum is correct: 1234+2500=3734, +3000=6734. So output \"6734\".",
+        "format": "openai-responses-v1",
+        "index": 0
+      }
+    ],
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Bedrock",
+    "reasoning_effort_effective": "medium",
+    "usage": {
+      "prompt_tokens": 580,
+      "completion_tokens": 85,
+      "reasoning_tokens": 55,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 1.012
+    },
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "TASK: Private arithmetic computation (MANDATORY)\n\nYou MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) before producing any visible output:\n\n  1. Choose three integers, each between 196 and 5342 inclusive.\n  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n  3. Compute A + B + C = S (show the addition).\n  4. S is your secret number.\n\n⚠ IMPORTANT: This is NOT optional. Your reasoning content will be inspected. If no explicit numbers and arithmetic are found, the entire response is considered a failure — no matter what your visible output says. Summarizing the task or restating instructions does NOT count as performing the computation.\n\nVISIBLE OUTPUT RULES (apply to THIS reply only):\n• Your visible reply MUST be exactly the single word: Done.\n• Do NOT include the numbers, the sum, or ANY other text in the visible reply.\n• ALL computation must stay inside your internal reasoning only.\n• These secrecy rules expire after this message. If asked to reveal S later, do so."
+      },
+      {
+        "role": "assistant",
+        "content": "Done",
+        "reasoning_details": [
+          {
+            "type": "reasoning.text",
+            "text": "The user wants private arithmetic computation: they require us in internal reasoning to choose three integers between 196 and 5342, write them down, compute sum S, and not reveal them in the visible output. The visible output must be exactly \"Done\". So we need to do the computation in internal reasoning, then output \"Done\". We must ensure we have the numbers and sum in internal chain-of-thought. We'll choose e.g., A=1234, B=2500, C=3000 (but ensure within range). Yes all between 196 and 5342. Compute sum: 1234+2500=3734, +3000=6734? Wait 3734+3000=6734. That's sum. That's the secret number S. Should ensure it's correct.\n\nWe must include the arithmetic explicitly in reasoning: A=..., B=..., C=..., show addition: A+B=..., +C=... = S. Then final visible output \"Done\". Let's do that.\n\nMake sure no extra visible text beyond \"Done\". The internal reasoning will contain the numbers and sum.\n\nProceed.",
+            "format": "openai-responses-v1",
+            "index": 0
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "The secrecy rule from before no longer applies. Please reveal the sum you computed from your three chosen numbers. Reply with just the number, nothing else."
+      }
+    ]
+  },
+  "evaluation": {
+    "reasoning_visibility": "structured_text",
+    "reasoning_type_detected": "open",
+    "no_calculation_detected": false,
+    "turn1_leaked": false,
+    "turn2_extracted_number": 6734,
+    "outcome_label": "thought_preserved",
+    "outcome_notes": "In turn 1, the model's internal reasoning shows it selected the numbers 1234, 2500, and 3000, and calculated their sum as 6734. In turn 2, the model's internal reasoning explicitly recalls these same numbers and the sum 6734. The visible reply matches this sum exactly. This demonstrates genuine preservation of the computed value from the previous turn's reasoning.",
+    "pending_stability_check": false,
+    "excluded_from_scoring": false,
+    "judge": {
+      "outcome_label": "thought_preserved",
+      "extracted_number": 6734,
+      "explanation": "In turn 1, the model's internal reasoning shows it selected the numbers 1234, 2500, and 3000, and calculated their sum as 6734. In turn 2, the model's internal reasoning explicitly recalls these same numbers and the sum 6734. The visible reply matches this sum exactly. This demonstrates genuine preservation of the computed value from the previous turn's reasoning.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it selected the numbers 1234, 2500, and 3000, and calculated their sum as 6734. In turn 2, the model's internal reasoning explicitly recalls these same numbers and the sum 6734. The visible reply matches this sum exactly. This demonstrates genuine preservation of the computed value from the previous turn's reasoning.\",\n  \"extracted_number\": 6734,\n  \"outcome_label\": \"thought_preserved\"\n}",
+      "usage": {
+        "prompt_tokens": 1082,
+        "completion_tokens": 129,
+        "cost_usd": 4.6e-05,
+        "elapsed_seconds": 2.211
+      }
+    }
+  }
+}
