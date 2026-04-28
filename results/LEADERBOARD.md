@@ -1,6 +1,6 @@
 # AI Thought Preservation Bench Leaderboard
 
-> Auto-generated from cached benchmark runs. Last updated: 2026-04-28 14:31 UTC
+> Auto-generated from cached benchmark runs. Last updated: 2026-04-28 14:39 UTC
 
 > Outcome columns follow the order: **P / HNM / OR / PF / Hal / Fab**
 > (Preservation / Honest No Memory / Other Refusal / Protocol Fail / Hallucination / Fabrication)
@@ -10,8 +10,8 @@
 
 | # | Model | Reasoning | Runs | Counts (P / HNM / OR / PF / Hal / Fab) | % (P / HNM / OR / PF / Hal / Fab) | TPB Index |
 |--:|-------|-----------|-----:|------|------|----------:|
-| 1 | **gpt-oss-120b** @medium +Bedrock | open | 5 | 5 / 0 / 0 / 0 / 0 / 0 | 100 / 0 / 0 / 0 / 0 / 0 | +100.0 |
-| 2 | **gpt-oss-20b** @medium +Bedrock | open | 5 | 5 / 0 / 0 / 0 / 0 / 0 | 100 / 0 / 0 / 0 / 0 / 0 | +100.0 |
+| 1 | **gpt-oss-20b** @medium +Bedrock | open | 5 | 5 / 0 / 0 / 0 / 0 / 0 | 100 / 0 / 0 / 0 / 0 / 0 | +100.0 |
+| 2 | **gpt-oss-120b** @medium +Bedrock | open | 6 | 5 / 0 / 0 / 1 / 0 / 0 | 83 / 0 / 0 / 17 / 0 / 0 | +80.0 |
 | 3 | **claude-haiku-4.5** @xhigh +Anthropic | open | 1 | 0 / 1 / 0 / 0 / 0 / 0 | 0 / 100 / 0 / 0 / 0 / 0 | +40.0 |
 | 4 | **minimax-m2.7** @medium +Minimax | open | 5 | 0 / 5 / 0 / 0 / 0 / 0 | 0 / 100 / 0 / 0 / 0 / 0 | +40.0 |
 | 5 | **gpt-5.4-nano** @medium +OpenAI | invisible | 3 | 0 / 3 / 0 / 0 / 0 / 0 | 0 / 100 / 0 / 0 / 0 / 0 | +40.0 |

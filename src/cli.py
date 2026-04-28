@@ -190,7 +190,7 @@ def cli(ctx: click.Context, verbose: bool) -> None:
     "--models",
     "models_arg",
     default=None,
-    help="Comma-separated model config labels or model ids.",
+    help="Comma-separated model labels (model+Provider@effort-tTemp) or model ids. Use labels to disambiguate when the same model id appears under multiple providers. Run 'make models' to list all valid labels.",
 )
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
 @click.option(
@@ -269,7 +269,7 @@ def run(
     "--models",
     "models_arg",
     default=None,
-    help="Comma-separated model config labels or model ids.",
+    help="Comma-separated model labels (model+Provider@effort-tTemp) or model ids. Use labels to disambiguate when the same model id appears under multiple providers. Run 'make models' to list all valid labels.",
 )
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
 @click.option(
@@ -332,7 +332,7 @@ def report() -> None:
     "--models",
     "models_arg",
     default=None,
-    help="Comma-separated model config labels or model ids.",
+    help="Comma-separated model labels (model+Provider@effort-tTemp) or model ids. Use labels to disambiguate when the same model id appears under multiple providers. Run 'make models' to list all valid labels.",
 )
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
 @click.option(
@@ -428,7 +428,7 @@ def rejudge(
     "--models",
     "models_arg",
     default=None,
-    help="Comma-separated model config labels or model ids.",
+    help="Comma-separated model labels (model+Provider@effort-tTemp) or model ids. Use labels to disambiguate when the same model id appears under multiple providers. Run 'make models' to list all valid labels.",
 )
 @click.option(
     "--force/--no-force",

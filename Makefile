@@ -9,17 +9,20 @@
 #   make test         Run the test suite with coverage
 #
 # Most benchmark targets accept optional variables:
-#   MODELS=…     Comma-separated model config labels or model IDs
+#   MODELS=…     Comma-separated model labels (preferred) or model IDs
+#                Label format: model+Provider@effort-tTemp  (e.g. gpt-oss-20b+Bedrock@medium-t1.2)
+#                Use 'make models' to list all valid labels.
+#                When a model ID is shared across providers, the label is required for disambiguation.
 #   SCENARIOS=…  Comma-separated scenario IDs (plain_chat_history, tool_mediated_reply)
 #   REPS=…       Number of repetitions per model/scenario (default: 5)
 #   JUDGE=…      Judge model for evaluation (default: google/gemini-3-flash-preview)
 #   WORKERS=…    Max parallel workers (default: 6)
 #
 # Examples:
-#   make run MODELS="x-ai/grok-4.1-fast"
-#   make run MODELS="x-ai/grok-4.1-fast" SCENARIOS="plain_chat_history" REPS=3
-#   make rejudge MODELS="openai/gpt-oss-20b"
-#   make probe MODELS="deepseek/deepseek-v4-flash"
+#   make run MODELS="gpt-oss-20b+Bedrock@medium-t1.2"
+#   make run MODELS="gpt-oss-20b+Bedrock@medium-t1.2" SCENARIOS="plain_chat_history" REPS=3
+#   make rejudge MODELS="gpt-oss-20b+Bedrock@medium-t1.2"
+#   make probe MODELS="deepseek-v4-flash+DeepInfra@medium-t1.2"
 #   make test-file FILE=tests/test_runner_cli_probe.py
 #
 # ─────────────────────────────────────────────────────────────────────────────
@@ -49,11 +52,12 @@ from src.config import get_active_model_configs
 configs = get_active_model_configs()
 print()
 print(f"  Active models: {len(configs)}")
+print(f"  Pass any label below to MODELS= (e.g. make run MODELS=\"<label>\")")
 print()
 for i, c in enumerate(configs, 1):
     provider = c.provider or "(none)"
     rtype = c.reasoning_type or "?"
-    print(f"  {i:>2}. {c.label:<48s} provider={provider:<20s} reasoning={rtype}")
+    print(f"  {i:>2}. {c.label:<52s} provider={provider:<20s} reasoning={rtype}")
 print()
 endef
 export MODELS_SCRIPT
@@ -129,7 +133,7 @@ help: ## Show this help message
 	@echo -e "    $(GREEN)make clean-all$(RESET)       Remove everything (artifacts + logs + probes)"
 	@echo ""
 	@echo -e "  $(BOLD)$(CYAN)Variables$(RESET)"
-	@echo -e "    $(YELLOW)MODELS$(RESET)=$(DIM)\"vendor/model-id\"$(RESET)              Filter by model(s)"
+	@echo -e "    $(YELLOW)MODELS$(RESET)=$(DIM)\"model+Provider@effort-tTemp\"$(RESET)    Label (preferred) or model id — run 'make models' to list"
 	@echo -e "    $(YELLOW)SCENARIOS$(RESET)=$(DIM)\"plain_chat_history\"$(RESET)        Filter by scenario(s)"
 	@echo -e "    $(YELLOW)REPS$(RESET)=$(DIM)3$(RESET)                                 Repetitions per model/scenario"
 	@echo -e "    $(YELLOW)JUDGE$(RESET)=$(DIM)\"google/gemini-3-flash-preview\"$(RESET) Judge model"
@@ -138,9 +142,9 @@ help: ## Show this help message
 	@echo -e "    $(YELLOW)K$(RESET)=$(DIM)test_something$(RESET)                       pytest -k pattern"
 	@echo ""
 	@echo -e "  $(BOLD)$(CYAN)Examples$(RESET)"
-	@echo -e "    $(DIM)make run MODELS=\"x-ai/grok-4.1-fast\" REPS=3$(RESET)"
-	@echo -e "    $(DIM)make rejudge MODELS=\"openai/gpt-oss-20b\"$(RESET)"
-	@echo -e "    $(DIM)make probe MODELS=\"deepseek/deepseek-v4-flash\"$(RESET)"
+	@echo -e "    $(DIM)make run MODELS=\"gpt-oss-20b+Bedrock@medium-t1.2\" REPS=3$(RESET)"
+	@echo -e "    $(DIM)make rejudge MODELS=\"gpt-oss-20b+Bedrock@medium-t1.2\"$(RESET)"
+	@echo -e "    $(DIM)make probe MODELS=\"deepseek-v4-flash+DeepInfra@medium-t1.2\"$(RESET)"
 	@echo -e "    $(DIM)make test-file FILE=tests/test_outcome_classification.py$(RESET)"
 	@echo -e "    $(DIM)make test-match K=test_rejudge$(RESET)"
 	@echo ""
