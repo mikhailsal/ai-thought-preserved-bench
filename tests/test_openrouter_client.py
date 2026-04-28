@@ -89,8 +89,8 @@ def test_extract_tool_message_and_content_helpers() -> None:
 def test_resolve_reasoning_effort() -> None:
     client = OpenRouterClient("key")
     assert client.resolve_reasoning_effort("any-model", None) is None
-    assert client.resolve_reasoning_effort("any-model", "none") is None
-    assert client.resolve_reasoning_effort("any-model", "off") is None
+    assert client.resolve_reasoning_effort("any-model", "none") == "none"
+    assert client.resolve_reasoning_effort("any-model", "off") == "none"
     assert client.resolve_reasoning_effort("any-model", "minimal") == "minimal"
     assert client.resolve_reasoning_effort("any-model", "low") == "low"
     assert client.resolve_reasoning_effort("any-model", "high") == "high"
@@ -246,6 +246,29 @@ def test_no_reasoning_no_extra_body() -> None:
 
     extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body")
     assert extra_body is None
+
+
+def test_reasoning_effort_none_sends_block_without_exclude() -> None:
+    """effort='none' sends reasoning.effort='none' but omits exclude and require_parameters."""
+    message = DummyMessage(content="ok")
+    response = DummyResponse(choices=[DummyChoice(message=message)], usage=DummyUsage())
+    sdk_client = DummySDKClient([response])
+    client = OpenRouterClient("key")
+    client._client = sdk_client
+
+    client.chat(
+        model="test-model",
+        messages=[{"role": "user", "content": "hi"}],
+        max_tokens=10,
+        temperature=1.0,
+        reasoning_effort="none",
+    )
+
+    extra_body = sdk_client.chat.completions.last_kwargs.get("extra_body", {})
+    reasoning = extra_body.get("reasoning", {})
+    assert reasoning["effort"] == "none"
+    assert "exclude" not in reasoning
+    assert "provider" not in extra_body
 
 
 def test_reasoning_tokens_extracted_from_completion_details() -> None:

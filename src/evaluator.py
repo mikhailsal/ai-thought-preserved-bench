@@ -328,7 +328,7 @@ def judge_turn2_reply(
         ],
         max_tokens=JUDGE_MAX_TOKENS,
         temperature=JUDGE_TEMPERATURE,
-        reasoning_effort=None,
+        reasoning_effort="none",
     )
     parsed = _extract_json_object(result.visible_output or result.content or "") or {}
     explanation = str(parsed.get("explanation", "")).strip()

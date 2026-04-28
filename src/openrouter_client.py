@@ -223,8 +223,10 @@ class OpenRouterClient:
     VALID_EFFORT_LEVELS = {"xhigh", "high", "medium", "low", "minimal"}
 
     def resolve_reasoning_effort(self, model_id: str, requested: str | None) -> str | None:
-        if requested in {None, "none", "off"}:
+        if requested is None:
             return None
+        if requested in {"none", "off"}:
+            return "none"
         if requested in self.VALID_EFFORT_LEVELS:
             return requested
         return requested
@@ -248,12 +250,12 @@ class OpenRouterClient:
             try:
                 extra_body: dict[str, Any] | None = None
                 if effective_reasoning:
-                    extra_body = {
-                        "reasoning": {
-                            "effort": effective_reasoning,
-                            "exclude": False,
-                        },
+                    reasoning_block: dict[str, Any] = {
+                        "effort": effective_reasoning,
                     }
+                    if effective_reasoning != "none":
+                        reasoning_block["exclude"] = False
+                    extra_body = {"reasoning": reasoning_block}
                 if provider:
                     extra_body = extra_body or {}
                     extra_body["provider"] = {
@@ -264,7 +266,7 @@ class OpenRouterClient:
                     extra_body = extra_body or {}
                     extra_body.setdefault("provider", {})
                     extra_body["provider"]["quantizations"] = [quantization]
-                if effective_reasoning and not provider:
+                if effective_reasoning and effective_reasoning != "none" and not provider:
                     extra_body = extra_body or {}
                     extra_body.setdefault("provider", {})
                     extra_body["provider"]["require_parameters"] = True
