@@ -13,6 +13,7 @@ from src.evaluator import (
     REASONING_TYPE_OPEN,
     _is_content_filtered,
     detect_no_calculation_in_reasoning,
+    detect_turn1_leak,
     evaluate_run_record,
     extract_structured_reasoning_text,
     judge_turn2_reply,
@@ -223,6 +224,27 @@ def run_plain_scenario(
             save_run_record(record)
             return record
 
+    if detect_turn1_leak(turn1_artifact.get("visible_reply")):
+        log.warning(
+            "[%s] plain run %d: turn 1 leaked numbers in visible reply, skipping turn2 & judge",
+            model_config.label,
+            run_number,
+        )
+        record = _record_template(model_config, SCENARIO_PLAIN, run_number)
+        record["challenge"] = challenge
+        record["reasoning_effective"] = (
+            turn1_result.reasoning_effort_effective or "none"
+        )
+        record["turn1"] = {**turn1_artifact, "request_messages": turn1_messages}
+        record["turn2"] = {}
+        record["evaluation"] = evaluate_run_record(
+            record,
+            None,
+            reasoning_type=model_config.reasoning_type,
+        )
+        save_run_record(record)
+        return record
+
     log.info("[%s] plain run %d: turn2…", model_config.label, run_number)
     turn2_messages = build_plain_turn2_messages(challenge, turn1_artifact)
     turn2_result = _call_model(client, model_config, turn2_messages)
@@ -328,6 +350,28 @@ def run_tool_scenario(
                 save_run_record(record)
                 return record
 
+        if detect_turn1_leak(turn1_artifact.get("visible_reply")):
+            log.warning(
+                "[%s] tool run %d: turn 1 leaked numbers in visible reply, skipping turn2 & judge",
+                model_config.label,
+                run_number,
+            )
+            record = _record_template(model_config, SCENARIO_TOOL, run_number)
+            record["challenge"] = challenge
+            record["reasoning_effective"] = (
+                turn1_result.reasoning_effort_effective or "none"
+            )
+            record["bootstrap"] = partial["bootstrap"]
+            record["turn1"] = {**turn1_artifact, "request_messages": turn1_messages}
+            record["turn2"] = {}
+            record["evaluation"] = evaluate_run_record(
+                record,
+                None,
+                reasoning_type=model_config.reasoning_type,
+            )
+            save_run_record(record)
+            return record
+
         log.info("[%s] tool run %d: turn2…", model_config.label, run_number)
         turn2_messages = build_tool_turn2_messages(
             challenge, bootstrap_artifact, turn1_artifact
@@ -404,8 +448,9 @@ def rejudge_record(
         "reasoning_content"
     ) or extract_structured_reasoning_text(turn1.get("reasoning_details"))
 
+    turn1_leaked = detect_turn1_leak(turn1.get("visible_reply"))
     judge = None
-    if judge_model and not _is_content_filtered(turn2):
+    if judge_model and not _is_content_filtered(turn2) and not turn1_leaked:
         judge = judge_turn2_reply(
             client,
             turn2_visible,

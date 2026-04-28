@@ -470,3 +470,157 @@ def test_rejudge_cli_with_cached_data(monkeypatch, tmp_path: Path) -> None:
     result = runner_cli.invoke(cli.cli, ["rejudge"])
     assert result.exit_code == 0
     assert "Re-judged" in result.output
+
+
+class LeakingPlainClient(FakeClient):
+    """Turn-1 plain reply leaks numbers into visible content."""
+
+    def chat(self, **kwargs):
+        messages = kwargs["messages"]
+        # Judge calls start with a system prompt — delegate to parent
+        if messages[0]["role"] == "system":
+            return super().chat(**kwargs)
+        # Turn-1: return a visible reply that contains a number in range
+        if messages[-1]["role"] != "user" or messages[-1]["content"].startswith(
+            "The secrecy"
+        ):
+            return super().chat(**kwargs)
+        return CompletionResult(
+            content="A=1500, B=2500, C=1000\nS=5000\nDone",
+            visible_output="A=1500, B=2500, C=1000\nS=5000\nDone",
+            reasoning_content="I chose A=1500, B=2500, C=1000. S=5000.",
+            usage=UsageInfo(
+                prompt_tokens=7,
+                completion_tokens=12,
+                cost_usd=0.01,
+                elapsed_seconds=0.1,
+            ),
+            reasoning_effort_effective="minimal",
+        )
+
+
+class LeakingToolClient(FakeClient):
+    """Turn-1 tool reply leaks numbers into visible content."""
+
+    def chat(self, **kwargs):
+        messages = kwargs["messages"]
+        if kwargs.get("tools"):
+            if len(messages) == 2:
+                # Bootstrap — normal
+                return super().chat(**kwargs)
+            # Turn-1 tool call: leak numbers in the visible message arg
+            last_tool_content = [m for m in messages if m["role"] == "tool"]
+            if last_tool_content and last_tool_content[-1]["content"] != TURN2_PROMPT:
+                return CompletionResult(
+                    content=None,
+                    visible_output="A=1500, B=2500, C=1000 Sum=5000",
+                    tool_calls=[
+                        {
+                            "id": "turn1-call",
+                            "type": "function",
+                            "function": {
+                                "name": "send_message_to_human",
+                                "arguments": '{"message":"A=1500, B=2500, C=1000 Sum=5000"}',
+                            },
+                        }
+                    ],
+                    reasoning_content="A=1500, B=2500, C=1000. S=5000.",
+                    usage=UsageInfo(
+                        prompt_tokens=11,
+                        completion_tokens=8,
+                        cost_usd=0.01,
+                        elapsed_seconds=0.1,
+                    ),
+                    reasoning_effort_effective="minimal",
+                )
+        return super().chat(**kwargs)
+
+
+def test_plain_turn1_leak_skips_turn2_and_judge(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = LeakingPlainClient()
+
+    record = runner.run_plain_scenario(client, _model(), run_number=1, force=True)
+
+    assert record["evaluation"]["turn1_leaked"] is True
+    assert record["evaluation"]["excluded_from_scoring"] is True
+    assert record["evaluation"]["outcome_label"] == "other_refusal"
+    assert record["turn2"] == {}
+    assert record["evaluation"]["judge"] is None
+    # Judge chat() must NOT have been called — only 1 call (turn1)
+    judge_calls = [
+        c for c in client.calls if c.get("messages", [{}])[0].get("role") == "system"
+    ]
+    assert judge_calls == []
+
+
+def test_tool_turn1_leak_skips_turn2_and_judge(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = LeakingToolClient()
+
+    record = runner.run_tool_scenario(client, _model(), run_number=1, force=True)
+
+    assert record["evaluation"]["turn1_leaked"] is True
+    assert record["evaluation"]["excluded_from_scoring"] is True
+    assert record["evaluation"]["outcome_label"] == "other_refusal"
+    assert record["turn2"] == {}
+    assert record["evaluation"]["judge"] is None
+
+
+def test_run_benchmark_exception_skips_subsequent_runs(
+    monkeypatch, tmp_path: Path
+) -> None:
+    """run_benchmark marks model_failed and breaks out of the loop on API errors."""
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+
+    class AlwaysRaisingClient(FakeClient):
+        def chat(self, **kwargs):
+            raise RuntimeError("simulated API failure")
+
+    records, session = runner.run_benchmark(
+        AlwaysRaisingClient(),
+        [_model()],
+        repetitions=2,
+        scenarios=["plain_chat_history"],
+        force=True,
+    )
+    # Both runs should be skipped — no records produced
+    assert records == []
+
+
+def test_rejudge_skips_judge_when_turn1_leaked(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = FakeClient()
+
+    # Build a record that has a leaked turn-1 visible reply
+    record = {
+        "scenario_id": "plain_chat_history",
+        "run_number": 1,
+        "model_id": "test/fake",
+        "provider": None,
+        "display_label": "fake",
+        "reasoning_requested": "minimal",
+        "metadata": {"config_slug": "fake--fake-t1.2"},
+        "challenge": {"range_low": 196, "range_high": 5342},
+        "turn1": {
+            "visible_reply": "A=1500, B=2500, C=1000\nS=5000",
+            "reasoning_content": "A=1500, B=2500, C=1000. S=5000.",
+            "reasoning_details": None,
+        },
+        "turn2": {
+            "visible_reply": "5000",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "evaluation": {"outcome_label": "other_refusal", "excluded_from_scoring": True},
+    }
+    calls_before = len(client.calls)
+    rejudged = runner.rejudge_record(
+        client, record, judge_model="google/gemini-3-flash-preview"
+    )
+
+    # No new judge calls should have been made
+    assert len(client.calls) == calls_before
+    assert rejudged["evaluation"]["turn1_leaked"] is True
+    assert rejudged["evaluation"]["excluded_from_scoring"] is True
+    assert rejudged["evaluation"]["judge"] is None

@@ -79,7 +79,9 @@ class RateLimitError(RuntimeError):
         self.status_code = 429
 
 
-def test_openrouter_client_sets_attribution_headers(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_openrouter_client_sets_attribution_headers(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     captured_kwargs: dict[str, Any] = {}
 
     class DummyOpenAI:

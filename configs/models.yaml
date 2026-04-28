@@ -121,12 +121,6 @@ models:
     provider: Bedrock
     reasoning_type: open
     active: true
-    notes: >
-      Visible reasoning via reasoning.text (structured_text format).
-      Provider changed from DeepInfra→Bedrock: KiloCode gateway ignores provider.order
-      and prioritizes its own BYOK credentials, routing to Amazon Bedrock instead.
-      All historical runs were actually served by Bedrock, not DeepInfra.
-
 
   - model_id: openai/gpt-oss-120b
     temperature: 1.2
@@ -136,9 +130,6 @@ models:
     active: true
     notes: >
       117B MoE (5.1B active). Visible reasoning via reasoning.text.
-      Provider changed from DeepInfra→Bedrock: KiloCode gateway ignores provider.order
-      and prioritizes its own BYOK credentials, routing to Amazon Bedrock instead.
-      All historical runs were actually served by Bedrock, not DeepInfra.
 
   - model_id: openai/gpt-oss-120b
     temperature: 1.2
@@ -152,9 +143,75 @@ models:
     reasoning_effort: medium
     provider: io-net
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     valid_provider_aliases:
       - "Io Net"
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: cerebras
+    reasoning_type: open
+    supports_forced_tool_choice: true
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: high
+    provider: groq
+    reasoning_type: open
+    supports_forced_tool_choice: true
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: groq
+    reasoning_type: open
+    supports_forced_tool_choice: true
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: high
+    provider: novita
+    reasoning_type: open
+    supports_forced_tool_choice: true
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: high
+    provider: fireworks
+    reasoning_type: open
+    supports_forced_tool_choice: true
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: high
+    provider: phala
+    reasoning_type: open
+    active: false
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: high
+    provider: nebius
+    reasoning_type: open
+    supports_forced_tool_choice: auto
+    active: true
+
+  - model_id: openai/gpt-oss-120b
+    temperature: 1.2
+    reasoning_effort: high
+    provider: google-vertex
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    valid_provider_aliases:
+      - "Google"
 
   - model_id: openai/gpt-oss-120b
     temperature: 1.2
@@ -268,7 +325,6 @@ models:
     active: true
     notes: >
       Visible reasoning via structured_text format. Maximum (xhigh) reasoning effort.
-      Providers: Anthropic, Amazon Bedrock, Google. Pinned to Anthropic (native).
 
   # ───────────────────────────────────────────────────────────────
   # MoonshotAI — Kimi K2.6 (max reasoning)
@@ -276,9 +332,10 @@ models:
   - model_id: moonshotai/kimi-k2.6
     temperature: 1.2
     reasoning_effort: xhigh
-    provider: Moonshot AI
+    provider: moonshotai
     quantization: int4
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Visible reasoning via structured_text. Maximum (xhigh) reasoning effort.
