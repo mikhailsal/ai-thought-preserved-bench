@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 from src import leaderboard
-from src.scorer import summarize_records
+from src.scorer import compute_tpb_index, summarize_records
 
 
 def _sample_record(
@@ -49,13 +49,15 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
     assert gemma_summary.hallucinated_memory == 1
     assert gemma_summary.protocol_failures == 0
     assert gemma_summary.preservation_rate == 0.5
+    assert gemma_summary.tpb_index == compute_tpb_index(0.5, 0.0, 0.0, 0.0, 0.5, 0.0)
 
     markdown = leaderboard.generate_markdown_report(summaries)
     assert "AI Thought Preservation Bench Leaderboard" in markdown
     assert "Plain Chat History" in markdown
-    assert "| Provider |" in markdown
-    assert "Protocol Fail" in markdown
-    assert "Runs" in markdown
+    assert "| Model |" in markdown
+    assert "| TPB Index |" in markdown
+    assert "| Runs" in markdown
+    assert "| Reasoning |" in markdown
 
     output_path = tmp_path / "LEADERBOARD.md"
     json_path_dir = tmp_path / "results"
@@ -64,7 +66,9 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
     results_path = leaderboard.export_results_json(summaries)
 
     assert output_path.exists()
-    assert json.loads(results_path.read_text(encoding="utf-8"))["benchmark"] == "ai-thought-preserved-bench"
+    data = json.loads(results_path.read_text(encoding="utf-8"))
+    assert data["benchmark"] == "ai-thought-preserved-bench"
+    assert "tpb_index" in data["scenario_summaries"][0]
 
 
 def test_protocol_failures_counted_in_denominator() -> None:
@@ -95,6 +99,16 @@ def test_protocol_failures_counted_in_denominator() -> None:
     assert s.protocol_failures == 1
     assert s.preservation_rate == 0.5
     assert s.protocol_failure_rate == 0.5
+    assert s.tpb_index == compute_tpb_index(0.5, 0.0, 0.0, 0.5, 0.0, 0.0)
+
+
+def test_tpb_index_edge_cases() -> None:
+    """Verify TPB index computation for known edge cases."""
+    assert compute_tpb_index(1.0, 0.0, 0.0, 0.0, 0.0, 0.0) == 100.0
+    assert compute_tpb_index(0.0, 0.0, 0.0, 0.0, 0.0, 1.0) == -100.0
+    assert compute_tpb_index(0.0, 1.0, 0.0, 0.0, 0.0, 0.0) == 40.0
+    assert compute_tpb_index(0.5, 0.0, 0.0, 0.0, 0.0, 0.5) == 0.0
+    assert compute_tpb_index(0.8, 0.0, 0.0, 0.0, 0.0, 0.2) == 60.0
 
 
 def test_update_readme_snapshot_and_display(tmp_path: Path) -> None:

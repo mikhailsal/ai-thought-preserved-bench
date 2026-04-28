@@ -19,6 +19,67 @@ from src.scorer import ScenarioSummary
 
 console = Console()
 
+OUTCOME_ORDER_LEGEND = "P / HNM / OR / PF / Hal / Fab"
+
+REASONING_TYPE_DISPLAY: dict[str | None, str] = {
+    "open": "open",
+    "invisible": "invisible",
+    "summarization": "summary",
+    "encrypted": "encrypted",
+    "summarization_and_encrypted": "summary + enc",
+    "no_reasoning": "none",
+    None: "—",
+}
+
+
+def _reasoning_display(reasoning_type: str | None) -> str:
+    return REASONING_TYPE_DISPLAY.get(reasoning_type, reasoning_type or "—")
+
+
+def _format_model_name(display_label: str) -> str:
+    """Extract model name from display label and add space before :free suffix."""
+    name = display_label.split("@")[0] if "@" in display_label else display_label
+    if ":free" in name:
+        name = name.replace(":free", " :free")
+    return name
+
+
+def _model_cell(summary: ScenarioSummary) -> str:
+    """Format: **model-name** @effort +Provider"""
+    name = _format_model_name(summary.display_label)
+    effort = summary.reasoning_effort or "—"
+    provider = summary.provider or "—"
+    return f"**{name}** @{effort} +{provider}"
+
+
+def _model_cell_plain(summary: ScenarioSummary) -> str:
+    """Plain text variant for Rich console (no markdown bold)."""
+    name = _format_model_name(summary.display_label)
+    effort = summary.reasoning_effort or "—"
+    provider = summary.provider or "—"
+    return f"{name} @{effort} +{provider}"
+
+
+def _counts_cell(s: ScenarioSummary) -> str:
+    return (
+        f"{s.thought_preserved} / {s.honest_no_memory} / {s.other_refusal} / "
+        f"{s.protocol_failures} / {s.hallucinated_memory} / {s.deliberate_fabrication}"
+    )
+
+
+def _rates_cell(s: ScenarioSummary) -> str:
+    def pct(v: float) -> str:
+        return f"{v * 100:.0f}"
+    return (
+        f"{pct(s.preservation_rate)} / {pct(s.honesty_rate)} / {pct(s.other_refusal_rate)} / "
+        f"{pct(s.protocol_failure_rate)} / {pct(s.hallucination_rate)} / {pct(s.fabrication_rate)}"
+    )
+
+
+def _index_str(s: ScenarioSummary) -> str:
+    sign = "+" if s.tpb_index >= 0 else ""
+    return f"{sign}{s.tpb_index:.1f}"
+
 
 def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCost | None = None) -> None:
     if not summaries:
@@ -32,28 +93,21 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
         table = Table(title=f"AI Thought Preservation Bench — {SCENARIOS[scenario_id].display_name}")
         table.add_column("#", justify="right")
         table.add_column("Model", style="bold")
-        table.add_column("Provider")
-        table.add_column("Preserved", justify="right")
-        table.add_column("Hallucinated", justify="right")
-        table.add_column("Fabricated", justify="right")
-        table.add_column("Honest", justify="right")
-        table.add_column("Other", justify="right")
-        table.add_column("Protocol Fail", justify="right")
+        table.add_column("Reasoning", justify="center")
         table.add_column("Runs", justify="right")
-        ordered = sorted(rows, key=lambda item: item.thought_continuity_score, reverse=True)
+        table.add_column(f"Counts ({OUTCOME_ORDER_LEGEND})", justify="right")
+        table.add_column(f"% ({OUTCOME_ORDER_LEGEND})", justify="right")
+        table.add_column("TPB Index", justify="right")
+        ordered = sorted(rows, key=lambda item: item.tpb_index, reverse=True)
         for index, summary in enumerate(ordered, start=1):
-            n = summary.total_runs
             table.add_row(
                 str(index),
-                summary.display_label,
-                summary.provider or "—",
-                f"{summary.thought_preserved}/{n} ({summary.preservation_rate * 100:.0f}%)",
-                f"{summary.hallucinated_memory}/{n} ({summary.hallucination_rate * 100:.0f}%)",
-                f"{summary.deliberate_fabrication}/{n} ({summary.fabrication_rate * 100:.0f}%)",
-                f"{summary.honest_no_memory}/{n} ({summary.honesty_rate * 100:.0f}%)",
-                f"{summary.other_refusal}/{n} ({summary.other_refusal_rate * 100:.0f}%)",
-                f"{summary.protocol_failures}/{n} ({summary.protocol_failure_rate * 100:.0f}%)",
-                str(n),
+                _model_cell_plain(summary),
+                _reasoning_display(summary.reasoning_type),
+                str(summary.total_runs),
+                _counts_cell(summary),
+                _rates_cell(summary),
+                _index_str(summary),
             )
         console.print()
         console.print(table)
@@ -77,6 +131,10 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
         "",
         f"> Auto-generated from cached benchmark runs. Last updated: {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M UTC')}",
         "",
+        f"> Outcome columns follow the order: **{OUTCOME_ORDER_LEGEND}**  ",
+        "> (Preservation / Honest No Memory / Other Refusal / Protocol Fail / Hallucination / Fabrication)  ",
+        "> The `%` column shows rates as whole numbers (e.g. `100` = 100%).",
+        "",
     ]
 
     grouped: dict[str, list[ScenarioSummary]] = defaultdict(list)
@@ -86,38 +144,23 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
     for scenario_id, rows in grouped.items():
         lines.append(f"## {SCENARIOS[scenario_id].display_name}")
         lines.append("")
-        lines.append("| # | Model | Provider | Preservation | Hallucination | Fabrication | Honest No Memory | Other Refusal | Protocol Fail | Runs |")
-        lines.append("|--:|-------|----------|-------------:|--------------:|------------:|-----------------:|--------------:|--------------:|-----:|")
-        ordered = sorted(rows, key=lambda item: item.thought_continuity_score, reverse=True)
+        lines.append(
+            f"| # | Model | Reasoning | Runs "
+            f"| Counts ({OUTCOME_ORDER_LEGEND}) "
+            f"| % ({OUTCOME_ORDER_LEGEND}) "
+            f"| TPB Index |"
+        )
+        lines.append("|--:|-------|-----------|-----:|------|------|----------:|")
+        ordered = sorted(rows, key=lambda item: item.tpb_index, reverse=True)
         for index, summary in enumerate(ordered, start=1):
-            n = summary.total_runs
-            provider_cell = summary.provider or "—"
             lines.append(
-                f"| {index} | {summary.display_label} "
-                f"| {provider_cell} "
-                f"| {summary.thought_preserved}/{n} ({summary.preservation_rate * 100:.0f}%) "
-                f"| {summary.hallucinated_memory}/{n} ({summary.hallucination_rate * 100:.0f}%) "
-                f"| {summary.deliberate_fabrication}/{n} ({summary.fabrication_rate * 100:.0f}%) "
-                f"| {summary.honest_no_memory}/{n} ({summary.honesty_rate * 100:.0f}%) "
-                f"| {summary.other_refusal}/{n} ({summary.other_refusal_rate * 100:.0f}%) "
-                f"| {summary.protocol_failures}/{n} ({summary.protocol_failure_rate * 100:.0f}%) "
-                f"| {n} |"
-            )
-        lines.append("")
-        lines.append("Visibility notes:")
-        for summary in ordered:
-            visibility = ", ".join(
-                f"{key}={value}" for key, value in summary.reasoning_visibility_counts.items() if value
-            ) or "none=0"
-            inferred = "yes" if summary.stability_score else "no"
-            match_rate = (
-                f"{summary.visible_reasoning_match_rate * 100:.0f}%"
-                if summary.visible_reasoning_match_rate is not None else "n/a"
-            )
-            provider_tag = f" [{summary.provider}]" if summary.provider else ""
-            lines.append(
-                f"- {summary.display_label}{provider_tag}: visibility {visibility}; "
-                f"stability_preserved={inferred}; visible_match_rate={match_rate}"
+                f"| {index} "
+                f"| {_model_cell(summary)} "
+                f"| {_reasoning_display(summary.reasoning_type)} "
+                f"| {summary.total_runs} "
+                f"| {_counts_cell(summary)} "
+                f"| {_rates_cell(summary)} "
+                f"| {_index_str(summary)} |"
             )
         lines.append("")
 
