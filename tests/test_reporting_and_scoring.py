@@ -36,9 +36,27 @@ def _sample_record(
 
 def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> None:
     records = [
-        _sample_record("gemma@minimal-t1.2", "plain_chat_history", 1, "thought_preserved", "plaintext"),
-        _sample_record("gemma@minimal-t1.2", "plain_chat_history", 2, "hallucinated_memory", "plaintext"),
-        _sample_record("grok@minimal-t1.2", "tool_mediated_reply", 1, "thought_preserved", "encrypted_or_summary"),
+        _sample_record(
+            "gemma@minimal-t1.2",
+            "plain_chat_history",
+            1,
+            "thought_preserved",
+            "plaintext",
+        ),
+        _sample_record(
+            "gemma@minimal-t1.2",
+            "plain_chat_history",
+            2,
+            "hallucinated_memory",
+            "plaintext",
+        ),
+        _sample_record(
+            "grok@minimal-t1.2",
+            "tool_mediated_reply",
+            1,
+            "thought_preserved",
+            "encrypted_or_summary",
+        ),
     ]
     summaries = summarize_records(records)
 
@@ -74,7 +92,9 @@ def test_summarize_records_and_generate_exports(tmp_path: Path, monkeypatch) -> 
 def test_protocol_failures_counted_in_denominator() -> None:
     """Protocol failures are a regular outcome — they don't shrink the denominator."""
     records = [
-        _sample_record("model@t1.2", "plain_chat_history", 1, "thought_preserved", "plaintext"),
+        _sample_record(
+            "model@t1.2", "plain_chat_history", 1, "thought_preserved", "plaintext"
+        ),
         {
             "scenario_id": "plain_chat_history",
             "run_number": 2,
@@ -117,9 +137,17 @@ def test_update_readme_snapshot_and_display(tmp_path: Path) -> None:
         "# Title\n\n<!-- leaderboard:start -->\nold\n<!-- leaderboard:end -->\n",
         encoding="utf-8",
     )
-    summaries = summarize_records([
-        _sample_record("gemma@minimal-t1.2", "plain_chat_history", 1, "thought_preserved", "plaintext")
-    ])
+    summaries = summarize_records(
+        [
+            _sample_record(
+                "gemma@minimal-t1.2",
+                "plain_chat_history",
+                1,
+                "thought_preserved",
+                "plaintext",
+            )
+        ]
+    )
 
     leaderboard.update_readme_snapshot(summaries, readme_path=readme)
     leaderboard.display_leaderboard(summaries)

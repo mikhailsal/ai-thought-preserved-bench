@@ -33,9 +33,7 @@ def test_load_model_registry_and_model_config_properties(tmp_path: Path) -> None
 def test_load_model_registry_rejects_duplicate_labels(tmp_path: Path) -> None:
     registry_path = tmp_path / "models.yaml"
     registry_path.write_text(
-        "models:\n"
-        "  - model_id: a/model\n"
-        "  - model_id: a/model\n",
+        "models:\n  - model_id: a/model\n  - model_id: a/model\n",
         encoding="utf-8",
     )
 
@@ -43,7 +41,9 @@ def test_load_model_registry_rejects_duplicate_labels(tmp_path: Path) -> None:
         config.load_model_registry(registry_path)
 
 
-def test_load_api_key_success_and_failure(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_load_api_key_success_and_failure(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     env_path = tmp_path / ".env"
     monkeypatch.setattr(config, "ENV_PATH", env_path)
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
@@ -51,13 +51,17 @@ def test_load_api_key_success_and_failure(monkeypatch: pytest.MonkeyPatch, tmp_p
 
     assert config.load_api_key() == "test-key"
 
-    env_path.write_text("OPENROUTER_API_KEY=your-openrouter-api-key\n", encoding="utf-8")
+    env_path.write_text(
+        "OPENROUTER_API_KEY=your-openrouter-api-key\n", encoding="utf-8"
+    )
     monkeypatch.delenv("OPENROUTER_API_KEY", raising=False)
     with pytest.raises(RuntimeError):
         config.load_api_key()
 
 
-def test_cache_round_trip_and_listings(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_cache_round_trip_and_listings(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     record = {
         "scenario_id": "plain_chat_history",
@@ -103,7 +107,9 @@ def test_cost_tracker_round_trip(tmp_path: Path) -> None:
     assert saved["last_session"]["tasks"][0]["label"] == "run"
 
 
-def test_load_model_registry_warns_active_without_provider(tmp_path: Path, caplog: pytest.LogCaptureFixture) -> None:
+def test_load_model_registry_warns_active_without_provider(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
     registry_path = tmp_path / "models.yaml"
     registry_path.write_text(
         "models:\n"
@@ -119,5 +125,7 @@ def test_load_model_registry_warns_active_without_provider(tmp_path: Path, caplo
         configs = config.load_model_registry(registry_path)
 
     assert len(configs) == 2
-    assert any("vendor/model-a" in msg and "no provider" in msg for msg in caplog.messages)
+    assert any(
+        "vendor/model-a" in msg and "no provider" in msg for msg in caplog.messages
+    )
     assert not any("vendor/model-b" in msg for msg in caplog.messages)

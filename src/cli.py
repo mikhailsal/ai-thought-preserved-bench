@@ -24,7 +24,13 @@ from src.config import (
     list_registered_labels_for_model,
     load_api_key,
 )
-from src.cache import list_cached_configs, list_cached_runs, list_cached_scenarios, load_run_record, save_run_record
+from src.cache import (
+    list_cached_configs,
+    list_cached_runs,
+    list_cached_scenarios,
+    load_run_record,
+    save_run_record,
+)
 from src.cost_tracker import SessionCost, TaskCost, save_session_to_cost_log
 from src.evaluator import reconcile_stability_group
 from src.leaderboard import (
@@ -66,7 +72,9 @@ def setup_file_logging(command_name: str) -> Path | None:
 
     file_handler = logging.FileHandler(log_path, encoding="utf-8")
     file_handler.setLevel(logging.DEBUG)
-    file_handler.setFormatter(logging.Formatter(FILE_LOG_FORMAT, datefmt=FILE_LOG_DATE_FORMAT))
+    file_handler.setFormatter(
+        logging.Formatter(FILE_LOG_FORMAT, datefmt=FILE_LOG_DATE_FORMAT)
+    )
 
     root_logger = logging.getLogger()
     root_logger.setLevel(logging.DEBUG)
@@ -76,7 +84,10 @@ def setup_file_logging(command_name: str) -> Path | None:
     _cleanup_old_logs()
 
     logging.getLogger(__name__).debug(
-        "Log file opened: %s (command=%s, pid=%d)", log_path, command_name, pid,
+        "Log file opened: %s (command=%s, pid=%d)",
+        log_path,
+        command_name,
+        pid,
     )
     return log_path
 
@@ -96,7 +107,11 @@ def _cleanup_old_logs(retention: int = LOG_RETENTION_COUNT) -> None:
     """Remove log files beyond the retention count, oldest first."""
     try:
         log_files = sorted(
-            (p for p in LOGS_DIR.iterdir() if p.suffix == ".log" and p.name != "latest.log" and not p.is_symlink()),
+            (
+                p
+                for p in LOGS_DIR.iterdir()
+                if p.suffix == ".log" and p.name != "latest.log" and not p.is_symlink()
+            ),
             key=lambda p: p.stat().st_mtime,
         )
     except OSError:
@@ -144,7 +159,9 @@ def _parse_scenarios(scenarios: str | None) -> list[str]:
 
 
 @click.group()
-@click.option("-v", "--verbose", is_flag=True, default=False, help="Enable verbose debug logging.")
+@click.option(
+    "-v", "--verbose", is_flag=True, default=False, help="Enable verbose debug logging."
+)
 @click.pass_context
 def cli(ctx: click.Context, verbose: bool) -> None:
     """Reasoning replay continuity benchmark."""
@@ -153,7 +170,11 @@ def cli(ctx: click.Context, verbose: bool) -> None:
         level=console_level,
         format="%(message)s",
         datefmt="[%X]",
-        handlers=[RichHandler(console=Console(stderr=True), rich_tracebacks=True, show_path=False)],
+        handlers=[
+            RichHandler(
+                console=Console(stderr=True), rich_tracebacks=True, show_path=False
+            )
+        ],
     )
     ctx.ensure_object(dict)
     command_name = ctx.invoked_subcommand or "cli"
@@ -165,14 +186,50 @@ def cli(ctx: click.Context, verbose: bool) -> None:
 
 
 @cli.command()
-@click.option("--models", "models_arg", default=None, help="Comma-separated model config labels or model ids.")
+@click.option(
+    "--models",
+    "models_arg",
+    default=None,
+    help="Comma-separated model config labels or model ids.",
+)
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
-@click.option("--reps", default=DEFAULT_REPETITIONS, type=int, show_default=True, help="Runs per model and scenario.")
-@click.option("--judge", default=JUDGE_MODEL, show_default=True, help="Judge model to normalize turn-2 replies.")
-@click.option("--force/--no-force", default=False, show_default=True, help="Ignore cached runs and execute again.")
-@click.option("--parallel/--no-parallel", default=True, show_default=True, help="Run models in parallel.")
-@click.option("--workers", default=6, type=int, show_default=True, help="Max parallel workers.")
-def run(models_arg: str | None, scenarios: str | None, reps: int, judge: str, force: bool, parallel: bool, workers: int) -> None:
+@click.option(
+    "--reps",
+    default=DEFAULT_REPETITIONS,
+    type=int,
+    show_default=True,
+    help="Runs per model and scenario.",
+)
+@click.option(
+    "--judge",
+    default=JUDGE_MODEL,
+    show_default=True,
+    help="Judge model to normalize turn-2 replies.",
+)
+@click.option(
+    "--force/--no-force",
+    default=False,
+    show_default=True,
+    help="Ignore cached runs and execute again.",
+)
+@click.option(
+    "--parallel/--no-parallel",
+    default=True,
+    show_default=True,
+    help="Run models in parallel.",
+)
+@click.option(
+    "--workers", default=6, type=int, show_default=True, help="Max parallel workers."
+)
+def run(
+    models_arg: str | None,
+    scenarios: str | None,
+    reps: int,
+    judge: str,
+    force: bool,
+    parallel: bool,
+    workers: int,
+) -> None:
     """Run the benchmark and refresh reports."""
     ensure_dirs()
     api_key = load_api_key()
@@ -208,16 +265,55 @@ def run(models_arg: str | None, scenarios: str | None, reps: int, judge: str, fo
 
 
 @cli.command()
-@click.option("--models", "models_arg", default=None, help="Comma-separated model config labels or model ids.")
+@click.option(
+    "--models",
+    "models_arg",
+    default=None,
+    help="Comma-separated model config labels or model ids.",
+)
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
-@click.option("--reps", default=DEFAULT_REPETITIONS, type=int, show_default=True, help="Runs per model and scenario.")
-@click.option("--judge", default=JUDGE_MODEL, show_default=True, help="Judge model to normalize turn-2 replies.")
-@click.option("--parallel/--no-parallel", default=True, show_default=True, help="Run models in parallel.")
-@click.option("--workers", default=6, type=int, show_default=True, help="Max parallel workers.")
-def rerun(models_arg: str | None, scenarios: str | None, reps: int, judge: str, parallel: bool, workers: int) -> None:
+@click.option(
+    "--reps",
+    default=DEFAULT_REPETITIONS,
+    type=int,
+    show_default=True,
+    help="Runs per model and scenario.",
+)
+@click.option(
+    "--judge",
+    default=JUDGE_MODEL,
+    show_default=True,
+    help="Judge model to normalize turn-2 replies.",
+)
+@click.option(
+    "--parallel/--no-parallel",
+    default=True,
+    show_default=True,
+    help="Run models in parallel.",
+)
+@click.option(
+    "--workers", default=6, type=int, show_default=True, help="Max parallel workers."
+)
+def rerun(
+    models_arg: str | None,
+    scenarios: str | None,
+    reps: int,
+    judge: str,
+    parallel: bool,
+    workers: int,
+) -> None:
     """Re-run the benchmark ignoring cache."""
     ctx = click.get_current_context()
-    ctx.invoke(run, models_arg=models_arg, scenarios=scenarios, reps=reps, judge=judge, force=True, parallel=parallel, workers=workers)
+    ctx.invoke(
+        run,
+        models_arg=models_arg,
+        scenarios=scenarios,
+        reps=reps,
+        judge=judge,
+        force=True,
+        parallel=parallel,
+        workers=workers,
+    )
 
 
 @cli.command()
@@ -232,11 +328,28 @@ def report() -> None:
 
 
 @cli.command()
-@click.option("--models", "models_arg", default=None, help="Comma-separated model config labels or model ids.")
+@click.option(
+    "--models",
+    "models_arg",
+    default=None,
+    help="Comma-separated model config labels or model ids.",
+)
 @click.option("--scenarios", default=None, help="Comma-separated scenario ids.")
-@click.option("--reps", default=None, type=int, help="Limit to first N runs per group (default: all cached).")
-@click.option("--judge", default=JUDGE_MODEL, show_default=True, help="Judge model to normalize turn-2 replies.")
-def rejudge(models_arg: str | None, scenarios: str | None, reps: int | None, judge: str) -> None:
+@click.option(
+    "--reps",
+    default=None,
+    type=int,
+    help="Limit to first N runs per group (default: all cached).",
+)
+@click.option(
+    "--judge",
+    default=JUDGE_MODEL,
+    show_default=True,
+    help="Judge model to normalize turn-2 replies.",
+)
+def rejudge(
+    models_arg: str | None, scenarios: str | None, reps: int | None, judge: str
+) -> None:
     """Re-run only the judge on existing cached records.
 
     Model turn outputs (turn1, turn2) are preserved — only the evaluation
@@ -281,7 +394,9 @@ def rejudge(models_arg: str | None, scenarios: str | None, reps: int | None, jud
                 judge_payload = record.get("evaluation", {}).get("judge")
                 if judge_payload:
                     judge_usage = judge_payload.get("usage", {})
-                    task = TaskCost(label=f"rejudge:{config_slug}:{scenario_id}:run{run_number}")
+                    task = TaskCost(
+                        label=f"rejudge:{config_slug}:{scenario_id}:run{run_number}"
+                    )
                     task.add(
                         prompt_tokens=int(judge_usage.get("prompt_tokens", 0)),
                         completion_tokens=int(judge_usage.get("completion_tokens", 0)),
@@ -289,7 +404,9 @@ def rejudge(models_arg: str | None, scenarios: str | None, reps: int | None, jud
                         elapsed_seconds=float(judge_usage.get("elapsed_seconds", 0.0)),
                     )
                     session.add_task(task)
-                console.print(f"  [green]rejudged[/green]: {config_slug}/{scenario_id}/run_{run_number}")
+                console.print(
+                    f"  [green]rejudged[/green]: {config_slug}/{scenario_id}/run_{run_number}"
+                )
 
     for group_records in group_map.values():
         if group_records:
@@ -307,8 +424,18 @@ def rejudge(models_arg: str | None, scenarios: str | None, reps: int | None, jud
 
 
 @cli.command()
-@click.option("--models", "models_arg", default=None, help="Comma-separated model config labels or model ids.")
-@click.option("--force/--no-force", default=False, show_default=True, help="Ignore cached probe results.")
+@click.option(
+    "--models",
+    "models_arg",
+    default=None,
+    help="Comma-separated model config labels or model ids.",
+)
+@click.option(
+    "--force/--no-force",
+    default=False,
+    show_default=True,
+    help="Ignore cached probe results.",
+)
 def probe(models_arg: str | None, force: bool) -> None:
     """Probe models to observe exposed reasoning format."""
     ensure_dirs()
@@ -318,7 +445,9 @@ def probe(models_arg: str | None, force: bool) -> None:
         record = probe_model(client, model_config, force=force)
         api_support = record.get("api_reasoning_support", {})
         api_confirmed = api_support.get("api_confirmed")
-        api_tag = "yes" if api_confirmed else ("no" if api_confirmed is False else "unknown")
+        api_tag = (
+            "yes" if api_confirmed else ("no" if api_confirmed is False else "unknown")
+        )
         activity = record.get("reasoning_activity", "unknown")
         tokens = record.get("cost", {}).get("completion_tokens", "?")
         console.print(
@@ -332,15 +461,32 @@ def probe(models_arg: str | None, force: bool) -> None:
 
 
 @cli.command()
-@click.option("-n", "--count", default=10, type=int, show_default=True, help="Number of recent logs to show.")
-@click.option("--tail", "tail_latest", is_flag=True, default=False, help="Print the last 50 lines of the latest log.")
+@click.option(
+    "-n",
+    "--count",
+    default=10,
+    type=int,
+    show_default=True,
+    help="Number of recent logs to show.",
+)
+@click.option(
+    "--tail",
+    "tail_latest",
+    is_flag=True,
+    default=False,
+    help="Print the last 50 lines of the latest log.",
+)
 def logs(count: int, tail_latest: bool) -> None:
     """List recent log files or tail the latest one."""
     if not LOGS_DIR.exists():
         console.print("[yellow]No logs directory found.[/yellow]")
         return
     log_files = sorted(
-        (p for p in LOGS_DIR.iterdir() if p.suffix == ".log" and p.name != "latest.log" and not p.is_symlink()),
+        (
+            p
+            for p in LOGS_DIR.iterdir()
+            if p.suffix == ".log" and p.name != "latest.log" and not p.is_symlink()
+        ),
         key=lambda p: p.stat().st_mtime,
         reverse=True,
     )
@@ -360,11 +506,15 @@ def logs(count: int, tail_latest: bool) -> None:
     for log_file in log_files[:count]:
         size_kb = log_file.stat().st_size / 1024
         mtime = datetime.fromtimestamp(log_file.stat().st_mtime, tz=timezone.utc)
-        console.print(f"  {log_file.name}  [dim]{size_kb:.1f} KB  {mtime:%Y-%m-%d %H:%M:%S UTC}[/dim]")
+        console.print(
+            f"  {log_file.name}  [dim]{size_kb:.1f} KB  {mtime:%Y-%m-%d %H:%M:%S UTC}[/dim]"
+        )
 
     if len(log_files) > count:
         console.print(f"\n  [dim]… and {len(log_files) - count} older files[/dim]")
-    console.print(f"\n[dim]Tip: use --tail to see the last 50 lines of the latest log.[/dim]")
+    console.print(
+        "\n[dim]Tip: use --tail to see the last 50 lines of the latest log.[/dim]"
+    )
 
 
 if __name__ == "__main__":

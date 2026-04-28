@@ -28,7 +28,9 @@ def get_first_tool_call_id(assistant_artifact: dict[str, Any]) -> str:
     return str(tool_call_id)
 
 
-def build_replay_assistant_message(assistant_artifact: dict[str, Any]) -> dict[str, Any]:
+def build_replay_assistant_message(
+    assistant_artifact: dict[str, Any],
+) -> dict[str, Any]:
     message = {
         "role": "assistant",
         "content": assistant_artifact.get("content"),

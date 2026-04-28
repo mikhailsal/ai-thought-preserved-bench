@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass
 from pathlib import Path
 from types import SimpleNamespace
@@ -8,7 +7,12 @@ from types import SimpleNamespace
 import pytest
 
 from src import cache, cli, config, leaderboard, model_probe, scenarios
-from src.evaluator import JudgeResult, evaluate_run_record, judge_turn2_reply, reconcile_stability_group
+from src.evaluator import (
+    JudgeResult,
+    evaluate_run_record,
+    judge_turn2_reply,
+    reconcile_stability_group,
+)
 from src.openrouter_client import (
     CompletionResult,
     OpenRouterClient,
@@ -26,7 +30,9 @@ def _challenge() -> dict:
     }
 
 
-def test_cache_invalid_json_and_missing_paths(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_cache_invalid_json_and_missing_paths(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
     probes_dir = tmp_path / "probes"
     monkeypatch.setattr(cache, "PROBES_DIR", probes_dir)
@@ -47,8 +53,16 @@ def test_cli_parse_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
     model_a = config.ModelConfig(model_id="a/model", display_label="a")
     model_b = config.ModelConfig(model_id="b/model", display_label="b")
     monkeypatch.setattr(cli, "get_active_model_configs", lambda: [model_a])
-    monkeypatch.setattr(cli, "get_model_config", lambda label: {"x": model_a, "y": model_b}.get(label, model_b))
-    monkeypatch.setattr(cli, "list_registered_labels_for_model", lambda model_id: ["x", "y"] if model_id == "shared" else [])
+    monkeypatch.setattr(
+        cli,
+        "get_model_config",
+        lambda label: {"x": model_a, "y": model_b}.get(label, model_b),
+    )
+    monkeypatch.setattr(
+        cli,
+        "list_registered_labels_for_model",
+        lambda model_id: ["x", "y"] if model_id == "shared" else [],
+    )
 
     assert cli._parse_models(None) == [model_a]
     parsed = cli._parse_models("shared,b/model")
@@ -59,7 +73,9 @@ def test_cli_parse_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
         cli._parse_scenarios("bad")
 
 
-def test_config_helper_branches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_config_helper_branches(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     monkeypatch.setattr(config, "CACHE_DIR", tmp_path / "cache")
     monkeypatch.setattr(config, "RESULTS_DIR", tmp_path / "results")
     config.ensure_dirs()
@@ -78,7 +94,9 @@ def test_config_helper_branches(monkeypatch: pytest.MonkeyPatch, tmp_path: Path)
         config.load_model_registry(wrong_shape)
 
     cfg1 = config.ModelConfig(model_id="shared/model", display_label="one")
-    cfg2 = config.ModelConfig(model_id="shared/model", display_label="two", active=False)
+    cfg2 = config.ModelConfig(
+        model_id="shared/model", display_label="two", active=False
+    )
     monkeypatch.setattr(config, "MODEL_CONFIGS", {"one": cfg1, "two": cfg2})
     assert config.get_model_config("one") == cfg1
     with pytest.raises(RuntimeError):
@@ -107,7 +125,9 @@ def test_openrouter_helper_branches(monkeypatch: pytest.MonkeyPatch) -> None:
     class NoUsageResponse:
         usage = None
 
-    assert _usage_from_response(response=NoUsageResponse(), elapsed=1.0) == UsageInfo(elapsed_seconds=1.0)
+    assert _usage_from_response(response=NoUsageResponse(), elapsed=1.0) == UsageInfo(
+        elapsed_seconds=1.0
+    )
 
     usage = SimpleNamespace(prompt_tokens=2, completion_tokens=3, cost="not-a-number")
     response = SimpleNamespace(usage=usage)
@@ -124,13 +144,21 @@ def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) ->
     class DummyCompletions:
         def create(self, **kwargs):
             captured.update(kwargs)
-            message = SimpleNamespace(content=[{"type": "text", "text": " 6000 "}], tool_calls=None, reasoning=None, reasoning_content=None, reasoning_details=None)
+            message = SimpleNamespace(
+                content=[{"type": "text", "text": " 6000 "}],
+                tool_calls=None,
+                reasoning=None,
+                reasoning_content=None,
+                reasoning_details=None,
+            )
             choice = SimpleNamespace(message=message, finish_reason=None)
             usage = SimpleNamespace(prompt_tokens=1, completion_tokens=1, cost=0.5)
             return SimpleNamespace(choices=[choice], usage=usage, model="m")
 
     client = OpenRouterClient("key")
-    client._client = SimpleNamespace(chat=SimpleNamespace(completions=DummyCompletions()))
+    client._client = SimpleNamespace(
+        chat=SimpleNamespace(completions=DummyCompletions())
+    )
 
     result = client.chat(
         model="m",
@@ -151,15 +179,26 @@ def test_openrouter_chat_additional_branches(monkeypatch: pytest.MonkeyPatch) ->
         def create(self, **kwargs):
             raise FatalError("bad")
 
-    client._client = SimpleNamespace(chat=SimpleNamespace(completions=ErrorCompletions()))
+    client._client = SimpleNamespace(
+        chat=SimpleNamespace(completions=ErrorCompletions())
+    )
     with pytest.raises(FatalError):
-        client.chat(model="m", messages=[{"role": "user", "content": "hi"}], max_tokens=1, temperature=1.0)
+        client.chat(
+            model="m",
+            messages=[{"role": "user", "content": "hi"}],
+            max_tokens=1,
+            temperature=1.0,
+        )
 
 
 def test_evaluator_additional_branches() -> None:
     record = {
         "challenge": _challenge(),
-        "turn1": {"visible_reply": "Done.", "reasoning_content": None, "reasoning_details": None},
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
         "turn2": {"visible_reply": "unclear"},
     }
     judge = JudgeResult(
@@ -167,10 +206,22 @@ def test_evaluator_additional_branches() -> None:
         extracted_number=None,
         explanation="fallback judge",
         raw_response="{}",
-        usage={"prompt_tokens": 350, "completion_tokens": 60, "cost_usd": 0.1, "elapsed_seconds": 0.5},
+        usage={
+            "prompt_tokens": 350,
+            "completion_tokens": 60,
+            "cost_usd": 0.1,
+            "elapsed_seconds": 0.5,
+        },
     )
     evaluated = evaluate_run_record(record, judge)
-    untouched = [{"evaluation": {"pending_stability_check": False, "excluded_from_scoring": False}}]
+    untouched = [
+        {
+            "evaluation": {
+                "pending_stability_check": False,
+                "excluded_from_scoring": False,
+            }
+        }
+    ]
 
     assert evaluated["outcome_label"] == "hallucinated_memory"
     assert reconcile_stability_group(untouched) == untouched
@@ -183,7 +234,12 @@ def test_evaluator_additional_branches() -> None:
             return CompletionResult(
                 content='prefix {"outcome_label":"invalid","extracted_number":"x","explanation":"fallback"} suffix',
                 visible_output='prefix {"outcome_label":"invalid","extracted_number":"x","explanation":"fallback"} suffix',
-                usage=UsageInfo(prompt_tokens=1, completion_tokens=1, cost_usd=0.1, elapsed_seconds=0.1),
+                usage=UsageInfo(
+                    prompt_tokens=1,
+                    completion_tokens=1,
+                    cost_usd=0.1,
+                    elapsed_seconds=0.1,
+                ),
             )
 
     judged = judge_turn2_reply(RegexJudgeClient(), "The sum is 6000")
@@ -191,9 +247,14 @@ def test_evaluator_additional_branches() -> None:
     assert judged.extracted_number == 6000
 
 
-def test_leaderboard_and_probe_edge_cases(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
+def test_leaderboard_and_probe_edge_cases(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
     leaderboard.display_leaderboard([])
-    assert "No benchmark runs are available yet" in leaderboard.generate_markdown_report([])
+    assert (
+        "No benchmark runs are available yet"
+        in leaderboard.generate_markdown_report([])
+    )
 
     readme_without_markers = tmp_path / "README-no-markers.md"
     readme_without_markers.write_text("# Title\n", encoding="utf-8")
@@ -203,38 +264,81 @@ def test_leaderboard_and_probe_edge_cases(monkeypatch: pytest.MonkeyPatch, tmp_p
     missing_readme = tmp_path / "missing.md"
     leaderboard.update_readme_snapshot([], readme_path=missing_readme)
 
-    monkeypatch.setattr(model_probe, "load_probe_record", lambda _slug: {"cached": True})
-    assert model_probe.probe_model(SimpleNamespace(api_key="k"), config.ModelConfig(model_id="m"), force=False) == {"cached": True}
+    monkeypatch.setattr(
+        model_probe, "load_probe_record", lambda _slug: {"cached": True}
+    )
+    assert model_probe.probe_model(
+        SimpleNamespace(api_key="k"), config.ModelConfig(model_id="m"), force=False
+    ) == {"cached": True}
 
 
 def test_scenarios_helpers() -> None:
-    assert scenarios.get_scenario("plain_chat_history").display_name == "Plain Chat History"
-    assert [scenario.scenario_id for scenario in scenarios.get_scenarios()] == ["plain_chat_history", "tool_mediated_reply"]
-    assert [scenario.scenario_id for scenario in scenarios.get_scenarios(["tool_mediated_reply"])] == ["tool_mediated_reply"]
+    assert (
+        scenarios.get_scenario("plain_chat_history").display_name
+        == "Plain Chat History"
+    )
+    assert [scenario.scenario_id for scenario in scenarios.get_scenarios()] == [
+        "plain_chat_history",
+        "tool_mediated_reply",
+    ]
+    assert [
+        scenario.scenario_id
+        for scenario in scenarios.get_scenarios(["tool_mediated_reply"])
+    ] == ["tool_mediated_reply"]
 
 
 def test_detect_hidden_reasoning() -> None:
     from src.model_probe import detect_hidden_reasoning
 
-    assert detect_hidden_reasoning(
-        40, "Done.", "I chose numbers...", None,
-    ) == "visible"
+    assert (
+        detect_hidden_reasoning(
+            40,
+            "Done.",
+            "I chose numbers...",
+            None,
+        )
+        == "visible"
+    )
 
-    assert detect_hidden_reasoning(
-        40, "Done.", None, [{"type": "reasoning.text", "text": "thinking..."}],
-    ) == "visible"
+    assert (
+        detect_hidden_reasoning(
+            40,
+            "Done.",
+            None,
+            [{"type": "reasoning.text", "text": "thinking..."}],
+        )
+        == "visible"
+    )
 
-    assert detect_hidden_reasoning(
-        40, "Done.", None, None,
-    ) == "hidden"
+    assert (
+        detect_hidden_reasoning(
+            40,
+            "Done.",
+            None,
+            None,
+        )
+        == "hidden"
+    )
 
-    assert detect_hidden_reasoning(
-        2, "Hello world this is a test reply with some tokens", None, None,
-    ) == "none"
+    assert (
+        detect_hidden_reasoning(
+            2,
+            "Hello world this is a test reply with some tokens",
+            None,
+            None,
+        )
+        == "none"
+    )
 
-    assert detect_hidden_reasoning(
-        0, "", None, None,
-    ) == "none"
+    assert (
+        detect_hidden_reasoning(
+            0,
+            "",
+            None,
+            None,
+        )
+        == "none"
+    )
 
 
 def test_estimate_visible_token_count() -> None:
@@ -247,7 +351,7 @@ def test_estimate_visible_token_count() -> None:
 
 
 def test_check_api_reasoning_support_with_mock(monkeypatch) -> None:
-    from src.model_probe import check_api_reasoning_support, fetch_model_supported_parameters
+    from src.model_probe import check_api_reasoning_support
 
     def mock_fetch(_api_key, _model_id):
         return ["temperature", "reasoning", "include_reasoning", "max_tokens"]
@@ -261,14 +365,18 @@ def test_check_api_reasoning_support_with_mock(monkeypatch) -> None:
     def mock_fetch_no_reasoning(_api_key, _model_id):
         return ["temperature", "max_tokens"]
 
-    monkeypatch.setattr(model_probe, "fetch_model_supported_parameters", mock_fetch_no_reasoning)
+    monkeypatch.setattr(
+        model_probe, "fetch_model_supported_parameters", mock_fetch_no_reasoning
+    )
     result = check_api_reasoning_support("key", "some/model")
     assert result["api_confirmed"] is False
 
     def mock_fetch_none(_api_key, _model_id):
         return None
 
-    monkeypatch.setattr(model_probe, "fetch_model_supported_parameters", mock_fetch_none)
+    monkeypatch.setattr(
+        model_probe, "fetch_model_supported_parameters", mock_fetch_none
+    )
     result = check_api_reasoning_support("key", "some/model")
     assert result["api_confirmed"] is None
 
@@ -278,12 +386,19 @@ def test_fetch_model_supported_parameters_with_mock(monkeypatch) -> None:
     import httpx
 
     class MockResponse:
-        def raise_for_status(self): pass
+        def raise_for_status(self):
+            pass
+
         def json(self):
-            return {"data": [
-                {"id": "vendor/model-a", "supported_parameters": ["reasoning", "temperature"]},
-                {"id": "vendor/model-b", "supported_parameters": ["temperature"]},
-            ]}
+            return {
+                "data": [
+                    {
+                        "id": "vendor/model-a",
+                        "supported_parameters": ["reasoning", "temperature"],
+                    },
+                    {"id": "vendor/model-b", "supported_parameters": ["temperature"]},
+                ]
+            }
 
     monkeypatch.setattr(httpx, "get", lambda *_a, **_kw: MockResponse())
 
@@ -301,8 +416,11 @@ def test_fetch_model_supported_parameters_with_mock(monkeypatch) -> None:
     assert result is None
 
 
-def test_setup_file_logging_creates_log_and_symlink(monkeypatch, tmp_path: Path) -> None:
+def test_setup_file_logging_creates_log_and_symlink(
+    monkeypatch, tmp_path: Path
+) -> None:
     import logging
+
     monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
 
     root = logging.getLogger()
@@ -336,10 +454,11 @@ def test_setup_file_logging_creates_log_and_symlink(monkeypatch, tmp_path: Path)
 
 def test_cleanup_old_logs_respects_retention(monkeypatch, tmp_path: Path) -> None:
     import time
+
     monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
 
     for i in range(5):
-        (tmp_path / f"2026-01-0{i+1}T00-00-00_run_pid1.log").write_text(f"log {i}")
+        (tmp_path / f"2026-01-0{i + 1}T00-00-00_run_pid1.log").write_text(f"log {i}")
         time.sleep(0.01)
 
     cli._cleanup_old_logs(retention=3)
@@ -412,3 +531,210 @@ def test_logs_cli_command_no_dir(monkeypatch, tmp_path: Path) -> None:
     result = CliRunner().invoke(cli.cli, ["logs"])
     assert result.exit_code == 0
     assert "No logs directory" in result.output
+
+
+def test_extract_tool_message_trailing_backslash() -> None:
+    """Cover the raw_value.endswith('\\') branch (line 40) and the fallback
+    JSON-decode-error path (lines 43-46) in _extract_tool_message."""
+    from src.openrouter_client import _extract_tool_message
+
+    raw = r'"message" : "hello world\"'
+    result = _extract_tool_message(raw)
+    assert "hello world" in result
+
+    raw2 = '"message" : "trailing\\'
+    result2 = _extract_tool_message(raw2)
+    assert isinstance(result2, str)
+
+
+def test_coerce_text_content_non_string_non_list() -> None:
+    """Cover the fallback ``str(content).strip() or None`` branch (line 66)."""
+    from src.openrouter_client import _coerce_text_content
+
+    assert _coerce_text_content(12345) == "12345"
+    assert _coerce_text_content(0) == "0"
+
+
+def test_provider_mismatch_error_fields() -> None:
+    """Cover ProviderMismatchError.__init__ (lines 141-144)."""
+    from src.openrouter_client import ProviderMismatchError
+
+    err = ProviderMismatchError(
+        expected="DeepInfra", actual="bedrock", model="test/model"
+    )
+    assert err.expected == "DeepInfra"
+    assert err.actual == "bedrock"
+    assert err.model == "test/model"
+    assert "provider constraint" in str(err).lower() or "mismatch" in str(err).lower()
+
+
+def test_extract_resolved_provider_openrouter_and_kilocode() -> None:
+    """Cover _extract_resolved_provider for both OpenRouter and KiloCode paths
+    (lines 162, 166, 169, 176, 180-189)."""
+    from src.openrouter_client import _extract_resolved_provider
+
+    class ORResponse:
+        provider = "DeepInfra"
+        choices = []
+
+    assert _extract_resolved_provider(ORResponse()) == "DeepInfra"
+
+    class KiloMsg:
+        provider_metadata = {"gateway": {"routing": {"finalProvider": "bedrock"}}}
+
+    class KiloChoice:
+        message = KiloMsg()
+
+    class KiloResponse:
+        provider = None
+        choices = [KiloChoice()]
+
+    assert _extract_resolved_provider(KiloResponse()) == "bedrock"
+
+    class EmptyResponse:
+        provider = None
+        choices = []
+
+    assert _extract_resolved_provider(EmptyResponse()) is None
+
+    class NoMsgResponse:
+        provider = None
+        choices = [SimpleNamespace(message=None)]
+
+    assert _extract_resolved_provider(NoMsgResponse()) is None
+
+    class NoPmResponse:
+        provider = None
+
+    class NoPmMsg:
+        provider_metadata = None
+
+    class NoPmChoice:
+        message = NoPmMsg()
+
+    NoPmResponse.choices = [NoPmChoice()]
+    assert _extract_resolved_provider(NoPmResponse()) is None
+
+    class BadGatewayMsg:
+        provider_metadata = {"gateway": "not-a-dict"}
+
+    class BadGatewayChoice:
+        message = BadGatewayMsg()
+
+    class BadGatewayResponse:
+        provider = None
+        choices = [BadGatewayChoice()]
+
+    assert _extract_resolved_provider(BadGatewayResponse()) is None
+
+    class BadRoutingMsg:
+        provider_metadata = {"gateway": {"routing": "not-a-dict"}}
+
+    class BadRoutingChoice:
+        message = BadRoutingMsg()
+
+    class BadRoutingResponse:
+        provider = None
+        choices = [BadRoutingChoice()]
+
+    assert _extract_resolved_provider(BadRoutingResponse()) is None
+
+
+def test_providers_match_aliases() -> None:
+    """Cover _providers_match alias logic (lines 194-207)."""
+    from src.openrouter_client import _providers_match
+
+    assert _providers_match("Amazon Bedrock", "bedrock") is True
+    assert _providers_match("bedrock", "aws-bedrock") is True
+    assert _providers_match("Google AI Studio", "google") is True
+    assert _providers_match("Moonshot AI", "moonshot") is True
+    assert _providers_match("DeepInfra", "DeepInfra") is True
+    assert _providers_match("DeepInfra", "bedrock") is False
+
+
+def test_verify_provider_mismatch_and_skip(monkeypatch, tmp_path: Path) -> None:
+    """Cover _verify_provider logic (runner.py lines 128-148)."""
+    from src.runner import _verify_provider
+    from src.openrouter_client import CompletionResult, ProviderMismatchError, UsageInfo
+    from src.config import ModelConfig
+
+    model = ModelConfig(
+        model_id="test/model",
+        display_label="test",
+        provider="DeepInfra",
+        skip_provider_check=False,
+    )
+
+    result = CompletionResult(
+        content="ok",
+        visible_output="ok",
+        usage=UsageInfo(),
+        resolved_provider="bedrock",
+    )
+    with pytest.raises(ProviderMismatchError):
+        _verify_provider(result, model)
+
+    model_skip = ModelConfig(
+        model_id="test/model",
+        display_label="test",
+        provider="DeepInfra",
+        skip_provider_check=True,
+    )
+    _verify_provider(result, model_skip)
+
+    model_no_provider = ModelConfig(
+        model_id="test/model",
+        display_label="test",
+        provider=None,
+    )
+    _verify_provider(result, model_no_provider)
+
+    result_no_resolved = CompletionResult(
+        content="ok",
+        visible_output="ok",
+        usage=UsageInfo(),
+        resolved_provider=None,
+    )
+    _verify_provider(result_no_resolved, model)
+
+
+def test_cache_list_cached_configs_no_dir(monkeypatch, tmp_path: Path) -> None:
+    """Cover list_cached_configs when CACHE_DIR doesn't exist (line 79)."""
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path / "nonexistent")
+    assert cache.list_cached_configs() == []
+
+
+def test_cache_iter_run_records_orphan(monkeypatch, tmp_path: Path) -> None:
+    """Cover iter_run_records with a record missing provider (lines 101, 106-112)."""
+    import json
+
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    run_dir = tmp_path / "cfg" / "plain" / "run_1.json"
+    run_dir.parent.mkdir(parents=True)
+    record = {
+        "scenario_id": "plain",
+        "run_number": 1,
+        "metadata": {"config_slug": "cfg"},
+    }
+    run_dir.write_text(json.dumps(record), encoding="utf-8")
+    results = cache.iter_run_records()
+    assert len(results) == 0
+
+
+def test_rejudge_record_skips_error_records() -> None:
+    """Cover rejudge_record error-record skip (runner.py lines 395-396)."""
+    from src import runner
+    from src.openrouter_client import OpenRouterClient
+
+    client = OpenRouterClient("fake-key")
+    record = {"error": "some error happened", "metadata": {}}
+    result = runner.rejudge_record(client, record, judge_model=None)
+    assert result is record
+
+
+def test_resolve_reasoning_effort_unknown_value() -> None:
+    """Cover the fallback return in resolve_reasoning_effort (line 239)."""
+    from src.openrouter_client import OpenRouterClient
+
+    client = OpenRouterClient("key")
+    assert client.resolve_reasoning_effort("model", "custom_value") == "custom_value"

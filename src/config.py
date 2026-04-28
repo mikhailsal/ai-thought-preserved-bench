@@ -84,7 +84,9 @@ class ModelConfig:
 
     @property
     def model_name(self) -> str:
-        return self.model_id.split("/", 1)[-1] if "/" in self.model_id else self.model_id
+        return (
+            self.model_id.split("/", 1)[-1] if "/" in self.model_id else self.model_id
+        )
 
     @property
     def effective_temperature(self) -> float:
@@ -140,7 +142,10 @@ def load_api_key() -> str:
 
 def get_openrouter_base_url() -> str:
     load_dotenv(ENV_PATH)
-    return os.environ.get("OPENROUTER_BASE_URL", DEFAULT_OPENROUTER_BASE_URL).strip() or DEFAULT_OPENROUTER_BASE_URL
+    return (
+        os.environ.get("OPENROUTER_BASE_URL", DEFAULT_OPENROUTER_BASE_URL).strip()
+        or DEFAULT_OPENROUTER_BASE_URL
+    )
 
 
 def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
@@ -153,14 +158,20 @@ def _coerce_model_config(raw: dict[str, Any]) -> ModelConfig:
     return ModelConfig(
         model_id=str(raw["model_id"]),
         display_label=str(raw.get("display_label", "")),
-        temperature=float(raw["temperature"]) if raw.get("temperature") is not None else None,
-        reasoning_effort=str(raw["reasoning_effort"]) if raw.get("reasoning_effort") else None,
+        temperature=float(raw["temperature"])
+        if raw.get("temperature") is not None
+        else None,
+        reasoning_effort=str(raw["reasoning_effort"])
+        if raw.get("reasoning_effort")
+        else None,
         active=bool(raw.get("active", True)),
         provider=str(raw["provider"]) if raw.get("provider") else None,
         quantization=str(raw["quantization"]) if raw.get("quantization") else None,
         reasoning_type=reasoning_type,
         notes=str(raw.get("notes", "")),
-        max_tokens=int(raw["max_tokens"]) if raw.get("max_tokens") is not None else None,
+        max_tokens=int(raw["max_tokens"])
+        if raw.get("max_tokens") is not None
+        else None,
         supports_forced_tool_choice=bool(raw.get("supports_forced_tool_choice", True)),
         skip_provider_check=bool(raw.get("skip_provider_check", False)),
     )
@@ -175,13 +186,17 @@ def load_model_registry(config_path: Path = CONFIGS_PATH) -> list[ModelConfig]:
         raise RuntimeError(f"Failed to parse model registry: {exc}") from exc
     models = data.get("models", [])
     if not isinstance(models, list):
-        raise RuntimeError("configs/models.yaml must contain a top-level 'models' list.")
+        raise RuntimeError(
+            "configs/models.yaml must contain a top-level 'models' list."
+        )
     configs = [_coerce_model_config(item) for item in models if isinstance(item, dict)]
     labels = [config.label for config in configs]
     duplicates = {label for label in labels if labels.count(label) > 1}
     if duplicates:
         duplicate_list = ", ".join(sorted(duplicates))
-        raise RuntimeError(f"Duplicate model config labels in registry: {duplicate_list}")
+        raise RuntimeError(
+            f"Duplicate model config labels in registry: {duplicate_list}"
+        )
     log = logging.getLogger(__name__)
     for config in configs:
         if config.active and not config.provider:
@@ -203,7 +218,11 @@ MODEL_CONFIGS: dict[str, ModelConfig] = {
 def get_model_config(label_or_model_id: str) -> ModelConfig:
     if label_or_model_id in MODEL_CONFIGS:
         return MODEL_CONFIGS[label_or_model_id]
-    matching = [config for config in MODEL_CONFIGS.values() if config.model_id == label_or_model_id]
+    matching = [
+        config
+        for config in MODEL_CONFIGS.values()
+        if config.model_id == label_or_model_id
+    ]
     if len(matching) == 1:
         return matching[0]
     if len(matching) > 1:
@@ -227,7 +246,9 @@ def get_config_by_slug(config_slug: str) -> ModelConfig | None:
 
 
 def list_registered_labels_for_model(model_id: str) -> list[str]:
-    return [config.label for config in MODEL_CONFIGS.values() if config.model_id == model_id]
+    return [
+        config.label for config in MODEL_CONFIGS.values() if config.model_id == model_id
+    ]
 
 
 def fail(message: str) -> None:

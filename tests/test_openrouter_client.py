@@ -6,7 +6,6 @@ from typing import Any
 import pytest
 
 from src.openrouter_client import (
-    CompletionResult,
     OpenRouterClient,
     UsageInfo,
     _coerce_text_content,
@@ -82,7 +81,12 @@ class RateLimitError(RuntimeError):
 def test_extract_tool_message_and_content_helpers() -> None:
     assert _extract_tool_message('{"message":"Hello"}') == "Hello"
     assert _extract_tool_message('{"message":"Hello') == "Hello"
-    assert _coerce_text_content([{"type": "text", "text": "A"}, {"type": "text", "text": "B"}]) == "A\nB"
+    assert (
+        _coerce_text_content(
+            [{"type": "text", "text": "A"}, {"type": "text", "text": "B"}]
+        )
+        == "A\nB"
+    )
     assert _to_plain_object({"a": [1, 2]}) == {"a": [1, 2]}
 
 
@@ -96,7 +100,9 @@ def test_resolve_reasoning_effort() -> None:
     assert client.resolve_reasoning_effort("any-model", "high") == "high"
 
 
-def test_chat_extracts_tool_calls_reasoning_details_and_retries(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_chat_extracts_tool_calls_reasoning_details_and_retries(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     message = DummyMessage(
         content=None,
         tool_calls=[

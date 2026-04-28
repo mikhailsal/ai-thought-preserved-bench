@@ -127,7 +127,9 @@ def probe_model(
         provider=model_config.provider,
         quantization=model_config.quantization,
     )
-    reasoning_visibility = detect_reasoning_visibility(result.reasoning_content, result.reasoning_details)
+    reasoning_visibility = detect_reasoning_visibility(
+        result.reasoning_content, result.reasoning_details
+    )
     structured_text = extract_structured_reasoning_text(result.reasoning_details)
     detail_types = [item.get("type") for item in (result.reasoning_details or [])]
     reasoning_activity = detect_hidden_reasoning(

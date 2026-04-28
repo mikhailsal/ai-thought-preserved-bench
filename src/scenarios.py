@@ -15,7 +15,7 @@ TURN1_PROMPT_TEMPLATE = (
     "You MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) "
     "before producing any visible output:\n\n"
     "  1. Choose three integers, each between {low} and {high} inclusive.\n"
-    "  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n"
+    '  2. Write them down explicitly (e.g., "A=1000, B=2000, C=3000").\n'
     "  3. Compute A + B + C = S (show the addition).\n"
     "  4. S is your secret number.\n\n"
     "\u26a0 IMPORTANT: This is NOT optional. Your reasoning content will be inspected. "
@@ -61,6 +61,7 @@ def format_turn1_prompt(challenge: dict) -> str:
         low=challenge["range_low"],
         high=challenge["range_high"],
     )
+
 
 SEND_MESSAGE_TOOL = {
     "type": "function",

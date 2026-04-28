@@ -11,7 +11,7 @@ import logging
 import threading
 import time
 from concurrent.futures import Future, ThreadPoolExecutor
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 
 from rich.console import Console
@@ -66,16 +66,24 @@ def run_benchmark_parallel(
                         try:
                             if sid == SCENARIO_PLAIN:
                                 record = run_plain_scenario(
-                                    client, mc, run_number=rn,
-                                    force=force, judge_model=judge_model,
+                                    client,
+                                    mc,
+                                    run_number=rn,
+                                    force=force,
+                                    judge_model=judge_model,
                                 )
                             else:
                                 record = run_tool_scenario(
-                                    client, mc, run_number=rn,
-                                    force=force, judge_model=judge_model,
+                                    client,
+                                    mc,
+                                    run_number=rn,
+                                    force=force,
+                                    judge_model=judge_model,
                                 )
                         except Exception as exc:
-                            log.warning("Skipping %s/%s run %d: %s", mc.label, sid, rn, exc)
+                            log.warning(
+                                "Skipping %s/%s run %d: %s", mc.label, sid, rn, exc
+                            )
                             return None
 
                         with lock:
@@ -90,10 +98,16 @@ def run_benchmark_parallel(
                                         continue
                                     usage = sp.get("usage", {})
                                     gen_task.add(
-                                        prompt_tokens=int(usage.get("prompt_tokens", 0)),
-                                        completion_tokens=int(usage.get("completion_tokens", 0)),
+                                        prompt_tokens=int(
+                                            usage.get("prompt_tokens", 0)
+                                        ),
+                                        completion_tokens=int(
+                                            usage.get("completion_tokens", 0)
+                                        ),
                                         cost_usd=float(usage.get("cost_usd", 0.0)),
-                                        elapsed_seconds=float(usage.get("elapsed_seconds", 0.0)),
+                                        elapsed_seconds=float(
+                                            usage.get("elapsed_seconds", 0.0)
+                                        ),
                                     )
                                 session.add_task(gen_task)
                                 jp = record.get("evaluation", {}).get("judge")
@@ -102,19 +116,26 @@ def run_benchmark_parallel(
                                     jt = TaskCost(label=f"judge:{task_id}")
                                     jt.add(
                                         prompt_tokens=int(ju.get("prompt_tokens", 0)),
-                                        completion_tokens=int(ju.get("completion_tokens", 0)),
+                                        completion_tokens=int(
+                                            ju.get("completion_tokens", 0)
+                                        ),
                                         cost_usd=float(ju.get("cost_usd", 0.0)),
-                                        elapsed_seconds=float(ju.get("elapsed_seconds", 0.0)),
+                                        elapsed_seconds=float(
+                                            ju.get("elapsed_seconds", 0.0)
+                                        ),
                                     )
                                     session.add_task(jt)
                         console.print(f"  [green]done[/green]: {task_id}")
                         return record
+
                     return fn
 
                 tasks.append(_Task(id=task_id, fn=make_fn()))
 
     n_tasks = len(tasks)
-    console.print(f"[bold]Launching {n_tasks} tasks across {max_workers} workers[/bold]")
+    console.print(
+        f"[bold]Launching {n_tasks} tasks across {max_workers} workers[/bold]"
+    )
     t0 = time.monotonic()
 
     with ThreadPoolExecutor(max_workers=max_workers) as pool:

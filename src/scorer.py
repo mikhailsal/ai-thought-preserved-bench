@@ -116,7 +116,9 @@ def _percentage(count: int, total: int) -> float:
     return count / total
 
 
-def _records_by_group(records: list[dict[str, Any]]) -> dict[tuple[str, str], list[dict[str, Any]]]:
+def _records_by_group(
+    records: list[dict[str, Any]],
+) -> dict[tuple[str, str], list[dict[str, Any]]]:
     grouped: dict[tuple[str, str], list[dict[str, Any]]] = defaultdict(list)
     for record in records:
         config_slug = record.get("metadata", {}).get("config_slug")
@@ -134,12 +136,16 @@ def summarize_records(records: list[dict[str, Any]]) -> list[ScenarioSummary]:
         first = group[0]
         evaluations = [record.get("evaluation", {}) for record in group]
         total = len(group)
-        protocol_failures = len([
-            evaluation for evaluation in evaluations
-            if evaluation.get("excluded_from_scoring")
-        ])
+        protocol_failures = len(
+            [
+                evaluation
+                for evaluation in evaluations
+                if evaluation.get("excluded_from_scoring")
+            ]
+        )
         non_excluded = [
-            evaluation for evaluation in evaluations
+            evaluation
+            for evaluation in evaluations
             if not evaluation.get("excluded_from_scoring")
         ]
         visibility_counts = {
@@ -149,48 +155,72 @@ def summarize_records(records: list[dict[str, Any]]) -> list[ScenarioSummary]:
             REASONING_VISIBILITY_NONE: 0,
         }
         for evaluation in evaluations:
-            visibility = evaluation.get("reasoning_visibility", REASONING_VISIBILITY_NONE)
+            visibility = evaluation.get(
+                "reasoning_visibility", REASONING_VISIBILITY_NONE
+            )
             visibility_counts[visibility] = visibility_counts.get(visibility, 0) + 1
 
-        thought_preserved = len([
-            evaluation for evaluation in non_excluded
-            if evaluation.get("outcome_label") == OUTCOME_THOUGHT_PRESERVED
-        ])
-        hallucinated = len([
-            evaluation for evaluation in non_excluded
-            if evaluation.get("outcome_label") == OUTCOME_HALLUCINATED_MEMORY
-        ])
-        fabricated = len([
-            evaluation for evaluation in non_excluded
-            if evaluation.get("outcome_label") == OUTCOME_DELIBERATE_FABRICATION
-        ])
-        honest = len([
-            evaluation for evaluation in non_excluded
-            if evaluation.get("outcome_label") == OUTCOME_HONEST_NO_MEMORY
-        ])
-        refusal = len([
-            evaluation for evaluation in non_excluded
-            if evaluation.get("outcome_label") == OUTCOME_OTHER_REFUSAL
-        ])
+        thought_preserved = len(
+            [
+                evaluation
+                for evaluation in non_excluded
+                if evaluation.get("outcome_label") == OUTCOME_THOUGHT_PRESERVED
+            ]
+        )
+        hallucinated = len(
+            [
+                evaluation
+                for evaluation in non_excluded
+                if evaluation.get("outcome_label") == OUTCOME_HALLUCINATED_MEMORY
+            ]
+        )
+        fabricated = len(
+            [
+                evaluation
+                for evaluation in non_excluded
+                if evaluation.get("outcome_label") == OUTCOME_DELIBERATE_FABRICATION
+            ]
+        )
+        honest = len(
+            [
+                evaluation
+                for evaluation in non_excluded
+                if evaluation.get("outcome_label") == OUTCOME_HONEST_NO_MEMORY
+            ]
+        )
+        refusal = len(
+            [
+                evaluation
+                for evaluation in non_excluded
+                if evaluation.get("outcome_label") == OUTCOME_OTHER_REFUSAL
+            ]
+        )
 
         plaintext_runs = [
-            evaluation for evaluation in non_excluded
-            if evaluation.get("reasoning_visibility") in {
+            evaluation
+            for evaluation in non_excluded
+            if evaluation.get("reasoning_visibility")
+            in {
                 REASONING_VISIBILITY_PLAINTEXT,
                 REASONING_VISIBILITY_STRUCTURED_TEXT,
             }
         ]
-        visible_matches = len([
-            evaluation for evaluation in plaintext_runs
-            if evaluation.get("outcome_label") == OUTCOME_THOUGHT_PRESERVED
-        ])
+        visible_matches = len(
+            [
+                evaluation
+                for evaluation in plaintext_runs
+                if evaluation.get("outcome_label") == OUTCOME_THOUGHT_PRESERVED
+            ]
+        )
         visible_match_rate = None
         if plaintext_runs:
             visible_match_rate = _percentage(visible_matches, len(plaintext_runs))
 
         hidden_runs = [
-            evaluation for evaluation in non_excluded
-            if evaluation.get("reasoning_visibility") in {
+            evaluation
+            for evaluation in non_excluded
+            if evaluation.get("reasoning_visibility")
+            in {
                 REASONING_VISIBILITY_ENCRYPTED_OR_SUMMARY,
                 REASONING_VISIBILITY_NONE,
             }
@@ -241,7 +271,12 @@ def summarize_records(records: list[dict[str, Any]]) -> list[ScenarioSummary]:
                 reasoning_effort=reasoning_effort,
                 reasoning_type=reasoning_type,
                 tpb_index=compute_tpb_index(
-                    pres_rate, hon_rate, ref_rate, pf_rate, hall_rate, fab_rate,
+                    pres_rate,
+                    hon_rate,
+                    ref_rate,
+                    pf_rate,
+                    hall_rate,
+                    fab_rate,
                 ),
             )
         )

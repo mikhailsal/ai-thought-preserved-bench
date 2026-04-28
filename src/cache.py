@@ -21,7 +21,9 @@ def _probe_cache_path(config_slug: str) -> Path:
     return PROBES_DIR / config_slug / "probe.json"
 
 
-def load_run_record(config_slug: str, scenario_id: str, run_number: int) -> dict[str, Any] | None:
+def load_run_record(
+    config_slug: str, scenario_id: str, run_number: int
+) -> dict[str, Any] | None:
     path = _run_cache_path(config_slug, scenario_id, run_number)
     if not path.exists():
         return None
@@ -83,7 +85,8 @@ def list_cached_scenarios(config_slug: str) -> list[str]:
     if not config_dir.exists():
         return []
     return sorted(
-        path.name for path in config_dir.iterdir()
+        path.name
+        for path in config_dir.iterdir()
         if path.is_dir() and path.name != "__pycache__"
     )
 
@@ -96,11 +99,15 @@ def iter_run_records() -> list[dict[str, Any]]:
                 record = load_run_record(config_slug, scenario_id, run_number)
                 if not record:
                     continue
-                provider = record.get("provider") or record.get("metadata", {}).get("provider")
+                provider = record.get("provider") or record.get("metadata", {}).get(
+                    "provider"
+                )
                 if not provider:
                     log.warning(
                         "Skipping orphan cache record without provider: %s/%s/run_%d",
-                        config_slug, scenario_id, run_number,
+                        config_slug,
+                        scenario_id,
+                        run_number,
                     )
                     continue
                 records.append(record)

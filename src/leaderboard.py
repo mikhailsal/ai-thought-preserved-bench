@@ -70,6 +70,7 @@ def _counts_cell(s: ScenarioSummary) -> str:
 def _rates_cell(s: ScenarioSummary) -> str:
     def pct(v: float) -> str:
         return f"{v * 100:.0f}"
+
     return (
         f"{pct(s.preservation_rate)} / {pct(s.honesty_rate)} / {pct(s.other_refusal_rate)} / "
         f"{pct(s.protocol_failure_rate)} / {pct(s.hallucination_rate)} / {pct(s.fabrication_rate)}"
@@ -81,7 +82,9 @@ def _index_str(s: ScenarioSummary) -> str:
     return f"{sign}{s.tpb_index:.1f}"
 
 
-def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCost | None = None) -> None:
+def display_leaderboard(
+    summaries: list[ScenarioSummary], *, session: SessionCost | None = None
+) -> None:
     if not summaries:
         console.print("[dim]No cached benchmark results found.[/dim]")
         return
@@ -90,7 +93,9 @@ def display_leaderboard(summaries: list[ScenarioSummary], *, session: SessionCos
         grouped[summary.scenario_id].append(summary)
 
     for scenario_id, rows in grouped.items():
-        table = Table(title=f"AI Thought Preservation Bench — {SCENARIOS[scenario_id].display_name}")
+        table = Table(
+            title=f"AI Thought Preservation Bench — {SCENARIOS[scenario_id].display_name}"
+        )
         table.add_column("#", justify="right")
         table.add_column("Model", style="bold")
         table.add_column("Reasoning", justify="center")
@@ -167,14 +172,18 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
     return "\n".join(lines).rstrip() + "\n"
 
 
-def export_markdown_report(summaries: list[ScenarioSummary], output_path: Path | None = None) -> Path:
+def export_markdown_report(
+    summaries: list[ScenarioSummary], output_path: Path | None = None
+) -> Path:
     path = output_path or (RESULTS_DIR / "LEADERBOARD.md")
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(generate_markdown_report(summaries), encoding="utf-8")
     return path
 
 
-def export_results_json(summaries: list[ScenarioSummary], session: SessionCost | None = None) -> Path:
+def export_results_json(
+    summaries: list[ScenarioSummary], session: SessionCost | None = None
+) -> Path:
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
     path = RESULTS_DIR / f"results_{timestamp}.json"
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -189,7 +198,9 @@ def export_results_json(summaries: list[ScenarioSummary], session: SessionCost |
     return path
 
 
-def update_readme_snapshot(summaries: list[ScenarioSummary], readme_path: Path | None = None) -> None:
+def update_readme_snapshot(
+    summaries: list[ScenarioSummary], readme_path: Path | None = None
+) -> None:
     readme = readme_path or (PROJECT_ROOT / "README.md")
     if not readme.exists():
         return
@@ -201,7 +212,9 @@ def update_readme_snapshot(summaries: list[ScenarioSummary], readme_path: Path |
     snapshot = [start_marker, ""]
     if not summaries:
         snapshot.append("- No benchmark runs available yet.")
-    for summary in sorted(summaries, key=lambda item: (item.scenario_id, -item.thought_continuity_score)):
+    for summary in sorted(
+        summaries, key=lambda item: (item.scenario_id, -item.thought_continuity_score)
+    ):
         snapshot.append(
             f"- {SCENARIOS[summary.scenario_id].display_name}: {summary.display_label} — "
             f"{summary.thought_preserved}/{summary.total_runs} preserved "

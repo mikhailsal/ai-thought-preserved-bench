@@ -35,7 +35,7 @@ def _extract_tool_message(raw_args: str) -> str:
     match = re.search(r'"message"\s*:\s*"', raw_args or "")
     if not match:
         return ""
-    raw_value = raw_args[match.end():]
+    raw_value = raw_args[match.end() :]
     if raw_value.endswith("\\"):
         raw_value = raw_value[:-1]
     try:
@@ -55,7 +55,11 @@ def _coerce_text_content(content: Any) -> str | None:
     if isinstance(content, list):
         text_parts: list[str] = []
         for item in content:
-            if isinstance(item, dict) and item.get("type") == "text" and item.get("text"):
+            if (
+                isinstance(item, dict)
+                and item.get("type") == "text"
+                and item.get("text")
+            ):
                 text_parts.append(str(item["text"]))
         if text_parts:
             return "\n".join(text_parts).strip() or None
@@ -220,9 +224,12 @@ class OpenRouterClient:
                 "X-Title": OPENROUTER_APP_NAME,
             },
         )
+
     VALID_EFFORT_LEVELS = {"xhigh", "high", "medium", "low", "minimal"}
 
-    def resolve_reasoning_effort(self, model_id: str, requested: str | None) -> str | None:
+    def resolve_reasoning_effort(
+        self, model_id: str, requested: str | None
+    ) -> str | None:
         if requested is None:
             return None
         if requested in {"none", "off"}:
@@ -266,7 +273,11 @@ class OpenRouterClient:
                     extra_body = extra_body or {}
                     extra_body.setdefault("provider", {})
                     extra_body["provider"]["quantizations"] = [quantization]
-                if effective_reasoning and effective_reasoning != "none" and not provider:
+                if (
+                    effective_reasoning
+                    and effective_reasoning != "none"
+                    and not provider
+                ):
                     extra_body = extra_body or {}
                     extra_body.setdefault("provider", {})
                     extra_body["provider"]["require_parameters"] = True
@@ -285,11 +296,23 @@ class OpenRouterClient:
                     request_payload["extra_body"] = extra_body
 
                 provider_tag = f" [{provider}]" if provider else ""
-                log.info("→ %s%s  max_tokens=%d  effort=%s", model, provider_tag, max_tokens, effective_reasoning or "none")
+                log.info(
+                    "→ %s%s  max_tokens=%d  effort=%s",
+                    model,
+                    provider_tag,
+                    max_tokens,
+                    effective_reasoning or "none",
+                )
                 started = time.monotonic()
                 response = self._client.chat.completions.create(**request_payload)
                 elapsed = time.monotonic() - started
-                log.info("← %s  %.1fs  tokens=%d", model, elapsed, getattr(getattr(response, "usage", None), "completion_tokens", 0) or 0)
+                log.info(
+                    "← %s  %.1fs  tokens=%d",
+                    model,
+                    elapsed,
+                    getattr(getattr(response, "usage", None), "completion_tokens", 0)
+                    or 0,
+                )
 
                 choice = response.choices[0] if response.choices else None
                 message = getattr(choice, "message", None)
@@ -297,21 +320,33 @@ class OpenRouterClient:
                 raw_tool_calls = _to_plain_object(getattr(message, "tool_calls", None))
                 tool_calls: list[dict[str, Any]] | None = None
                 if isinstance(raw_tool_calls, list):
-                    tool_calls = [item for item in raw_tool_calls if isinstance(item, dict)] or None
-                reasoning_content = _coerce_text_content(getattr(message, "reasoning", None))
+                    tool_calls = [
+                        item for item in raw_tool_calls if isinstance(item, dict)
+                    ] or None
+                reasoning_content = _coerce_text_content(
+                    getattr(message, "reasoning", None)
+                )
                 if not reasoning_content:
-                    reasoning_content = _coerce_text_content(getattr(message, "reasoning_content", None))
-                raw_reasoning_details = _to_plain_object(getattr(message, "reasoning_details", None))
+                    reasoning_content = _coerce_text_content(
+                        getattr(message, "reasoning_content", None)
+                    )
+                raw_reasoning_details = _to_plain_object(
+                    getattr(message, "reasoning_details", None)
+                )
                 reasoning_details = None
                 if isinstance(raw_reasoning_details, list):
-                    reasoning_details = [item for item in raw_reasoning_details if isinstance(item, dict)] or None
+                    reasoning_details = [
+                        item for item in raw_reasoning_details if isinstance(item, dict)
+                    ] or None
 
                 visible_output = raw_content or ""
                 if tool_calls:
                     for tool_call in tool_calls:
                         function_payload = tool_call.get("function", {})
                         if function_payload.get("name") == "send_message_to_human":
-                            visible_output = _extract_tool_message(function_payload.get("arguments", ""))
+                            visible_output = _extract_tool_message(
+                                function_payload.get("arguments", "")
+                            )
                             break
 
                 resolved_provider = _extract_resolved_provider(response)
@@ -348,10 +383,22 @@ class OpenRouterClient:
                     wait_seconds = self.RETRY_BACKOFF_BASE ** (attempt + 1)
                     log.warning(
                         "⚠ %s failed after %.1fs (HTTP %s), retry %d/%d in %.0fs: %s",
-                        model, elapsed_so_far, status_code, attempt + 1, self.MAX_RETRIES, wait_seconds, exc,
+                        model,
+                        elapsed_so_far,
+                        status_code,
+                        attempt + 1,
+                        self.MAX_RETRIES,
+                        wait_seconds,
+                        exc,
                     )
                     time.sleep(wait_seconds)
                     continue
-                log.error("✗ %s failed after %.1fs (HTTP %s, no retries left): %s", model, elapsed_so_far, status_code, exc)
+                log.error(
+                    "✗ %s failed after %.1fs (HTTP %s, no retries left): %s",
+                    model,
+                    elapsed_so_far,
+                    status_code,
+                    exc,
+                )
                 raise
         raise last_error or RuntimeError("OpenRouter request failed")

@@ -39,7 +39,9 @@ def test_build_replay_assistant_message_prefers_reasoning_details() -> None:
 
     assert replay["role"] == "assistant"
     assert replay["tool_calls"][0]["id"] == "call-1"
-    assert replay["reasoning_details"] == [{"type": "reasoning.text", "text": "I chose 300+400+500=1200."}]
+    assert replay["reasoning_details"] == [
+        {"type": "reasoning.text", "text": "I chose 300+400+500=1200."}
+    ]
     assert "reasoning" not in replay
 
 
@@ -60,13 +62,26 @@ def test_build_tool_messages_preserve_call_ids_and_ordering() -> None:
     turn1_prompt = format_turn1_prompt(challenge)
     bootstrap = _assistant_artifact()
     turn1_messages = prompt_builder.build_tool_turn1_messages(challenge, bootstrap)
-    turn2_messages = prompt_builder.build_tool_turn2_messages(challenge, bootstrap, bootstrap)
+    turn2_messages = prompt_builder.build_tool_turn2_messages(
+        challenge, bootstrap, bootstrap
+    )
 
     assert prompt_builder.build_tool_bootstrap_messages()[1]["content"] == "[start]"
-    assert turn1_messages[3] == {"role": "tool", "tool_call_id": "call-1", "content": turn1_prompt}
+    assert turn1_messages[3] == {
+        "role": "tool",
+        "tool_call_id": "call-1",
+        "content": turn1_prompt,
+    }
     assert turn2_messages[3]["tool_call_id"] == "call-1"
-    assert turn2_messages[5] == {"role": "tool", "tool_call_id": "call-1", "content": TURN2_PROMPT}
-    assert prompt_builder.get_tool_definitions()[0]["function"]["name"] == "send_message_to_human"
+    assert turn2_messages[5] == {
+        "role": "tool",
+        "tool_call_id": "call-1",
+        "content": TURN2_PROMPT,
+    }
+    assert (
+        prompt_builder.get_tool_definitions()[0]["function"]["name"]
+        == "send_message_to_human"
+    )
 
 
 def test_get_first_tool_call_id_requires_tool_calls() -> None:
