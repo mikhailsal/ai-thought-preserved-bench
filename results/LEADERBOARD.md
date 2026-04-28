@@ -2,8 +2,8 @@
 
 > Auto-generated from cached benchmark runs. Last updated: 2026-04-28 12:23 UTC
 
-> Outcome columns follow the order: **P / HNM / OR / PF / Hal / Fab**  
-> (Preservation / Honest No Memory / Other Refusal / Protocol Fail / Hallucination / Fabrication)  
+> Outcome columns follow the order: **P / HNM / OR / PF / Hal / Fab**
+> (Preservation / Honest No Memory / Other Refusal / Protocol Fail / Hallucination / Fabrication)
 > The `%` column shows rates as whole numbers (e.g. `100` = 100%).
 
 ## Plain Chat History

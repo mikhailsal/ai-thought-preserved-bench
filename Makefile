@@ -91,6 +91,7 @@ help: ## Show this help message
 	@echo -e "    $(GREEN)make install$(RESET)         Install project + test deps in editable mode"
 	@echo -e "    $(GREEN)make venv$(RESET)            Create virtualenv, install everything, copy .env"
 	@echo -e "    $(GREEN)make env$(RESET)             Copy .env.example → .env (if .env missing)"
+	@echo -e "    $(GREEN)make install-hooks$(RESET)   Install pre-commit hooks for code quality checks"
 	@echo ""
 	@echo -e "  $(BOLD)$(CYAN)Benchmark$(RESET)  $(DIM)— all accept MODELS, SCENARIOS, REPS, JUDGE, WORKERS$(RESET)"
 	@echo -e "    $(GREEN)make run$(RESET)             Run benchmark (skips cached runs)"
@@ -164,6 +165,17 @@ venv: ## Create virtualenv and install everything
 env: ## Copy .env.example → .env (if .env is missing)
 	@test -f .env && echo -e "$(YELLOW).env already exists — skipping$(RESET)" || \
 		(cp .env.example .env && echo -e "$(GREEN)Created .env from .env.example — edit it with your API key.$(RESET)")
+
+.PHONY: install-hooks
+install-hooks: ## Install pre-commit hooks for this repository
+	@command -v pre-commit >/dev/null 2>&1 || \
+		(echo -e "$(RED)pre-commit not installed. Install with: pip install pre-commit$(RESET)" && exit 1)
+	@git config --unset-all core.hooksPath 2>/dev/null || true
+	git config core.hooksPath .githooks
+	chmod +x .githooks/pre-commit
+	pre-commit install-hooks
+	@echo -e "$(GREEN)$(BOLD)Pre-commit hooks installed!$(RESET)"
+	@echo -e "$(DIM)Hooks will run on every commit. Use 'git commit --no-verify' to skip.$(RESET)"
 
 # ─── Benchmark ──────────────────────────────────────────────────────────────
 

@@ -285,7 +285,7 @@ def run_tool_scenario(
         client, model_config, bootstrap_messages, tools=tools, tool_choice=forced_tool
     )
     bootstrap_artifact = _assistant_artifact(bootstrap_result)
-    partial = {
+    partial: dict[str, Any] = {
         "bootstrap": {
             **bootstrap_artifact,
             "request_messages": bootstrap_messages,

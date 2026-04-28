@@ -1,0 +1,43 @@
+repos:
+  # ── General ─────────────────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        exclude: ^cache/
+      - id: end-of-file-fixer
+        exclude: ^cache/
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=500']
+      - id: check-merge-conflict
+
+  # ── Python (Linting & Formatting) ───────────────────────────────────
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.8.6
+    hooks:
+      - id: ruff
+        args: [--fix]
+        exclude: ^cache/
+      - id: ruff-format
+        exclude: ^cache/
+
+  # ── Python (Type Checking) ──────────────────────────────────────────
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.13.0
+    hooks:
+      - id: mypy
+        files: ^src/
+        additional_dependencies:
+          - types-pyyaml>=6.0.12
+          - types-requests>=2.31.0
+
+  # ── Custom Checks ───────────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: pytest-coverage
+        name: pytest coverage >= 95%
+        entry: bash -c 'python -m pytest tests/ --cov=src --cov-report=term-missing'
+        language: system
+        pass_filenames: false
+        always_run: true
