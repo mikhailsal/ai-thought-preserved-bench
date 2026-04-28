@@ -1,0 +1,74 @@
+---
+description: Three-layer network architecture — how requests flow from the benchmark to model providers
+alwaysApply: true
+---
+
+# Network Architecture: Proxy → Gateway → Provider
+
+Requests from the benchmark travel through **three distinct layers**. Confusing them leads to misdiagnosis of routing, provider, and billing issues.
+
+## Layer Diagram
+
+```
+Benchmark client (OpenAI SDK, base_url=localhost:8000)
+    │
+    ▼
+[AI Proxy v2]  ← our proxy, runs at localhost:8000
+    │              inspectable via /ui/v1/* API (see ai-proxy-debug skill)
+    │              decides WHICH GATEWAY receives the request
+    │              adds ai_proxy_route to client_response_body
+    │
+    ├──► OpenRouter  (openrouter.ai/api/v1)
+    │       returns top-level "provider" field in response body
+    │       respects provider.order / allow_fallbacks constraints
+    │
+    └──► KiloCode    (kilocode gateway, Vercel-hosted)
+            returns provider_metadata.gateway.routing in response body
+            has its OWN routing logic and BYOK credentials
+            MAY IGNORE provider.order — see "KiloCode Caveat" below
+    │
+    ▼
+[Provider]  ← the actual inference backend (DeepInfra, Bedrock, Anthropic, …)
+```
+
+## Identifying Which Gateway Was Used
+
+The `ai_proxy_route` field in `client_response_body` reveals the gateway:
+
+| Pattern | Gateway | Example |
+|---|---|---|
+| `openrouter:<model>` | OpenRouter | `openrouter:x-ai/grok-4.1-fast` |
+| `kilocode:<model>` | KiloCode | `kilocode:qwen/qwen3-8b` |
+
+## Identifying Which Provider Actually Served a Request
+
+Two response formats exist depending on the gateway:
+
+1. **OpenRouter responses**: top-level `response_body.provider` field (e.g., `"xAI"`, `"Google AI Studio"`).
+2. **KiloCode responses**: `response_body.choices[0].message.provider_metadata.gateway.routing.finalProvider` (e.g., `"bedrock"`, `"deepseek"`). The `planningReasoning` field in the same object explains WHY that provider was chosen.
+
+The code in `_extract_resolved_provider()` (`src/openrouter_client.py`) checks both locations.
+
+## KiloCode Caveat — Provider Constraints Can Be Ignored
+
+KiloCode has its own routing logic that **overrides** the `provider.order` we send. Specifically:
+
+- KiloCode prioritizes BYOK (Bring Your Own Key) credentials over the requested provider.
+- Example: we send `provider.order: ["DeepInfra"]`, but KiloCode has BYOK creds for Bedrock → request goes to **Bedrock**, not DeepInfra.
+- The `planningReasoning` field documents this: *"BYOK execution order prioritizes bedrock over routing preference deepinfra."*
+
+**This is why runtime provider verification exists** — `_verify_provider()` in `runner.py` checks every response and raises `ProviderMismatchError` if the actual provider doesn't match the configured one. Models can opt out via `skip_provider_check: true` in `models.yaml`.
+
+## Debugging Checklist
+
+When a model's responses seem wrong or provider is suspect:
+
+1. **Check the proxy logs**: `curl -s "http://localhost:8000/ui/v1/requests/<ID>" -H "Authorization: Bearer ui-test-key"`
+2. **Look at `ai_proxy_route`** in `client_response_body` → identifies the gateway
+3. **Look at actual provider**: top-level `provider` field OR `provider_metadata.gateway.routing.finalProvider`
+4. **Read `planningReasoning`** if KiloCode route → explains the routing decision
+5. **Compare** actual provider with `models.yaml` `provider` field
+
+## Key Principle
+
+The `provider` field in `models.yaml` declares which provider we **expect** to serve the model. The gateway may route elsewhere. Always verify empirically and never assume the constraint is honored.

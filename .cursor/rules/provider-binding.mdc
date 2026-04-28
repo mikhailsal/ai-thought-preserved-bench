@@ -6,11 +6,13 @@ alwaysApply: true
 
 # Provider Binding and Reasoning Verification
 
-This benchmark tests thought preservation across turns. For results to be meaningful, every model must actually USE reasoning tokens. Different OpenRouter providers handle reasoning differently, so provider pinning and reasoning verification are both mandatory.
+This benchmark tests thought preservation across turns. For results to be meaningful, every model must actually USE reasoning tokens. Different providers handle reasoning differently, so provider pinning and reasoning verification are both mandatory.
+
+> **Prerequisite**: Read `.cursor/rules/network-architecture.mdc` to understand how requests flow through Proxy → Gateway → Provider. The `provider` field in `models.yaml` is a **request** to the gateway — not a guarantee. The gateway may route elsewhere (see KiloCode caveat in that rule).
 
 ## Core Rules
 
-1. **Every active model MUST have a VALID `provider` field** in `configs/models.yaml`. Provider slugs MUST be verified via the OpenRouter endpoints API: `GET /api/v1/models/{model_id}/endpoints`. Each endpoint in the response has a `provider_name` field — use exactly that string. OpenRouter silently ignores invalid provider slugs instead of erroring, so you CANNOT rely on a 200 response to confirm the slug is valid.
+1. **Every active model MUST have a VALID `provider` field** in `configs/models.yaml`. Provider slugs MUST be verified via the OpenRouter endpoints API: `GET /api/v1/models/{model_id}/endpoints`. Each endpoint in the response has a `provider_name` field — use exactly that string. OpenRouter silently ignores invalid provider slugs instead of erroring, so you CANNOT rely on a 200 response to confirm the slug is valid. **After the first real API call, verify the actual provider** via `resolved_provider` in the cached run record or via proxy logs (see network-architecture rule).
 
 2. **The client sends reasoning configuration WITHOUT `enabled: true`** — per OpenRouter docs, `enabled: true` overrides `effort` to `"medium"` and `exclude` to `false`. We send `reasoning.effort` and `reasoning.exclude: false` only, so the specified effort level is respected. When no provider is pinned, `provider.require_parameters: true` restricts routing to reasoning-capable backends.
 
@@ -85,6 +87,14 @@ Every active model MUST have a `reasoning_type` field set in `configs/models.yam
 5. Always set the `provider` field.
 6. If a specific quantization is needed, set the `quantization` field (e.g., `bf16`, `fp8`).
 
+## Runtime Provider Verification
+
+After each API call, `_verify_provider()` in `runner.py` compares the configured provider with the actual provider returned by the gateway. On mismatch it raises `ProviderMismatchError` and aborts the run. This prevents wasting tokens on responses from the wrong backend.
+
+- The actual provider is extracted by `_extract_resolved_provider()` in `openrouter_client.py`, which handles both OpenRouter and KiloCode response formats.
+- To bypass the check for a specific model (e.g., when the gateway routing is known and acceptable), set `skip_provider_check: true` in `models.yaml`.
+- The `resolved_provider` field is stored in each turn's cached artifact for audit purposes.
+
 ## Anti-Patterns
 
 - **Assuming `reasoning` in `supported_parameters` means the model reasons** — it only means the parameter is configurable. Always check official docs.
@@ -92,3 +102,5 @@ Every active model MUST have a `reasoning_type` field set in `configs/models.yam
 - **Assuming all providers for a model behave identically** — they do not. Always verify with a probe.
 - **Using `provider: null` on an active model** — forbidden. Every active model must have a provider.
 - **Using `reasoning_type: null` on an active model** — forbidden. Every active model must have a reasoning type.
+- **Assuming `provider.order` is always respected by the gateway** — KiloCode can override it with BYOK routing. Always check `resolved_provider` after the first run. See `.cursor/rules/network-architecture.mdc`.
+- **Treating the proxy, gateway, and provider as the same thing** — they are three distinct layers. The proxy chooses the gateway; the gateway chooses the provider. See `.cursor/rules/network-architecture.mdc`.
