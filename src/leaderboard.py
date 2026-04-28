@@ -39,6 +39,9 @@ def _reasoning_display(reasoning_type: str | None) -> str:
 def _format_model_name(display_label: str) -> str:
     """Extract model name from display label and add space before :free suffix."""
     name = display_label.split("@")[0] if "@" in display_label else display_label
+    # Strip provider suffix (+Provider) introduced by the new label format
+    if "+" in name:
+        name = name.split("+")[0]
     if ":free" in name:
         name = name.replace(":free", " :free")
     return name
