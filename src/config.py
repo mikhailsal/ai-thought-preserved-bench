@@ -16,9 +16,12 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CACHE_DIR = PROJECT_ROOT / "cache"
 PROBES_DIR = PROJECT_ROOT / "probes"
 RESULTS_DIR = PROJECT_ROOT / "results"
+LOGS_DIR = PROJECT_ROOT / "logs"
 CONFIGS_PATH = PROJECT_ROOT / "configs" / "models.yaml"
 ENV_PATH = PROJECT_ROOT / ".env"
 COST_LOG_PATH = RESULTS_DIR / "cost_log.json"
+
+LOG_RETENTION_COUNT = 30
 
 DEFAULT_OPENROUTER_BASE_URL = "https://openrouter.ai/api/v1"
 OPENROUTER_APP_NAME = "ai-thought-preserved-bench"
@@ -119,6 +122,7 @@ def ensure_dirs() -> None:
     CACHE_DIR.mkdir(parents=True, exist_ok=True)
     PROBES_DIR.mkdir(parents=True, exist_ok=True)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    LOGS_DIR.mkdir(parents=True, exist_ok=True)
 
 
 def load_api_key() -> str:

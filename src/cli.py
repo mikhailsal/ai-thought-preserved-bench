@@ -3,7 +3,10 @@
 from __future__ import annotations
 
 import logging
+import os
 import sys
+from datetime import datetime, timezone
+from pathlib import Path
 
 import click
 from rich.console import Console
@@ -12,6 +15,8 @@ from rich.logging import RichHandler
 from src.config import (
     DEFAULT_REPETITIONS,
     JUDGE_MODEL,
+    LOG_RETENTION_COUNT,
+    LOGS_DIR,
     ensure_dirs,
     get_active_model_configs,
     get_config_by_slug,
@@ -36,6 +41,74 @@ from src.scenarios import SCENARIO_PLAIN, SCENARIO_TOOL
 from src.scorer import summarize_cache
 
 console = Console()
+
+FILE_LOG_FORMAT = (
+    "%(asctime)s │ %(levelname)-8s │ %(threadName)-12s │ %(name)s │ %(message)s"
+)
+FILE_LOG_DATE_FORMAT = "%Y-%m-%d %H:%M:%S"
+
+
+def setup_file_logging(command_name: str) -> Path | None:
+    """Add a DEBUG-level file handler that persists all log output.
+
+    Returns the path to the newly created log file, or None if the logs
+    directory could not be created.
+    """
+    try:
+        LOGS_DIR.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        return None
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H-%M-%S")
+    pid = os.getpid()
+    log_filename = f"{timestamp}_{command_name}_pid{pid}.log"
+    log_path = LOGS_DIR / log_filename
+
+    file_handler = logging.FileHandler(log_path, encoding="utf-8")
+    file_handler.setLevel(logging.DEBUG)
+    file_handler.setFormatter(logging.Formatter(FILE_LOG_FORMAT, datefmt=FILE_LOG_DATE_FORMAT))
+
+    root_logger = logging.getLogger()
+    root_logger.setLevel(logging.DEBUG)
+    root_logger.addHandler(file_handler)
+
+    _update_latest_symlink(log_path)
+    _cleanup_old_logs()
+
+    logging.getLogger(__name__).debug(
+        "Log file opened: %s (command=%s, pid=%d)", log_path, command_name, pid,
+    )
+    return log_path
+
+
+def _update_latest_symlink(log_path: Path) -> None:
+    """Point logs/latest.log → the most recent log file."""
+    link = LOGS_DIR / "latest.log"
+    try:
+        if link.is_symlink() or link.exists():
+            link.unlink()
+        link.symlink_to(log_path.name)
+    except OSError:
+        pass
+
+
+def _cleanup_old_logs(retention: int = LOG_RETENTION_COUNT) -> None:
+    """Remove log files beyond the retention count, oldest first."""
+    try:
+        log_files = sorted(
+            (p for p in LOGS_DIR.iterdir() if p.suffix == ".log" and p.name != "latest.log" and not p.is_symlink()),
+            key=lambda p: p.stat().st_mtime,
+        )
+    except OSError:
+        return
+    excess = len(log_files) - retention
+    if excess <= 0:
+        return
+    for old_file in log_files[:excess]:
+        try:
+            old_file.unlink()
+        except OSError:
+            pass
 
 
 def _parse_models(models: str | None) -> list:
@@ -72,15 +145,23 @@ def _parse_scenarios(scenarios: str | None) -> list[str]:
 
 @click.group()
 @click.option("-v", "--verbose", is_flag=True, default=False, help="Enable verbose debug logging.")
-def cli(verbose: bool) -> None:
+@click.pass_context
+def cli(ctx: click.Context, verbose: bool) -> None:
     """Reasoning replay continuity benchmark."""
-    level = logging.DEBUG if verbose else logging.INFO
+    console_level = logging.DEBUG if verbose else logging.INFO
     logging.basicConfig(
-        level=level,
+        level=console_level,
         format="%(message)s",
         datefmt="[%X]",
         handlers=[RichHandler(console=Console(stderr=True), rich_tracebacks=True, show_path=False)],
     )
+    ctx.ensure_object(dict)
+    command_name = ctx.invoked_subcommand or "cli"
+    skip_file_log = command_name in {"logs"}
+    log_path = None if skip_file_log else setup_file_logging(command_name)
+    ctx.obj["log_path"] = log_path
+    if log_path:
+        logging.getLogger(__name__).info("Logging to %s", log_path)
 
 
 @cli.command()
@@ -248,6 +329,42 @@ def probe(models_arg: str | None, force: bool) -> None:
             f"completion_tokens={tokens} "
             f"effective={record['reasoning_effective']}"
         )
+
+
+@cli.command()
+@click.option("-n", "--count", default=10, type=int, show_default=True, help="Number of recent logs to show.")
+@click.option("--tail", "tail_latest", is_flag=True, default=False, help="Print the last 50 lines of the latest log.")
+def logs(count: int, tail_latest: bool) -> None:
+    """List recent log files or tail the latest one."""
+    if not LOGS_DIR.exists():
+        console.print("[yellow]No logs directory found.[/yellow]")
+        return
+    log_files = sorted(
+        (p for p in LOGS_DIR.iterdir() if p.suffix == ".log" and p.name != "latest.log" and not p.is_symlink()),
+        key=lambda p: p.stat().st_mtime,
+        reverse=True,
+    )
+    if not log_files:
+        console.print("[yellow]No log files found.[/yellow]")
+        return
+
+    if tail_latest:
+        latest = log_files[0]
+        console.print(f"[bold]Tailing {latest.name}[/bold]\n")
+        lines = latest.read_text(encoding="utf-8").splitlines()
+        for line in lines[-50:]:
+            console.print(line)
+        return
+
+    console.print(f"[bold]Recent log files ({LOGS_DIR}):[/bold]\n")
+    for log_file in log_files[:count]:
+        size_kb = log_file.stat().st_size / 1024
+        mtime = datetime.fromtimestamp(log_file.stat().st_mtime, tz=timezone.utc)
+        console.print(f"  {log_file.name}  [dim]{size_kb:.1f} KB  {mtime:%Y-%m-%d %H:%M:%S UTC}[/dim]")
+
+    if len(log_files) > count:
+        console.print(f"\n  [dim]… and {len(log_files) - count} older files[/dim]")
+    console.print(f"\n[dim]Tip: use --tail to see the last 50 lines of the latest log.[/dim]")
 
 
 if __name__ == "__main__":

@@ -299,3 +299,116 @@ def test_fetch_model_supported_parameters_with_mock(monkeypatch) -> None:
     monkeypatch.setattr(httpx, "get", raise_error)
     result = fetch_model_supported_parameters("key", "vendor/model-a")
     assert result is None
+
+
+def test_setup_file_logging_creates_log_and_symlink(monkeypatch, tmp_path: Path) -> None:
+    import logging
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
+
+    root = logging.getLogger()
+    handlers_before = len(root.handlers)
+
+    log_path = cli.setup_file_logging("test_cmd")
+
+    assert log_path is not None
+    assert log_path.exists()
+    assert "test_cmd" in log_path.name
+    assert log_path.suffix == ".log"
+
+    symlink = tmp_path / "latest.log"
+    assert symlink.is_symlink()
+    assert symlink.resolve() == log_path.resolve()
+
+    assert len(root.handlers) > handlers_before
+
+    logging.getLogger("test.file.logging").debug("debug line from test")
+    logging.getLogger("test.file.logging").info("info line from test")
+    for h in root.handlers[handlers_before:]:
+        h.flush()
+    content = log_path.read_text(encoding="utf-8")
+    assert "debug line from test" in content
+    assert "info line from test" in content
+
+    for h in root.handlers[handlers_before:]:
+        root.removeHandler(h)
+        h.close()
+
+
+def test_cleanup_old_logs_respects_retention(monkeypatch, tmp_path: Path) -> None:
+    import time
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
+
+    for i in range(5):
+        (tmp_path / f"2026-01-0{i+1}T00-00-00_run_pid1.log").write_text(f"log {i}")
+        time.sleep(0.01)
+
+    cli._cleanup_old_logs(retention=3)
+
+    remaining = [p for p in tmp_path.iterdir() if p.suffix == ".log"]
+    assert len(remaining) == 3
+
+    names = sorted(p.name for p in remaining)
+    assert "2026-01-01" not in names[0]
+    assert "2026-01-02" not in names[0]
+
+
+def test_cleanup_old_logs_ignores_symlink(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
+
+    real_log = tmp_path / "2026-01-01T00-00-00_run_pid1.log"
+    real_log.write_text("log content")
+    symlink = tmp_path / "latest.log"
+    symlink.symlink_to(real_log.name)
+
+    cli._cleanup_old_logs(retention=0)
+
+    assert symlink.exists() or symlink.is_symlink()
+    assert not real_log.exists()
+
+
+def test_logs_cli_command_lists_files(monkeypatch, tmp_path: Path) -> None:
+    from click.testing import CliRunner
+
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
+
+    (tmp_path / "2026-01-01T00-00-00_run_pid1.log").write_text("first log")
+    (tmp_path / "2026-01-02T00-00-00_run_pid2.log").write_text("second log")
+
+    result = CliRunner().invoke(cli.cli, ["logs"])
+    assert result.exit_code == 0
+    assert "2026-01-01" in result.output
+    assert "2026-01-02" in result.output
+
+
+def test_logs_cli_command_tail(monkeypatch, tmp_path: Path) -> None:
+    from click.testing import CliRunner
+
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
+
+    log_file = tmp_path / "2026-01-01T00-00-00_run_pid1.log"
+    lines = [f"line-{i:03d}" for i in range(100)]
+    log_file.write_text("\n".join(lines))
+
+    result = CliRunner().invoke(cli.cli, ["logs", "--tail"])
+    assert result.exit_code == 0
+    assert "line-099" in result.output
+    assert "line-060" in result.output
+    assert "line-049" not in result.output
+
+
+def test_logs_cli_command_empty(monkeypatch, tmp_path: Path) -> None:
+    from click.testing import CliRunner
+
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path)
+    result = CliRunner().invoke(cli.cli, ["logs"])
+    assert result.exit_code == 0
+    assert "No log files" in result.output
+
+
+def test_logs_cli_command_no_dir(monkeypatch, tmp_path: Path) -> None:
+    from click.testing import CliRunner
+
+    monkeypatch.setattr(cli, "LOGS_DIR", tmp_path / "nonexistent")
+    result = CliRunner().invoke(cli.cli, ["logs"])
+    assert result.exit_code == 0
+    assert "No logs directory" in result.output
