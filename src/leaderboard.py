@@ -106,7 +106,9 @@ def display_leaderboard(
         table.add_column(f"Counts ({OUTCOME_ORDER_LEGEND})", justify="right")
         table.add_column(f"% ({OUTCOME_ORDER_LEGEND})", justify="right")
         table.add_column("TPB Index", justify="right")
-        ordered = sorted(rows, key=lambda item: item.tpb_index, reverse=True)
+        ordered = sorted(
+            rows, key=lambda item: (item.tpb_index, item.total_runs), reverse=True
+        )
         for index, summary in enumerate(ordered, start=1):
             table.add_row(
                 str(index),
@@ -159,7 +161,9 @@ def generate_markdown_report(summaries: list[ScenarioSummary]) -> str:
             f"| TPB Index |"
         )
         lines.append("|--:|-------|-----------|-----:|------|------|----------:|")
-        ordered = sorted(rows, key=lambda item: item.tpb_index, reverse=True)
+        ordered = sorted(
+            rows, key=lambda item: (item.tpb_index, item.total_runs), reverse=True
+        )
         for index, summary in enumerate(ordered, start=1):
             lines.append(
                 f"| {index} "
