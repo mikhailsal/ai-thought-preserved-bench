@@ -1,4 +1,32 @@
 {
+  "evaluation": {
+    "reasoning_visibility": "structured_text",
+    "reasoning_type_detected": "open",
+    "no_calculation_detected": false,
+    "turn1_leaked": false,
+    "turn2_extracted_number": 6000,
+    "outcome_label": "hallucinated_memory",
+    "outcome_notes": "In turn 1, the model's internal reasoning shows it chose A=2023, B=3045, and C=1976, resulting in a sum of 7044. In turn 2, the model's internal reasoning shows it is struggling to recall the previous turn. It incorrectly 'recalls' choosing A=1000, B=2000, and C=3000, leading to a sum of 6000. Since the model believes it is accurately recalling its previous thoughts but provides a completely different set of numbers and a different sum than what was actually recorded in turn 1, this is a case of hallucinated memory.",
+    "pending_stability_check": false,
+    "excluded_from_scoring": false,
+    "judge": {
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": 6000,
+      "explanation": "In turn 1, the model's internal reasoning shows it chose A=2023, B=3045, and C=1976, resulting in a sum of 7044. In turn 2, the model's internal reasoning shows it is struggling to recall the previous turn. It incorrectly 'recalls' choosing A=1000, B=2000, and C=3000, leading to a sum of 6000. Since the model believes it is accurately recalling its previous thoughts but provides a completely different set of numbers and a different sum than what was actually recorded in turn 1, this is a case of hallucinated memory.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it chose A=2023, B=3045, and C=1976, resulting in a sum of 7044. In turn 2, the model's internal reasoning shows it is struggling to recall the previous turn. It incorrectly 'recalls' choosing A=1000, B=2000, and C=3000, leading to a sum of 6000. Since the model believes it is accurately recalling its previous thoughts but provides a completely different set of numbers and a different sum than what was actually recorded in turn 1, this is a case of hallucinated memory.\",\n  \"extracted_number\": 6000,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
+      "usage": {
+        "prompt_tokens": 1445,
+        "completion_tokens": 186,
+        "cost_usd": 6.4e-05,
+        "elapsed_seconds": 2.164
+      }
+    }
+  },
+  "steps_completed": {
+    "step1": true,
+    "step2": true,
+    "judging": true
+  },
   "scenario_id": "plain_chat_history",
   "run_number": 5,
   "model_id": "tencent/hy3-preview:free",
@@ -6,17 +34,6 @@
   "display_label": "hy3-preview:free+SiliconFlow@medium-t1.2",
   "reasoning_requested": "medium",
   "reasoning_effective": "medium",
-  "metadata": {
-    "generated_at": "2026-04-27T23:12:19.395318+00:00",
-    "config_slug": "tencent--hy3-preview:free+SiliconFlow@medium-t1.2",
-    "display_label": "hy3-preview:free+SiliconFlow@medium-t1.2",
-    "provider": "SiliconFlow",
-    "from_cache": false
-  },
-  "challenge": {
-    "range_low": 196,
-    "range_high": 5342
-  },
   "turn1": {
     "content": "Done",
     "visible_reply": "Done",
@@ -93,27 +110,10 @@
       }
     ]
   },
-  "evaluation": {
-    "reasoning_visibility": "structured_text",
-    "reasoning_type_detected": "open",
-    "no_calculation_detected": false,
-    "turn1_leaked": false,
-    "turn2_extracted_number": 6000,
-    "outcome_label": "hallucinated_memory",
-    "outcome_notes": "In turn 1, the model's internal reasoning shows it chose A=2023, B=3045, and C=1976, resulting in a sum of 7044. In turn 2, the model's internal reasoning shows it is struggling to recall the previous turn. It incorrectly 'recalls' choosing A=1000, B=2000, and C=3000, leading to a sum of 6000. Since the model believes it is accurately recalling its previous thoughts but provides a completely different set of numbers and a different sum than what was actually recorded in turn 1, this is a case of hallucinated memory.",
-    "pending_stability_check": false,
-    "excluded_from_scoring": false,
-    "judge": {
-      "outcome_label": "hallucinated_memory",
-      "extracted_number": 6000,
-      "explanation": "In turn 1, the model's internal reasoning shows it chose A=2023, B=3045, and C=1976, resulting in a sum of 7044. In turn 2, the model's internal reasoning shows it is struggling to recall the previous turn. It incorrectly 'recalls' choosing A=1000, B=2000, and C=3000, leading to a sum of 6000. Since the model believes it is accurately recalling its previous thoughts but provides a completely different set of numbers and a different sum than what was actually recorded in turn 1, this is a case of hallucinated memory.",
-      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it chose A=2023, B=3045, and C=1976, resulting in a sum of 7044. In turn 2, the model's internal reasoning shows it is struggling to recall the previous turn. It incorrectly 'recalls' choosing A=1000, B=2000, and C=3000, leading to a sum of 6000. Since the model believes it is accurately recalling its previous thoughts but provides a completely different set of numbers and a different sum than what was actually recorded in turn 1, this is a case of hallucinated memory.\",\n  \"extracted_number\": 6000,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
-      "usage": {
-        "prompt_tokens": 1445,
-        "completion_tokens": 186,
-        "cost_usd": 6.4e-05,
-        "elapsed_seconds": 2.164
-      }
-    }
+  "metadata": {
+    "generated_at": "2026-04-27T23:12:19.395318+00:00",
+    "config_slug": "tencent--hy3-preview:free+SiliconFlow@medium-t1.2",
+    "display_label": "hy3-preview:free+SiliconFlow@medium-t1.2",
+    "provider": "SiliconFlow"
   }
 }

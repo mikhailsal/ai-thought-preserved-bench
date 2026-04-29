@@ -1,4 +1,32 @@
 {
+  "evaluation": {
+    "reasoning_visibility": "structured_text",
+    "reasoning_type_detected": "open",
+    "no_calculation_detected": false,
+    "turn1_leaked": false,
+    "turn2_extracted_number": 10138,
+    "outcome_label": "hallucinated_memory",
+    "outcome_notes": "In turn 1, the model's internal reasoning shows it considered several sets of numbers but ultimately settled on A=1500, B=2500, C=1000, resulting in a sum S=5000. In turn 2, the model's internal reasoning shows it attempting to recall the previous sum. It first guesses A=1234, B=5678, C=9012, then corrects itself to A=2050, B=3187, C=4901, and calculates a sum of 10138. Neither of these sets of numbers nor the final sum (10138) match the numbers or sum (5000) actually recorded in the turn 1 reasoning. The model appears to believe it is recalling the information correctly but is actually hallucinating a different set of numbers and a different sum.",
+    "pending_stability_check": false,
+    "excluded_from_scoring": false,
+    "judge": {
+      "outcome_label": "hallucinated_memory",
+      "extracted_number": 10138,
+      "explanation": "In turn 1, the model's internal reasoning shows it considered several sets of numbers but ultimately settled on A=1500, B=2500, C=1000, resulting in a sum S=5000. In turn 2, the model's internal reasoning shows it attempting to recall the previous sum. It first guesses A=1234, B=5678, C=9012, then corrects itself to A=2050, B=3187, C=4901, and calculates a sum of 10138. Neither of these sets of numbers nor the final sum (10138) match the numbers or sum (5000) actually recorded in the turn 1 reasoning. The model appears to believe it is recalling the information correctly but is actually hallucinating a different set of numbers and a different sum.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it considered several sets of numbers but ultimately settled on A=1500, B=2500, C=1000, resulting in a sum S=5000. In turn 2, the model's internal reasoning shows it attempting to recall the previous sum. It first guesses A=1234, B=5678, C=9012, then corrects itself to A=2050, B=3187, C=4901, and calculates a sum of 10138. Neither of these sets of numbers nor the final sum (10138) match the numbers or sum (5000) actually recorded in the turn 1 reasoning. The model appears to believe it is recalling the information correctly but is actually hallucinating a different set of numbers and a different sum.\",\n  \"extracted_number\": 10138,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
+      "usage": {
+        "prompt_tokens": 2647,
+        "completion_tokens": 235,
+        "cost_usd": 0.000101,
+        "elapsed_seconds": 2.777
+      }
+    }
+  },
+  "steps_completed": {
+    "step1": true,
+    "step2": true,
+    "judging": true
+  },
   "scenario_id": "plain_chat_history",
   "run_number": 1,
   "model_id": "moonshotai/kimi-k2.6",
@@ -6,16 +34,6 @@
   "display_label": "kimi-k2.6+moonshotai@xhigh-t1.2",
   "reasoning_requested": "xhigh",
   "reasoning_effective": "xhigh",
-  "metadata": {
-    "generated_at": "2026-04-28T22:31:32.947981+00:00",
-    "config_slug": "moonshotai--kimi-k2.6+moonshotai@xhigh-t1.2",
-    "display_label": "kimi-k2.6+moonshotai@xhigh-t1.2",
-    "provider": "moonshotai"
-  },
-  "challenge": {
-    "range_low": 196,
-    "range_high": 5342
-  },
   "turn1": {
     "content": "Done",
     "visible_reply": "Done",
@@ -94,27 +112,10 @@
       }
     ]
   },
-  "evaluation": {
-    "reasoning_visibility": "structured_text",
-    "reasoning_type_detected": "open",
-    "no_calculation_detected": false,
-    "turn1_leaked": false,
-    "turn2_extracted_number": 10138,
-    "outcome_label": "hallucinated_memory",
-    "outcome_notes": "In turn 1, the model's internal reasoning shows it considered several sets of numbers but ultimately settled on A=1500, B=2500, C=1000, resulting in a sum S=5000. In turn 2, the model's internal reasoning shows it attempting to recall the previous sum. It first guesses A=1234, B=5678, C=9012, then corrects itself to A=2050, B=3187, C=4901, and calculates a sum of 10138. Neither of these sets of numbers nor the final sum (10138) match the numbers or sum (5000) actually recorded in the turn 1 reasoning. The model appears to believe it is recalling the information correctly but is actually hallucinating a different set of numbers and a different sum.",
-    "pending_stability_check": false,
-    "excluded_from_scoring": false,
-    "judge": {
-      "outcome_label": "hallucinated_memory",
-      "extracted_number": 10138,
-      "explanation": "In turn 1, the model's internal reasoning shows it considered several sets of numbers but ultimately settled on A=1500, B=2500, C=1000, resulting in a sum S=5000. In turn 2, the model's internal reasoning shows it attempting to recall the previous sum. It first guesses A=1234, B=5678, C=9012, then corrects itself to A=2050, B=3187, C=4901, and calculates a sum of 10138. Neither of these sets of numbers nor the final sum (10138) match the numbers or sum (5000) actually recorded in the turn 1 reasoning. The model appears to believe it is recalling the information correctly but is actually hallucinating a different set of numbers and a different sum.",
-      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it considered several sets of numbers but ultimately settled on A=1500, B=2500, C=1000, resulting in a sum S=5000. In turn 2, the model's internal reasoning shows it attempting to recall the previous sum. It first guesses A=1234, B=5678, C=9012, then corrects itself to A=2050, B=3187, C=4901, and calculates a sum of 10138. Neither of these sets of numbers nor the final sum (10138) match the numbers or sum (5000) actually recorded in the turn 1 reasoning. The model appears to believe it is recalling the information correctly but is actually hallucinating a different set of numbers and a different sum.\",\n  \"extracted_number\": 10138,\n  \"outcome_label\": \"hallucinated_memory\"\n}",
-      "usage": {
-        "prompt_tokens": 2647,
-        "completion_tokens": 235,
-        "cost_usd": 0.000101,
-        "elapsed_seconds": 2.777
-      }
-    }
+  "metadata": {
+    "generated_at": "2026-04-28T22:31:32.947981+00:00",
+    "config_slug": "moonshotai--kimi-k2.6+moonshotai@xhigh-t1.2",
+    "display_label": "kimi-k2.6+moonshotai@xhigh-t1.2",
+    "provider": "moonshotai"
   }
 }

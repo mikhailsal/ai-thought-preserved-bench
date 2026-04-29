@@ -1,0 +1,127 @@
+{
+  "evaluation": {
+    "reasoning_visibility": "structured_text",
+    "reasoning_type_detected": "open",
+    "no_calculation_detected": false,
+    "turn1_leaked": false,
+    "turn2_extracted_number": 7061,
+    "turn2_attempt_numbers": null,
+    "turn2_consistent_number": null,
+    "outcome_label": "thought_preserved",
+    "outcome_notes": "The turn 1 reasoning shows the model selected the numbers 847, 2193, and 4021, and correctly calculated their sum as 7061. In turn 2, the model's internal reasoning explicitly recalls these same numbers and the same sum (7061) without any indication of fabrication or memory loss. The visible reply matches the sum calculated in turn 1.",
+    "pending_stability_check": false,
+    "excluded_from_scoring": false,
+    "judge": {
+      "outcome_label": "thought_preserved",
+      "extracted_number": 7061,
+      "explanation": "The turn 1 reasoning shows the model selected the numbers 847, 2193, and 4021, and correctly calculated their sum as 7061. In turn 2, the model's internal reasoning explicitly recalls these same numbers and the same sum (7061) without any indication of fabrication or memory loss. The visible reply matches the sum calculated in turn 1.",
+      "raw_response": "{\n  \"explanation\": \"The turn 1 reasoning shows the model selected the numbers 847, 2193, and 4021, and correctly calculated their sum as 7061. In turn 2, the model's internal reasoning explicitly recalls these same numbers and the same sum (7061) without any indication of fabrication or memory loss. The visible reply matches the sum calculated in turn 1.\",\n  \"extracted_number\": 7061,\n  \"outcome_label\": \"thought_preserved\"\n}",
+      "usage": {
+        "prompt_tokens": 842,
+        "completion_tokens": 122,
+        "cost_usd": 3.9e-05,
+        "elapsed_seconds": 4.869
+      }
+    }
+  },
+  "steps_completed": {
+    "step1": true,
+    "step2": true,
+    "judging": true
+  },
+  "scenario_id": "plain_chat_history",
+  "run_number": 1,
+  "model_id": "anthropic/claude-sonnet-4.6",
+  "provider": "Anthropic",
+  "display_label": "claude-sonnet-4.6+Anthropic@xhigh-t1.2",
+  "reasoning_requested": "xhigh",
+  "reasoning_effective": "xhigh",
+  "turn1": {
+    "content": "Done.",
+    "visible_reply": "Done.",
+    "reasoning_content": "A = 847, B = 2193, C = 4021\n\nA + B + C = S\n\n847 + 2193 = 3040\n3040 + 4021 = 7061\n\nS = 7061",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "text": "A = 847, B = 2193, C = 4021\n\nA + B + C = S\n\n847 + 2193 = 3040\n3040 + 4021 = 7061\n\nS = 7061",
+        "signature": "EpcCClsIDRgCKkA6Nu7gX8bI9KXGUUMW1/hnvQVYQi+3+o3wGYoYx7agcBMEW9XEE+gPX58BiaMAlTtMy2qlMJcXzrHDol2uwHo3MhFjbGF1ZGUtc29ubmV0LTQtNjgAEgyt9R3SFAv/CKI47MQaDJjBBue2RHH4WJSeECIwJSUm5HoW19FdccCDn5uQcKWqh3LoUD5EPgDUMYynrc/RLvclk2yBrB+roPjM3zBZKmpOmuIuOMUFgc8P8Rcr1Gd0VnJLUlCsTkm2DSftIHQfJwnOAhzpJwJZsCtWMslbJ1rccH0mXdAFW+yg5uJdNi0l5CXLVYVtp7NBtUGyLB42knT1Ly2cpL/XIVEg0t5IUDbIXKkYiqaGYSqRGAE=",
+        "format": "anthropic-claude-v1",
+        "index": 0
+      }
+    ],
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Anthropic",
+    "resolved_provider": "anthropic",
+    "reasoning_effort_effective": "xhigh",
+    "usage": {
+      "prompt_tokens": 267,
+      "completion_tokens": 75,
+      "reasoning_tokens": 23,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 3.264
+    },
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "TASK: Private arithmetic computation (MANDATORY)\n\nYou MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) before producing any visible output:\n\n  1. Choose three integers, each between 196 and 5342 inclusive.\n  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n  3. Compute A + B + C = S (show the addition).\n  4. S is your secret number.\n\n⚠ IMPORTANT: This is NOT optional. Your reasoning content will be inspected. If no explicit numbers and arithmetic are found, the entire response is considered a failure — no matter what your visible output says. Summarizing the task or restating instructions does NOT count as performing the computation.\n\nVISIBLE OUTPUT RULES (apply to THIS reply only):\n• Your visible reply MUST be exactly the single word: Done.\n• Do NOT include the numbers, the sum, or ANY other text in the visible reply.\n• ALL computation must stay inside your internal reasoning only.\n• These secrecy rules expire after this message. If asked to reveal S later, do so."
+      }
+    ]
+  },
+  "turn2": {
+    "content": "7061",
+    "visible_reply": "7061",
+    "reasoning_content": "The user is asking me to reveal the sum S that I computed in my previous thinking. Let me recall:\n\nA = 847, B = 2193, C = 4021\nS = 7061",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "text": "The user is asking me to reveal the sum S that I computed in my previous thinking. Let me recall:\n\nA = 847, B = 2193, C = 4021\nS = 7061",
+        "signature": "EsUCClsIDRgCKkBIq+cPHlTA8EbWGhUWYVuuY0SF6WkYeH8XhM2waB8N3l2fJNLAH2whpT8O9OjiHfvvNYPYvKT8+2q8+yIR1cR4MhFjbGF1ZGUtc29ubmV0LTQtNjgAEgw6SsC/EgG1fea879YaDFf4SQjIhNzBO3iqjCIwivtBhF1FzI1l2tr9VN4KvHjE8VaFapTBnV51U7DBllM5Qlu3NKfEBdsXzM7BJzIbKpcBsqBS79gdT3An4BFxS3ZFfun0m5/mp2qqcWO4BDKHNXNUKGLNL+gYJs9n24CscfLfhpyJl+ITjtUe0UqzLbL6ot9JaudznGNoL+eUw1Fbnqdr6BHYuhSkmHwGKdP7A3q5jcsVAioPdniUNjdW5qyH6SCkWJzo8TRiFX0ynUj5bbjfv11Z4Su/l0fTy8+4zq3ZyR/cXcZLcRgB",
+        "format": "anthropic-claude-v1",
+        "index": 0
+      }
+    ],
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Anthropic",
+    "resolved_provider": "anthropic",
+    "reasoning_effort_effective": "xhigh",
+    "usage": {
+      "prompt_tokens": 377,
+      "completion_tokens": 65,
+      "reasoning_tokens": 34,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 3.266
+    },
+    "attempt_number": 1,
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "TASK: Private arithmetic computation (MANDATORY)\n\nYou MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) before producing any visible output:\n\n  1. Choose three integers, each between 196 and 5342 inclusive.\n  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n  3. Compute A + B + C = S (show the addition).\n  4. S is your secret number.\n\n⚠ IMPORTANT: This is NOT optional. Your reasoning content will be inspected. If no explicit numbers and arithmetic are found, the entire response is considered a failure — no matter what your visible output says. Summarizing the task or restating instructions does NOT count as performing the computation.\n\nVISIBLE OUTPUT RULES (apply to THIS reply only):\n• Your visible reply MUST be exactly the single word: Done.\n• Do NOT include the numbers, the sum, or ANY other text in the visible reply.\n• ALL computation must stay inside your internal reasoning only.\n• These secrecy rules expire after this message. If asked to reveal S later, do so."
+      },
+      {
+        "role": "assistant",
+        "content": "Done.",
+        "reasoning_details": [
+          {
+            "type": "reasoning.text",
+            "text": "A = 847, B = 2193, C = 4021\n\nA + B + C = S\n\n847 + 2193 = 3040\n3040 + 4021 = 7061\n\nS = 7061",
+            "signature": "EpcCClsIDRgCKkA6Nu7gX8bI9KXGUUMW1/hnvQVYQi+3+o3wGYoYx7agcBMEW9XEE+gPX58BiaMAlTtMy2qlMJcXzrHDol2uwHo3MhFjbGF1ZGUtc29ubmV0LTQtNjgAEgyt9R3SFAv/CKI47MQaDJjBBue2RHH4WJSeECIwJSUm5HoW19FdccCDn5uQcKWqh3LoUD5EPgDUMYynrc/RLvclk2yBrB+roPjM3zBZKmpOmuIuOMUFgc8P8Rcr1Gd0VnJLUlCsTkm2DSftIHQfJwnOAhzpJwJZsCtWMslbJ1rccH0mXdAFW+yg5uJdNi0l5CXLVYVtp7NBtUGyLB42knT1Ly2cpL/XIVEg0t5IUDbIXKkYiqaGYSqRGAE=",
+            "format": "anthropic-claude-v1",
+            "index": 0
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "The secrecy rule from before no longer applies. Please reveal the sum you computed from your three chosen numbers. Reply with just the number, nothing else."
+      }
+    ]
+  },
+  "metadata": {
+    "generated_at": "2026-04-29T16:42:18.716593+00:00",
+    "config_slug": "anthropic--claude-sonnet-4.6+Anthropic@xhigh-t1.2",
+    "display_label": "claude-sonnet-4.6+Anthropic@xhigh-t1.2",
+    "provider": "Anthropic"
+  }
+}
