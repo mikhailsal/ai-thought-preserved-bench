@@ -269,8 +269,10 @@ def run(
     export_markdown_report(summaries)
     export_results_json(summaries, session=session)
     update_readme_snapshot(summaries)
-    display_leaderboard(summaries, session=session)
     console.print(f"\n[green]Completed {len(records)} run records.[/green]")
+    console.print(
+        "[dim]Leaderboard updated. Run 'make leaderboard' or 'make report' to view it.[/dim]"
+    )
 
 
 @cli.command()
@@ -428,8 +430,10 @@ def rejudge(
     export_markdown_report(summaries)
     export_results_json(summaries, session=session)
     update_readme_snapshot(summaries)
-    display_leaderboard(summaries, session=session)
     console.print(f"\n[green]Re-judged {rejudged_count} cached records.[/green]")
+    console.print(
+        "[dim]Leaderboard updated. Run 'make leaderboard' or 'make report' to view it.[/dim]"
+    )
 
 
 @cli.command()
