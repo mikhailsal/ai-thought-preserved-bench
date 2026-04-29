@@ -43,7 +43,7 @@ MAX_TOKENS_BY_REASONING: dict[str, int] = {
     "low": 4096,
     "medium": 8192,
     "high": 16384,
-    "xhigh": 32768,
+    "xhigh": 16384,
 }
 
 
