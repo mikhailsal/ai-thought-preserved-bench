@@ -226,21 +226,6 @@ models:
       DeepSeek reasoner rejects forced tool_choice (HTTP 400).
 
   # ───────────────────────────────────────────────────────────────
-  # Qwen — qwen3-8b
-  # ───────────────────────────────────────────────────────────────
-  - model_id: qwen/qwen3-8b
-    temperature: 1.2
-    reasoning_effort: medium
-    provider: Alibaba
-    reasoning_type: open
-    supports_forced_tool_choice: false
-    active: true
-    notes: >
-      Visible reasoning via reasoning.text. Pinned to Alibaba (native Qwen provider).
-      Upgraded minimal→medium: at minimal effort the model philosophized instead of computing.
-      Alibaba endpoint does not support forced tool_choice (HTTP 404).
-
-  # ───────────────────────────────────────────────────────────────
   # Nvidia — free reasoning model
   # ───────────────────────────────────────────────────────────────
   - model_id: nvidia/nemotron-3-super-120b-a12b:free
@@ -383,10 +368,8 @@ models:
       Hidden reasoning: tokens consumed but content not exposed.
       Upgraded minimal→medium: at minimal effort only 20 completion tokens.
 
-
-
   # ───────────────────────────────────────────────────────────────
-  # Qwen — 3.5-flash
+  # Qwen
   # ───────────────────────────────────────────────────────────────
   - model_id: qwen/qwen3.5-flash-02-23
     temperature: 1.2
@@ -399,10 +382,14 @@ models:
       Visible reasoning via reasoning.text (structured_text format, 581 tokens).
       Alibaba endpoint does not support forced tool_choice (HTTP 404).
 
+  - model_id: qwen/qwen3.6-max-preview
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: Alibaba
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
 
-  # ───────────────────────────────────────────────────────────────
-  # NEW: Qwen — 3.6-35B-A3B (MoE, thinking by default)
-  # ───────────────────────────────────────────────────────────────
   - model_id: qwen/qwen3.6-35b-a3b
     temperature: 1.2
     reasoning_effort: medium
@@ -415,8 +402,20 @@ models:
       Providers: AtlasCloud, AkashML, Parasail. Pinned to AkashML per user request.
       Tool use not supported by AkashML endpoint (tool_mediated_reply scenario skipped).
 
+  - model_id: qwen/qwen3-8b
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: Alibaba
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    notes: >
+      Visible reasoning via reasoning.text. Pinned to Alibaba (native Qwen provider).
+      Upgraded minimal→medium: at minimal effort the model philosophized instead of computing.
+      Alibaba endpoint does not support forced tool_choice (HTTP 404).
+
   # ───────────────────────────────────────────────────────────────
-  # NEW: OpenAI — GPT-5.4-nano (hidden reasoning)
+  # OpenAI — GPT-5.4-nano (hidden reasoning)
   # ───────────────────────────────────────────────────────────────
   - model_id: openai/gpt-5.4-nano
     temperature: 1.2
@@ -429,18 +428,35 @@ models:
       Providers: Azure, OpenAI. Pinned to OpenAI per user request.
 
   # ───────────────────────────────────────────────────────────────
-  # Anthropic — Claude Haiku 4.5 (max reasoning)
+  # Anthropic
   # ───────────────────────────────────────────────────────────────
   - model_id: anthropic/claude-haiku-4.5
     temperature: 1.2
     reasoning_effort: xhigh
     provider: Anthropic
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Visible reasoning via structured_text format. Maximum (xhigh) reasoning effort.
 
   - model_id: anthropic/claude-sonnet-4.6
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Anthropic
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+
+  - model_id: anthropic/claude-opus-4.5
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Anthropic
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+
+  - model_id: anthropic/claude-opus-4.6
     temperature: 1.2
     reasoning_effort: xhigh
     provider: Anthropic
