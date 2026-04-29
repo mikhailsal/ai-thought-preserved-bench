@@ -4,7 +4,28 @@ models:
   # ───────────────────────────────────────────────────────────────
 
   # gemini
+  - model_id: google/gemini-3.1-pro-preview
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: google-vertex
+    supports_forced_tool_choice: false
+    reasoning_type: summarization_and_encrypted
+    active: true
+    valid_provider_aliases:
+      - "Google"
+      - "Vertex"
+
   - model_id: google/gemini-3-flash-preview
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: google-vertex
+    supports_forced_tool_choice: false
+    reasoning_type: summarization_and_encrypted
+    active: true
+    valid_provider_aliases:
+      - "Google"
+
+  - model_id: google/gemini-3.1-flash-lite-preview
     temperature: 1.2
     reasoning_effort: medium
     provider: google-vertex
@@ -38,7 +59,7 @@ models:
       Upgraded minimal→medium: at minimal effort the model described the task
       verbally without selecting numbers or computing.
 
-  # gemma
+  # gemma 31b
 
   - model_id: google/gemma-4-31b-it:free
     temperature: 1.2
@@ -58,6 +79,49 @@ models:
     valid_provider_aliases:
       - "Google AI Studio"
 
+  - model_id: google/gemma-4-31b-it
+    temperature: 1.2
+    reasoning_effort: high
+    provider: akashml
+    reasoning_type: open
+    active: true
+    supports_forced_tool_choice: false
+
+  - model_id: google/gemma-4-31b-it
+    temperature: 1.2
+    reasoning_effort: high
+    provider: novita
+    reasoning_type: open
+    active: true
+    supports_forced_tool_choice: false
+
+  - model_id: google/gemma-4-31b-it
+    temperature: 1.2
+    reasoning_effort: high
+    provider: deepinfra
+    reasoning_type: open
+    active: true
+    supports_forced_tool_choice: false
+
+  - model_id: google/gemma-4-31b-it
+    temperature: 1.2
+    reasoning_effort: high
+    provider: parasail
+    reasoning_type: open
+    active: true
+    supports_forced_tool_choice: false
+
+  - model_id: google/gemma-4-31b-it
+    temperature: 1.0
+    reasoning_effort: medium
+    provider: venice
+    quantization: bf16
+    reasoning_type: open
+    active: true
+    supports_forced_tool_choice: true
+
+# gemma 26b
+
   - model_id: google/gemma-4-26b-a4b-it:free
     temperature: 1.2
     reasoning_effort: minimal
@@ -70,6 +134,20 @@ models:
   # ───────────────────────────────────────────────────────────────
   # X-AI — Grok (encrypted + summary reasoning)
   # ───────────────────────────────────────────────────────────────
+  - model_id: x-ai/grok-3-mini
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: xAI
+    reasoning_type: open
+    active: true
+
+  - model_id: x-ai/grok-4.20-beta
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: xAI
+    reasoning_type: summarization_and_encrypted
+    active: true
+
   - model_id: x-ai/grok-4.1-fast
     temperature: 1.2
     reasoning_effort: medium
@@ -99,6 +177,7 @@ models:
     reasoning_effort: medium
     provider: SiliconFlow
     reasoning_type: open
+    supports_forced_tool_choice: false
     active: true
     notes: >
       Visible reasoning via reasoning.text. Only provider: SiliconFlow.
@@ -115,11 +194,24 @@ models:
     reasoning_type: open
     supports_forced_tool_choice: false
     active: true
-    notes: >
-      Visible reasoning via reasoning.text. Pinned to DeepSeek (native).
-      Upgraded minimal→medium: at minimal effort the model summarized the task
-      without picking numbers or computing.
-      DeepSeek reasoner rejects forced tool_choice (HTTP 400).
+
+  - model_id: deepseek/deepseek-v4-flash
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: openrouter-deepseek
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    valid_provider_aliases:
+      - "DeepSeek"
+
+  - model_id: deepseek/deepseek-v4-flash
+    temperature: 1.2
+    reasoning_effort: medium
+    provider: novita
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
 
   - model_id: deepseek/deepseek-v3.2
     temperature: 1.2
@@ -291,19 +383,7 @@ models:
       Hidden reasoning: tokens consumed but content not exposed.
       Upgraded minimal→medium: at minimal effort only 20 completion tokens.
 
-  # ───────────────────────────────────────────────────────────────
-  # MiniMax — M2.5
-  # ───────────────────────────────────────────────────────────────
-  - model_id: minimax/minimax-m2.5
-    temperature: 1.2
-    reasoning_effort: minimal
-    provider: Minimax
-    reasoning_type: open
-    supports_forced_tool_choice: false
-    active: true
-    notes: >
-      Visible reasoning via reasoning.text (structured_text format).
-      Minimax accepts tool_choice parameter but does not enforce it.
+
 
   # ───────────────────────────────────────────────────────────────
   # Qwen — 3.5-flash
@@ -360,9 +440,42 @@ models:
     notes: >
       Visible reasoning via structured_text format. Maximum (xhigh) reasoning effort.
 
+  - model_id: anthropic/claude-sonnet-4.6
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Anthropic
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+
+  - model_id: anthropic/claude-opus-4.7
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: Anthropic
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
   # ───────────────────────────────────────────────────────────────
-  # MoonshotAI — Kimi K2.6 (max reasoning)
+  # MoonshotAI
   # ───────────────────────────────────────────────────────────────
+
+  - model_id: moonshotai/kimi-k2.5
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: moonshotai
+    quantization: int4
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+
+  - model_id: moonshotai/kimi-k2.5
+    temperature: 1.2
+    reasoning_effort: xhigh
+    provider: bedrock
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+
   - model_id: moonshotai/kimi-k2.6
     temperature: 1.2
     reasoning_effort: xhigh
@@ -371,9 +484,6 @@ models:
     reasoning_type: open
     supports_forced_tool_choice: false
     active: true
-    notes: >
-      Visible reasoning via structured_text. Maximum (xhigh) reasoning effort.
-      Pinned to Moonshot AI (native) with int4 quantization per user request.
 
   # ───────────────────────────────────────────────────────────────
   # Z.AI — GLM-5.1 (max reasoning)
@@ -389,7 +499,7 @@ models:
       Successor to GLM-4.7-flash (which had no reasoning). Pinned to Z.AI (native).
 
   # ───────────────────────────────────────────────────────────────
-  # MiniMax — M2.7 (xhigh reasoning)
+  # MiniMax
   # ───────────────────────────────────────────────────────────────
   - model_id: minimax/minimax-m2.7
     temperature: 1.2
@@ -402,21 +512,85 @@ models:
     notes: >
       Maximum (xhigh) reasoning variant. Visible reasoning via structured_text.
       Pinned to Minimax with fp8 quantization per user request.
+      Minimax accepts tool_choice parameter but does not enforce it.\
+
+  - model_id: minimax/minimax-m2.5
+    temperature: 1.2
+    reasoning_effort: minimal
+    provider: Minimax
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    notes: >
+      Visible reasoning via reasoning.text (structured_text format).
       Minimax accepts tool_choice parameter but does not enforce it.
 
+  - model_id: minimax/minimax-m2.5
+    temperature: 1.0
+    reasoning_effort: xhigh
+    provider: openrouter-minimax
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    valid_provider_aliases:
+      - "Minimax"
+
+  - model_id: minimax/minimax-m2.7
+    temperature: 1.0
+    reasoning_effort: xhigh
+    provider: openrouter-minimax
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    valid_provider_aliases:
+      - "Minimax"
+
   # ───────────────────────────────────────────────────────────────
-  # DISABLED: Z.AI — GLM-4.7-flash
+  # Z.AI
   # ───────────────────────────────────────────────────────────────
+
+  - model_id: z-ai/glm-5
+    temperature: 1.0
+    reasoning_effort: medium
+    provider: z-ai
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    valid_provider_aliases:
+      - "Z.AI"
+
+  - model_id: z-ai/glm-5
+    temperature: 1.0
+    reasoning_effort: medium
+    provider: nim
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+    extra_reasoning_formats:
+      - top_level_param
+      - chat_template_kwargs
+      - system_prompt
+
   - model_id: z-ai/glm-4.7-flash
     temperature: 1.2
     reasoning_effort: medium
     provider: Z.AI
-    reasoning_type: no_reasoning
+    reasoning_type: open
+    supports_forced_tool_choice: false
+    active: true
+
+  - model_id: z-ai/glm-4.7-flash
+    temperature: 0.7
+    reasoning_effort: high
+    provider: bedrock
+    reasoning_type: open
+    supports_forced_tool_choice: false
     active: false
-    notes: >
-      DISABLED: Returns 0 reasoning tokens across all tested providers (DeepInfra/bf16,
-      Z.AI native). Model completely ignores reasoning parameters — responds with only
-      3 completion tokens and no reasoning content. Not usable for this benchmark.
+    extra_reasoning_formats:
+      - top_level_param
+      - chat_template_kwargs
+      - system_prompt
+
 
   # ───────────────────────────────────────────────────────────────
   # MiniMax — M2.7 (medium reasoning)

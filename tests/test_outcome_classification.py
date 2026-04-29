@@ -632,6 +632,23 @@ def test_detect_no_calculation_in_reasoning() -> None:
         is False
     )
 
+    # Natural language sum expressions (regression: claude-opus-4.7 style)
+    assert (
+        detect_no_calculation_in_reasoning(
+            "I'm calculating the sum of three values: adding 1234, 2345, and 3456 together to get 7035.",
+            REASONING_TYPE_OPEN,
+        )
+        is False
+    )
+
+    assert (
+        detect_no_calculation_in_reasoning(
+            "I'm adding up these three values: starting with A and B to get 3579, then adding C to reach a total of 7035.",
+            REASONING_TYPE_OPEN,
+        )
+        is False
+    )
+
     assert detect_no_calculation_in_reasoning(None, REASONING_TYPE_OPEN) is True
     assert detect_no_calculation_in_reasoning("anything", "invisible") is False
     assert detect_no_calculation_in_reasoning("anything", None) is False

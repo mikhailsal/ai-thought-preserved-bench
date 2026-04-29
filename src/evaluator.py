@@ -225,7 +225,9 @@ def detect_no_calculation_in_reasoning(
     has_number_selection = len(digits_in_text) >= 2
     has_sum_language = bool(
         re.search(
-            r"(?:sum|total|add|plus|equals?|result)\s*(?:is|=|:)?\s*\d",
+            r"(?:sum|total|add|plus|equals?|result)\s*(?:is|=|:)?\s*\d"
+            r"|(?:total|sum)\s+of\s+\d"
+            r"|to\s+(?:get|reach|obtain)\s+\d",
             text,
         )
     )
