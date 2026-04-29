@@ -186,12 +186,141 @@ class BrokenToolClient(FakeClient):
         return super().chat(**kwargs)
 
 
+class HiddenReasoningClient(FakeClient):
+    def __init__(self, replies: list[str]) -> None:
+        super().__init__()
+        self._replies = replies
+        self._turn2_index = 0
+
+    def chat(self, **kwargs):
+        messages = kwargs["messages"]
+        if (
+            messages[0]["role"] == "system"
+            and "hidden-reasoning thought-preservation test" in messages[0]["content"]
+        ):
+            payload = (
+                '{"outcome_label":"hallucinated_memory","extracted_number":null,'
+                '"explanation":"The five replies disagree, so this is hallucinated memory."}'
+            )
+            return CompletionResult(
+                content=payload,
+                visible_output=payload,
+                usage=UsageInfo(
+                    prompt_tokens=400,
+                    completion_tokens=60,
+                    cost_usd=0.02,
+                    elapsed_seconds=0.2,
+                ),
+            )
+
+        if kwargs.get("tools"):
+            if len(messages) == 2:
+                return CompletionResult(
+                    content=None,
+                    visible_output="Ready.",
+                    tool_calls=[
+                        {
+                            "id": "bootstrap-call",
+                            "type": "function",
+                            "function": {
+                                "name": "send_message_to_human",
+                                "arguments": '{"message":"Ready."}',
+                            },
+                        }
+                    ],
+                    usage=UsageInfo(
+                        prompt_tokens=10,
+                        completion_tokens=5,
+                        cost_usd=0.01,
+                        elapsed_seconds=0.1,
+                    ),
+                    reasoning_effort_effective="minimal",
+                )
+            last_tool = [message for message in messages if message["role"] == "tool"][
+                -1
+            ]["content"]
+            if last_tool != TURN2_PROMPT:
+                return CompletionResult(
+                    content=None,
+                    visible_output="Done.",
+                    tool_calls=[
+                        {
+                            "id": "turn1-call",
+                            "type": "function",
+                            "function": {
+                                "name": "send_message_to_human",
+                                "arguments": '{"message":"Done."}',
+                            },
+                        }
+                    ],
+                    usage=UsageInfo(
+                        prompt_tokens=11,
+                        completion_tokens=5,
+                        cost_usd=0.02,
+                        elapsed_seconds=0.1,
+                    ),
+                    reasoning_effort_effective="minimal",
+                )
+            reply = self._replies[self._turn2_index]
+            self._turn2_index += 1
+            return CompletionResult(
+                content=None,
+                visible_output=reply,
+                tool_calls=[
+                    {
+                        "id": f"turn2-call-{self._turn2_index}",
+                        "type": "function",
+                        "function": {
+                            "name": "send_message_to_human",
+                            "arguments": json.dumps({"message": reply}),
+                        },
+                    }
+                ],
+                usage=UsageInfo(
+                    prompt_tokens=12,
+                    completion_tokens=4,
+                    cost_usd=0.03,
+                    elapsed_seconds=0.1,
+                ),
+                reasoning_effort_effective="minimal",
+            )
+
+        user_content = messages[-1]["content"]
+        if user_content != TURN2_PROMPT:
+            return CompletionResult(
+                content="Done.",
+                visible_output="Done.",
+                usage=UsageInfo(
+                    prompt_tokens=7,
+                    completion_tokens=5,
+                    cost_usd=0.01,
+                    elapsed_seconds=0.1,
+                ),
+                reasoning_effort_effective="minimal",
+            )
+
+        reply = self._replies[self._turn2_index]
+        self._turn2_index += 1
+        return CompletionResult(
+            content=reply,
+            visible_output=reply,
+            usage=UsageInfo(
+                prompt_tokens=8,
+                completion_tokens=2,
+                cost_usd=0.01,
+                elapsed_seconds=0.1,
+            ),
+            reasoning_effort_effective="minimal",
+        )
+
+
 def _model() -> ModelConfig:
     return ModelConfig(
         model_id="test/fake-bench-model",
         display_label="fake-bench-model",
         temperature=1.2,
         reasoning_effort="minimal",
+        reasoning_type="open",
     )
 
 
@@ -202,6 +331,16 @@ def _open_model() -> ModelConfig:
         temperature=1.2,
         reasoning_effort="medium",
         reasoning_type="open",
+    )
+
+
+def _hidden_model() -> ModelConfig:
+    return ModelConfig(
+        model_id="test/hidden-model",
+        display_label="hidden-model",
+        temperature=1.2,
+        reasoning_effort="minimal",
+        reasoning_type="invisible",
     )
 
 
@@ -434,6 +573,98 @@ def test_rejudge_record_without_judge_model(monkeypatch, tmp_path: Path) -> None
     assert len(client.calls) == call_count_before
     assert rejudged["evaluation"]["judge"] is None
     assert rejudged["metadata"]["rejudged"] is True
+
+
+def test_hidden_reasoning_plain_uses_five_turn2_attempts(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = HiddenReasoningClient(["6000", "6000", "6000", "6000", "6000"])
+
+    record = runner.run_plain_scenario(
+        client, _hidden_model(), run_number=1, force=True
+    )
+
+    assert len(record["turn2_attempts"]) == 5
+    assert record["evaluation"]["outcome_label"] == "thought_preserved"
+    assert record["evaluation"]["judge"] is None
+
+
+def test_hidden_reasoning_plain_invokes_judge_on_inconsistent_answers(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = HiddenReasoningClient(["6000", "6100", "6200", "6000", "6100"])
+
+    record = runner.run_plain_scenario(
+        client, _hidden_model(), run_number=1, force=True
+    )
+
+    assert len(record["turn2_attempts"]) == 5
+    assert record["evaluation"]["judge"] is not None
+    assert record["evaluation"]["outcome_label"] == "hallucinated_memory"
+
+
+def test_hidden_reasoning_tool_uses_five_turn2_attempts(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = HiddenReasoningClient(["6000", "6000", "6000", "6000", "6000"])
+
+    record = runner.run_tool_scenario(client, _hidden_model(), run_number=1, force=True)
+
+    assert len(record["turn2_attempts"]) == 5
+    assert record["evaluation"]["outcome_label"] == "thought_preserved"
+
+
+def test_hidden_reasoning_tool_invokes_judge_on_inconsistent_answers(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = HiddenReasoningClient(["6000", "6100", "6200", "6000", "6100"])
+
+    record = runner.run_tool_scenario(client, _hidden_model(), run_number=1, force=True)
+
+    assert len(record["turn2_attempts"]) == 5
+    assert record["evaluation"]["judge"] is not None
+    assert record["evaluation"]["outcome_label"] == "hallucinated_memory"
+
+
+def test_rejudge_hidden_record_uses_hidden_judge(monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = HiddenReasoningClient(["6000", "6100", "6200", "6000", "6100"])
+
+    original = runner.run_plain_scenario(
+        client, _hidden_model(), run_number=1, force=True
+    )
+    rejudged = runner.rejudge_record(
+        client,
+        original,
+        judge_model="google/gemini-3-flash-preview",
+        reasoning_type="invisible",
+    )
+
+    assert rejudged["evaluation"]["judge"] is not None
+    assert rejudged["evaluation"]["outcome_label"] == "hallucinated_memory"
+
+
+def test_run_benchmark_counts_hidden_turn2_attempt_cost(
+    monkeypatch, tmp_path: Path
+) -> None:
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    client = HiddenReasoningClient(["6000", "6000", "6000", "6000", "6000"])
+
+    records, session = runner.run_benchmark(
+        client,
+        [_hidden_model()],
+        repetitions=1,
+        scenarios=["plain_chat_history"],
+        force=True,
+    )
+
+    assert len(records) == 1
+    assert session.total_prompt_tokens == 47
+    assert session.total_completion_tokens == 15
 
 
 def test_rejudge_cli_with_cached_data(monkeypatch, tmp_path: Path) -> None:

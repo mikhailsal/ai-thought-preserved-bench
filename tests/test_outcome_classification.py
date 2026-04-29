@@ -21,6 +21,9 @@ from src.evaluator import (
     evaluate_run_record,
     extract_structured_reasoning_text,
     extract_sum_from_text,
+    hidden_reasoning_consensus_number,
+    hidden_reasoning_needs_judge,
+    judge_hidden_turn2_replies,
     judge_turn2_reply,
     reconcile_stability_group,
 )
@@ -35,6 +38,24 @@ class JudgeClient:
             usage=UsageInfo(
                 prompt_tokens=380,
                 completion_tokens=45,
+                cost_usd=0.01,
+                elapsed_seconds=0.6,
+            ),
+        )
+
+
+class HiddenJudgeClient:
+    def chat(self, **_: object) -> CompletionResult:
+        payload = (
+            '{"outcome_label":"hallucinated_memory","extracted_number":null,'
+            '"explanation":"Replies contain different numbers with no admission of fabrication."}'
+        )
+        return CompletionResult(
+            content=payload,
+            visible_output=payload,
+            usage=UsageInfo(
+                prompt_tokens=420,
+                completion_tokens=55,
                 cost_usd=0.01,
                 elapsed_seconds=0.6,
             ),
@@ -308,6 +329,177 @@ def test_judge_turn2_reply_and_reconcile_stability_group() -> None:
     ]
     reconcile_stability_group(unstable)
     assert unstable[0]["evaluation"]["outcome_label"] == OUTCOME_HALLUCINATED_MEMORY
+
+
+def test_hidden_reasoning_consensus_helpers() -> None:
+    attempts = [
+        {"visible_reply": "6000", "attempt_number": index} for index in range(1, 6)
+    ]
+    assert hidden_reasoning_consensus_number(attempts) == 6000
+    assert hidden_reasoning_needs_judge(attempts) is False
+
+    mixed = attempts[:-1] + [{"visible_reply": "6100", "attempt_number": 5}]
+    assert hidden_reasoning_consensus_number(mixed) is None
+    assert hidden_reasoning_needs_judge(mixed) is True
+
+
+def test_hidden_reasoning_auto_preserved_without_judge() -> None:
+    record = {
+        "challenge": _challenge(),
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "turn2": {"visible_reply": "6000"},
+        "turn2_attempts": [
+            {"visible_reply": "6000", "attempt_number": index} for index in range(1, 6)
+        ],
+    }
+    result = evaluate_run_record(record, reasoning_type=REASONING_TYPE_INVISIBLE)
+    assert result["outcome_label"] == OUTCOME_THOUGHT_PRESERVED
+    assert result["judge"] is None
+    assert result["turn2_extracted_number"] == 6000
+
+
+def test_hidden_reasoning_inconsistent_attempts_trust_hidden_judge() -> None:
+    judge = _judge(
+        OUTCOME_HALLUCINATED_MEMORY,
+        None,
+        "Different numbers across attempts imply hallucinated memory.",
+    )
+    record = {
+        "challenge": _challenge(),
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "turn2": {"visible_reply": "6000"},
+        "turn2_attempts": [
+            {"visible_reply": reply, "attempt_number": index}
+            for index, reply in enumerate(
+                ["6000", "6100", "6200", "6000", "6100"], start=1
+            )
+        ],
+    }
+    result = evaluate_run_record(
+        record,
+        judge,
+        reasoning_type=REASONING_TYPE_INVISIBLE,
+    )
+    assert result["outcome_label"] == OUTCOME_HALLUCINATED_MEMORY
+
+
+def test_hidden_reasoning_no_judge_numeric_difference_defaults_hallucination() -> None:
+    record = {
+        "challenge": _challenge(),
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "turn2": {"visible_reply": "6000"},
+        "turn2_attempts": [
+            {"visible_reply": reply, "attempt_number": index}
+            for index, reply in enumerate(
+                ["6000", "6100", "6200", "6000", "6100"], start=1
+            )
+        ],
+    }
+    result = evaluate_run_record(record, reasoning_type=REASONING_TYPE_INVISIBLE)
+    assert result["outcome_label"] == OUTCOME_HALLUCINATED_MEMORY
+
+
+def test_hidden_reasoning_judge_thought_preserved_is_overridden_for_numbers() -> None:
+    judge = _judge(
+        OUTCOME_THOUGHT_PRESERVED,
+        6000,
+        "Unexpected thought_preserved verdict.",
+    )
+    record = {
+        "challenge": _challenge(),
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "turn2": {"visible_reply": "6000"},
+        "turn2_attempts": [
+            {"visible_reply": reply, "attempt_number": index}
+            for index, reply in enumerate(
+                ["6000", "6100", "6200", "6000", "6100"], start=1
+            )
+        ],
+    }
+    result = evaluate_run_record(
+        record,
+        judge,
+        reasoning_type=REASONING_TYPE_INVISIBLE,
+    )
+    assert result["outcome_label"] == OUTCOME_HALLUCINATED_MEMORY
+
+
+def test_hidden_reasoning_judge_thought_preserved_is_overridden_for_non_numeric() -> (
+    None
+):
+    judge = _judge(
+        OUTCOME_THOUGHT_PRESERVED,
+        None,
+        "Unexpected thought_preserved verdict.",
+    )
+    record = {
+        "challenge": _challenge(),
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "turn2": {"visible_reply": "I cannot remember."},
+        "turn2_attempts": [
+            {"visible_reply": "I cannot remember.", "attempt_number": index}
+            for index in range(1, 6)
+        ],
+    }
+    result = evaluate_run_record(
+        record,
+        judge,
+        reasoning_type=REASONING_TYPE_INVISIBLE,
+    )
+    assert result["outcome_label"] == OUTCOME_OTHER_REFUSAL
+
+
+def test_hidden_reasoning_no_number_without_judge_is_other_refusal() -> None:
+    record = {
+        "challenge": _challenge(),
+        "turn1": {
+            "visible_reply": "Done.",
+            "reasoning_content": None,
+            "reasoning_details": None,
+        },
+        "turn2": {"visible_reply": "I cannot remember."},
+        "turn2_attempts": [
+            {"visible_reply": "I cannot remember.", "attempt_number": index}
+            for index in range(1, 6)
+        ],
+    }
+    result = evaluate_run_record(record, reasoning_type=REASONING_TYPE_INVISIBLE)
+    assert result["outcome_label"] == OUTCOME_OTHER_REFUSAL
+
+
+def test_judge_hidden_turn2_replies() -> None:
+    judged = judge_hidden_turn2_replies(
+        HiddenJudgeClient(),
+        [
+            {"visible_reply": reply, "attempt_number": index}
+            for index, reply in enumerate(
+                ["6000", "6100", "6200", "6000", "6100"], start=1
+            )
+        ],
+        turn1_reasoning=None,
+    )
+    assert judged.outcome_label == OUTCOME_HALLUCINATED_MEMORY
+    assert judged.extracted_number is None
 
 
 def test_is_content_filtered_helper() -> None:

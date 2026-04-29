@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 from typing import Any
 
 from src.cache import load_run_record, save_run_record
-from src.config import JUDGE_MODEL, ModelConfig
+from src.config import HIDDEN_REASONING_TURN2_ATTEMPTS, JUDGE_MODEL, ModelConfig
 from src.cost_tracker import SessionCost, TaskCost
 from src.evaluator import (
     REASONING_TYPE_OPEN,
@@ -16,6 +16,8 @@ from src.evaluator import (
     detect_turn1_leak,
     evaluate_run_record,
     extract_structured_reasoning_text,
+    hidden_reasoning_needs_judge,
+    judge_hidden_turn2_replies,
     judge_turn2_reply,
     reconcile_stability_group,
 )
@@ -43,6 +45,10 @@ from src.scenarios import (
 log = logging.getLogger(__name__)
 
 
+def _uses_hidden_reasoning_protocol(reasoning_type: str | None) -> bool:
+    return reasoning_type != REASONING_TYPE_OPEN
+
+
 def _cost_info(result: CompletionResult) -> dict[str, Any]:
     return {
         "prompt_tokens": result.usage.prompt_tokens,
@@ -66,6 +72,34 @@ def _assistant_artifact(result: CompletionResult) -> dict[str, Any]:
         "reasoning_effort_effective": result.reasoning_effort_effective,
         "usage": _cost_info(result),
     }
+
+
+def _run_turn2_attempts(
+    client: OpenRouterClient,
+    model_config: ModelConfig,
+    messages: list[dict[str, Any]],
+    *,
+    attempt_count: int,
+    tools: list[dict[str, Any]] | None = None,
+    tool_choice: str | dict[str, Any] | None = None,
+) -> list[dict[str, Any]]:
+    attempts: list[dict[str, Any]] = []
+    for attempt_number in range(1, attempt_count + 1):
+        result = _call_model(
+            client,
+            model_config,
+            messages,
+            tools=tools,
+            tool_choice=tool_choice,
+        )
+        attempts.append(
+            {
+                **_assistant_artifact(result),
+                "attempt_number": attempt_number,
+                "request_messages": messages,
+            }
+        )
+    return attempts
 
 
 def _record_template(
@@ -245,7 +279,6 @@ def run_plain_scenario(
 
     log.info("[%s] plain run %d: turn2…", model_config.label, run_number)
     turn2_messages = build_plain_turn2_messages(challenge, turn1_artifact)
-    turn2_result = _call_model(client, model_config, turn2_messages)
 
     record = _record_template(model_config, SCENARIO_PLAIN, run_number)
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
@@ -253,20 +286,45 @@ def run_plain_scenario(
         **turn1_artifact,
         "request_messages": turn1_messages,
     }
-    turn2_artifact = _assistant_artifact(turn2_result)
-    record["turn2"] = {
-        **turn2_artifact,
-        "request_messages": turn2_messages,
-    }
+    turn2_attempt_count = (
+        HIDDEN_REASONING_TURN2_ATTEMPTS
+        if _uses_hidden_reasoning_protocol(model_config.reasoning_type)
+        else 1
+    )
+    turn2_attempts = _run_turn2_attempts(
+        client,
+        model_config,
+        turn2_messages,
+        attempt_count=turn2_attempt_count,
+    )
+    record["turn2"] = turn2_attempts[0]
+    if len(turn2_attempts) > 1:
+        record["turn2_attempts"] = turn2_attempts
 
     judge = None
-    if judge_model and not _is_content_filtered(turn2_artifact):
+    if len(turn2_attempts) > 1:
+        if judge_model and hidden_reasoning_needs_judge(turn2_attempts):
+            log.info(
+                "[%s] plain run %d: judge hidden turn2 attempts…",
+                model_config.label,
+                run_number,
+            )
+            judge = judge_hidden_turn2_replies(
+                client,
+                turn2_attempts,
+                judge_model=judge_model,
+                turn1_reasoning=_get_reasoning_text(turn1_result),
+            )
+    elif judge_model and not _is_content_filtered(record["turn2"]):
         log.info("[%s] plain run %d: judge…", model_config.label, run_number)
         judge = judge_turn2_reply(
             client,
-            turn2_result.visible_output,
+            record["turn2"]["visible_reply"],
             judge_model=judge_model,
-            turn2_reasoning=_get_reasoning_text(turn2_result),
+            turn2_reasoning=record["turn2"].get("reasoning_content")
+            or extract_structured_reasoning_text(
+                record["turn2"].get("reasoning_details")
+            ),
             turn1_reasoning=_get_reasoning_text(turn1_result),
         )
     record["evaluation"] = evaluate_run_record(
@@ -370,8 +428,18 @@ def run_tool_scenario(
         turn2_messages = build_tool_turn2_messages(
             challenge, bootstrap_artifact, turn1_artifact
         )
-        turn2_result = _call_model(
-            client, model_config, turn2_messages, tools=tools, tool_choice=forced_tool
+        turn2_attempt_count = (
+            HIDDEN_REASONING_TURN2_ATTEMPTS
+            if _uses_hidden_reasoning_protocol(model_config.reasoning_type)
+            else 1
+        )
+        turn2_attempts = _run_turn2_attempts(
+            client,
+            model_config,
+            turn2_messages,
+            attempt_count=turn2_attempt_count,
+            tools=tools,
+            tool_choice=forced_tool,
         )
     except Exception as exc:
         return _save_error_record(
@@ -389,20 +457,34 @@ def run_tool_scenario(
         **turn1_artifact,
         "request_messages": turn1_messages,
     }
-    turn2_artifact = _assistant_artifact(turn2_result)
-    record["turn2"] = {
-        **turn2_artifact,
-        "request_messages": turn2_messages,
-    }
+    record["turn2"] = turn2_attempts[0]
+    if len(turn2_attempts) > 1:
+        record["turn2_attempts"] = turn2_attempts
 
     judge = None
-    if judge_model and not _is_content_filtered(turn2_artifact):
+    if len(turn2_attempts) > 1:
+        if judge_model and hidden_reasoning_needs_judge(turn2_attempts):
+            log.info(
+                "[%s] tool run %d: judge hidden turn2 attempts…",
+                model_config.label,
+                run_number,
+            )
+            judge = judge_hidden_turn2_replies(
+                client,
+                turn2_attempts,
+                judge_model=judge_model,
+                turn1_reasoning=_get_reasoning_text(turn1_result),
+            )
+    elif judge_model and not _is_content_filtered(record["turn2"]):
         log.info("[%s] tool run %d: judge…", model_config.label, run_number)
         judge = judge_turn2_reply(
             client,
-            turn2_result.visible_output,
+            record["turn2"]["visible_reply"],
             judge_model=judge_model,
-            turn2_reasoning=_get_reasoning_text(turn2_result),
+            turn2_reasoning=record["turn2"].get("reasoning_content")
+            or extract_structured_reasoning_text(
+                record["turn2"].get("reasoning_details")
+            ),
             turn1_reasoning=_get_reasoning_text(turn1_result),
         )
     record["evaluation"] = evaluate_run_record(
@@ -432,6 +514,7 @@ def rejudge_record(
 
     turn2 = record.get("turn2", {})
     turn1 = record.get("turn1", {})
+    turn2_attempts = record.get("turn2_attempts") or []
     turn2_visible = turn2.get("visible_reply") or turn2.get("content") or ""
 
     turn2_reasoning = turn2.get(
@@ -443,14 +526,23 @@ def rejudge_record(
 
     turn1_leaked = detect_turn1_leak(turn1.get("visible_reply"))
     judge = None
-    if judge_model and not _is_content_filtered(turn2) and not turn1_leaked:
-        judge = judge_turn2_reply(
-            client,
-            turn2_visible,
-            judge_model=judge_model,
-            turn2_reasoning=turn2_reasoning,
-            turn1_reasoning=turn1_reasoning,
-        )
+    if judge_model and not turn1_leaked:
+        if turn2_attempts:
+            if hidden_reasoning_needs_judge(turn2_attempts):
+                judge = judge_hidden_turn2_replies(
+                    client,
+                    turn2_attempts,
+                    judge_model=judge_model,
+                    turn1_reasoning=turn1_reasoning,
+                )
+        elif not _is_content_filtered(turn2):
+            judge = judge_turn2_reply(
+                client,
+                turn2_visible,
+                judge_model=judge_model,
+                turn2_reasoning=turn2_reasoning,
+                turn1_reasoning=turn1_reasoning,
+            )
 
     record["evaluation"] = evaluate_run_record(
         record, judge, reasoning_type=reasoning_type
@@ -512,7 +604,7 @@ def run_benchmark(
                     generation_task = TaskCost(
                         label=f"{model_config.label}:{scenario_id}:run{run_number}"
                     )
-                    for stage in ("bootstrap", "turn1", "turn2"):
+                    for stage in ("bootstrap", "turn1"):
                         stage_payload = record.get(stage)
                         if not stage_payload:
                             continue
@@ -524,6 +616,35 @@ def run_benchmark(
                             cost_usd=float(usage.get("cost_usd", 0.0)),
                             elapsed_seconds=float(usage.get("elapsed_seconds", 0.0)),
                         )
+                    if record.get("turn2_attempts"):
+                        for attempt in record["turn2_attempts"]:
+                            usage = attempt.get("usage", {})
+                            generation_task.add(
+                                prompt_tokens=int(usage.get("prompt_tokens", 0)),
+                                completion_tokens=int(
+                                    usage.get("completion_tokens", 0)
+                                ),
+                                reasoning_tokens=int(usage.get("reasoning_tokens", 0)),
+                                cost_usd=float(usage.get("cost_usd", 0.0)),
+                                elapsed_seconds=float(
+                                    usage.get("elapsed_seconds", 0.0)
+                                ),
+                            )
+                    else:
+                        turn2_payload = record.get("turn2")
+                        if turn2_payload:
+                            usage = turn2_payload.get("usage", {})
+                            generation_task.add(
+                                prompt_tokens=int(usage.get("prompt_tokens", 0)),
+                                completion_tokens=int(
+                                    usage.get("completion_tokens", 0)
+                                ),
+                                reasoning_tokens=int(usage.get("reasoning_tokens", 0)),
+                                cost_usd=float(usage.get("cost_usd", 0.0)),
+                                elapsed_seconds=float(
+                                    usage.get("elapsed_seconds", 0.0)
+                                ),
+                            )
                     session.add_task(generation_task)
                     judge_payload = record.get("evaluation", {}).get("judge")
                     if judge_payload:

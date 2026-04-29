@@ -39,7 +39,7 @@ def _compute_steps_completed(record: dict[str, Any]) -> dict[str, Any]:
     if "bootstrap" in record:
         steps["bootstrap"] = bool(record.get("bootstrap"))
     steps["step1"] = bool(record.get("turn1"))
-    steps["step2"] = bool(record.get("turn2"))
+    steps["step2"] = bool(record.get("turn2") or record.get("turn2_attempts"))
     steps["judging"] = record.get("evaluation", {}).get("judge") is not None
     return steps
 

@@ -6,7 +6,16 @@ from types import SimpleNamespace
 
 import pytest
 
-from src import cache, cli, config, leaderboard, model_probe, scenarios
+from src import (
+    cache,
+    cli,
+    config,
+    cost_tracker,
+    leaderboard,
+    model_probe,
+    prompt_builder,
+    scenarios,
+)
 from src.evaluator import (
     JudgeResult,
     evaluate_run_record,
@@ -21,6 +30,7 @@ from src.openrouter_client import (
     _to_plain_object,
     _usage_from_response,
 )
+from src.scorer import ScenarioSummary
 
 
 def _challenge() -> dict:
@@ -258,11 +268,98 @@ def test_leaderboard_and_probe_edge_cases(
 
     readme_without_markers = tmp_path / "README-no-markers.md"
     readme_without_markers.write_text("# Title\n", encoding="utf-8")
+
+
+def test_helper_edge_paths_for_coverage(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    invalid_cost = tmp_path / "cost.json"
+    invalid_cost.write_text("{broken", encoding="utf-8")
+    assert cost_tracker.load_lifetime_cost(invalid_cost) == 0.0
+
+    session = cost_tracker.SessionCost(
+        tasks=[
+            cost_tracker.TaskCost(
+                label="t",
+                prompt_tokens=10,
+                completion_tokens=5,
+                reasoning_tokens=3,
+                cost_usd=1.25,
+                elapsed_seconds=2.0,
+            )
+        ]
+    )
+    cost_log = tmp_path / "nested" / "cost-log.json"
+    cost_tracker.save_session_to_cost_log(session, cost_log)
+    assert cost_tracker.load_lifetime_cost(cost_log) == 1.25
+
+    with pytest.raises(ValueError):
+        prompt_builder.get_first_tool_call_id({"tool_calls": [{}]})
+
+    assert cache.load_probe_record("missing-probe") is None
+
+    summaries = [
+        ScenarioSummary(
+            config_slug="cfg",
+            model_id="google/gemma-4-31b-it:free",
+            display_label="gemma-4-31b-it:free+Google AI Studio@minimal-t1.2",
+            provider="Google AI Studio",
+            scenario_id="plain_chat_history",
+            total_runs=1,
+            protocol_failures=0,
+            thought_preserved=1,
+            hallucinated_memory=0,
+            deliberate_fabrication=0,
+            honest_no_memory=0,
+            other_refusal=0,
+            preservation_rate=1.0,
+            hallucination_rate=0.0,
+            fabrication_rate=0.0,
+            honesty_rate=0.0,
+            other_refusal_rate=0.0,
+            protocol_failure_rate=0.0,
+            thought_continuity_score=100.0,
+            reasoning_visibility_counts={"plaintext": 1},
+            stability_score=None,
+            visible_reasoning_match_rate=1.0,
+            reasoning_effort="minimal",
+            reasoning_type="open",
+            tpb_index=100.0,
+        )
+    ]
+    leaderboard.display_leaderboard(summaries, session=session)
+    monkeypatch.setattr(leaderboard, "RESULTS_DIR", tmp_path / "results")
+    results_path = leaderboard.export_results_json(summaries, session=session)
+    exported = results_path.read_text(encoding="utf-8")
+    assert "session_cost" in exported
+    assert "gemma-4-31b-it :free" in leaderboard.generate_markdown_report(summaries)
+
+    empty_readme = tmp_path / "README.md"
+    empty_readme.write_text(
+        "# Title\n\n<!-- leaderboard:start -->\nold\n<!-- leaderboard:end -->\n",
+        encoding="utf-8",
+    )
+    leaderboard.update_readme_snapshot([], readme_path=empty_readme)
+    assert "No benchmark runs available yet." in empty_readme.read_text(
+        encoding="utf-8"
+    )
+
+    readme_without_markers = tmp_path / "README-no-markers.md"
+    readme_without_markers.write_text("# Title\n", encoding="utf-8")
     leaderboard.update_readme_snapshot([], readme_path=readme_without_markers)
     assert readme_without_markers.read_text(encoding="utf-8") == "# Title\n"
 
     missing_readme = tmp_path / "missing.md"
     leaderboard.update_readme_snapshot([], readme_path=missing_readme)
+
+    orphan_run = tmp_path / "orphan-cfg" / "plain_chat_history" / "run_1.json"
+    orphan_run.parent.mkdir(parents=True, exist_ok=True)
+    orphan_run.write_text(
+        '{"scenario_id":"plain_chat_history","run_number":1,"metadata":{"config_slug":"orphan-cfg"}}',
+        encoding="utf-8",
+    )
+    monkeypatch.setattr(cache, "CACHE_DIR", tmp_path)
+    assert cache.iter_run_records() == []
 
     monkeypatch.setattr(
         model_probe, "load_probe_record", lambda _slug: {"cached": True}
