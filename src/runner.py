@@ -210,7 +210,6 @@ def run_plain_scenario(
                 run_number,
             )
             record = _record_template(model_config, SCENARIO_PLAIN, run_number)
-            record["challenge"] = challenge
             record["reasoning_effective"] = (
                 turn1_result.reasoning_effort_effective or "none"
             )
@@ -231,7 +230,6 @@ def run_plain_scenario(
             run_number,
         )
         record = _record_template(model_config, SCENARIO_PLAIN, run_number)
-        record["challenge"] = challenge
         record["reasoning_effective"] = (
             turn1_result.reasoning_effort_effective or "none"
         )
@@ -250,7 +248,6 @@ def run_plain_scenario(
     turn2_result = _call_model(client, model_config, turn2_messages)
 
     record = _record_template(model_config, SCENARIO_PLAIN, run_number)
-    record["challenge"] = challenge
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
     record["turn1"] = {
         **turn1_artifact,
@@ -321,7 +318,6 @@ def run_tool_scenario(
         )
         turn1_artifact = _assistant_artifact(turn1_result)
         partial["turn1"] = {**turn1_artifact, "request_messages": turn1_messages}
-        partial["challenge"] = challenge
         partial["reasoning_effective"] = (
             turn1_result.reasoning_effort_effective or "none"
         )
@@ -335,7 +331,6 @@ def run_tool_scenario(
                     run_number,
                 )
                 record = _record_template(model_config, SCENARIO_TOOL, run_number)
-                record["challenge"] = challenge
                 record["reasoning_effective"] = (
                     turn1_result.reasoning_effort_effective or "none"
                 )
@@ -357,7 +352,6 @@ def run_tool_scenario(
                 run_number,
             )
             record = _record_template(model_config, SCENARIO_TOOL, run_number)
-            record["challenge"] = challenge
             record["reasoning_effective"] = (
                 turn1_result.reasoning_effort_effective or "none"
             )
@@ -389,7 +383,6 @@ def run_tool_scenario(
         )
 
     record = _record_template(model_config, SCENARIO_TOOL, run_number)
-    record["challenge"] = challenge
     record["reasoning_effective"] = turn1_result.reasoning_effort_effective or "none"
     record["bootstrap"] = partial["bootstrap"]
     record["turn1"] = {

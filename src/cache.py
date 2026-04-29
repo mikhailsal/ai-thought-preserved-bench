@@ -33,6 +33,17 @@ def load_run_record(
         return None
 
 
+def _compute_steps_completed(record: dict[str, Any]) -> dict[str, Any]:
+    """Summarise which benchmark phases were completed in this run record."""
+    steps: dict[str, Any] = {}
+    if "bootstrap" in record:
+        steps["bootstrap"] = bool(record.get("bootstrap"))
+    steps["step1"] = bool(record.get("turn1"))
+    steps["step2"] = bool(record.get("turn2"))
+    steps["judging"] = record.get("evaluation", {}).get("judge") is not None
+    return steps
+
+
 def save_run_record(record: dict[str, Any]) -> Path:
     metadata = record.get("metadata", {})
     path = _run_cache_path(
@@ -41,9 +52,18 @@ def save_run_record(record: dict[str, Any]) -> Path:
         int(record["run_number"]),
     )
     path.parent.mkdir(parents=True, exist_ok=True)
-    # Strip transient in-memory flag — it has no meaning in a persisted file.
+    # Build a clean copy: evaluation first for quick visual scanning,
+    # steps_completed summary next, then the rest (challenge stripped out,
+    # transient from_cache flag stripped from metadata).
+    rest = {
+        k: v
+        for k, v in record.items()
+        if k not in ("evaluation", "steps_completed", "metadata", "challenge")
+    }
     to_save = {
-        **record,
+        "evaluation": record.get("evaluation"),
+        "steps_completed": _compute_steps_completed(record),
+        **rest,
         "metadata": {k: v for k, v in metadata.items() if k != "from_cache"},
     }
     path.write_text(json.dumps(to_save, ensure_ascii=False, indent=2), encoding="utf-8")

@@ -85,12 +85,17 @@ def test_cache_round_trip_and_listings(
     cache.save_run_record(record)
 
     slug = "test--fake-model+TestProvider@minimal-t1.2"
+    # save_run_record injects steps_completed; account for it in the comparison
+    expected = {
+        **record,
+        "steps_completed": {"step1": True, "step2": True, "judging": False},
+    }
     loaded = cache.load_run_record(slug, "plain_chat_history", 2)
-    assert loaded == record
+    assert loaded == expected
     assert cache.list_cached_runs(slug, "plain_chat_history") == [2]
     assert cache.list_cached_configs() == [slug]
     assert cache.list_cached_scenarios(slug) == ["plain_chat_history"]
-    assert cache.iter_run_records() == [record]
+    assert cache.iter_run_records() == [expected]
 
 
 def test_probe_round_trip(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:

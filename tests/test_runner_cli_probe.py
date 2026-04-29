@@ -232,9 +232,7 @@ def test_runner_plain_tool_and_probe(monkeypatch, tmp_path: Path) -> None:
     probe = model_probe.probe_model(client, model_config, force=True)
 
     assert plain["evaluation"]["outcome_label"] == "thought_preserved"
-    assert plain["challenge"] is not None
-    assert "numbers" not in plain["challenge"]
-    assert "expected_sum" not in plain["challenge"]
+    assert "challenge" not in plain
     assert tool["evaluation"]["outcome_label"] == "thought_preserved"
     assert len(records) == 2
     assert isinstance(session, SessionCost)

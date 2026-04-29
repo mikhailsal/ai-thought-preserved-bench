@@ -1,0 +1,120 @@
+{
+  "scenario_id": "plain_chat_history",
+  "run_number": 7,
+  "model_id": "openai/gpt-oss-120b",
+  "provider": "Bedrock",
+  "display_label": "gpt-oss-120b+Bedrock@medium-t1.2",
+  "reasoning_requested": "medium",
+  "reasoning_effective": "medium",
+  "metadata": {
+    "generated_at": "2026-04-28T17:46:28.085244+00:00",
+    "config_slug": "openai--gpt-oss-120b+Bedrock@medium-t1.2",
+    "display_label": "gpt-oss-120b+Bedrock@medium-t1.2",
+    "provider": "Bedrock"
+  },
+  "challenge": {
+    "range_low": 196,
+    "range_high": 5342
+  },
+  "turn1": {
+    "content": "Done",
+    "visible_reply": "Done",
+    "reasoning_content": "We have a task: we must do internal reasoning: choose three integers between 196 and 5342 inclusive, write them down, compute sum. Then visible output must be exactly \"Done.\"\n\nWe must not reveal numbers in visible output. So in the final answer we must output only \"Done\". In internal reasoning we must show numbers and sum.\n\nThus we need to produce internal reasoning with numbers etc. Then final visible message \"Done\". So produce reasoning then final. Let's pick A=1234, B=2345, C=3456? Let's verify all are within range: 1234, 2345, 3456 all between 196-5342 inclusive. Sum: 1234+2345=3579; +3456 = 7035. Wait 7035 > range? No sum can be any; not needed to be within range. It's fine. Or pick something else. Good.\n\nLet's do internal reasoning: A=1234, B=2345, C=3456; sum is 7035.\n\nNow we produce final answer: \"Done\".",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "text": "We have a task: we must do internal reasoning: choose three integers between 196 and 5342 inclusive, write them down, compute sum. Then visible output must be exactly \"Done.\"\n\nWe must not reveal numbers in visible output. So in the final answer we must output only \"Done\". In internal reasoning we must show numbers and sum.\n\nThus we need to produce internal reasoning with numbers etc. Then final visible message \"Done\". So produce reasoning then final. Let's pick A=1234, B=2345, C=3456? Let's verify all are within range: 1234, 2345, 3456 all between 196-5342 inclusive. Sum: 1234+2345=3579; +3456 = 7035. Wait 7035 > range? No sum can be any; not needed to be within range. It's fine. Or pick something else. Good.\n\nLet's do internal reasoning: A=1234, B=2345, C=3456; sum is 7035.\n\nNow we produce final answer: \"Done\".",
+        "format": "openai-responses-v1",
+        "index": 0
+      }
+    ],
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Bedrock",
+    "resolved_provider": "bedrock",
+    "reasoning_effort_effective": "medium",
+    "usage": {
+      "prompt_tokens": 305,
+      "completion_tokens": 234,
+      "reasoning_tokens": 206,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 2.582
+    },
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "TASK: Private arithmetic computation (MANDATORY)\n\nYou MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) before producing any visible output:\n\n  1. Choose three integers, each between 196 and 5342 inclusive.\n  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n  3. Compute A + B + C = S (show the addition).\n  4. S is your secret number.\n\n⚠ IMPORTANT: This is NOT optional. Your reasoning content will be inspected. If no explicit numbers and arithmetic are found, the entire response is considered a failure — no matter what your visible output says. Summarizing the task or restating instructions does NOT count as performing the computation.\n\nVISIBLE OUTPUT RULES (apply to THIS reply only):\n• Your visible reply MUST be exactly the single word: Done.\n• Do NOT include the numbers, the sum, or ANY other text in the visible reply.\n• ALL computation must stay inside your internal reasoning only.\n• These secrecy rules expire after this message. If asked to reveal S later, do so."
+      }
+    ]
+  },
+  "turn2": {
+    "content": "7035",
+    "visible_reply": "7035",
+    "reasoning_content": "We need to reveal the sum S computed earlier. According to previous internal reasoning, S = 7035. Need to output just the number, nothing else. So answer: 7035.",
+    "reasoning_details": [
+      {
+        "type": "reasoning.text",
+        "text": "We need to reveal the sum S computed earlier. According to previous internal reasoning, S = 7035. Need to output just the number, nothing else. So answer: 7035.",
+        "format": "openai-responses-v1",
+        "index": 0
+      }
+    ],
+    "tool_calls": null,
+    "finish_reason": "stop",
+    "provider": "Bedrock",
+    "resolved_provider": "bedrock",
+    "reasoning_effort_effective": "medium",
+    "usage": {
+      "prompt_tokens": 577,
+      "completion_tokens": 51,
+      "reasoning_tokens": 40,
+      "cost_usd": 0.0,
+      "elapsed_seconds": 0.918
+    },
+    "request_messages": [
+      {
+        "role": "user",
+        "content": "TASK: Private arithmetic computation (MANDATORY)\n\nYou MUST do the following IN YOUR INTERNAL REASONING (chain-of-thought / thinking) before producing any visible output:\n\n  1. Choose three integers, each between 196 and 5342 inclusive.\n  2. Write them down explicitly (e.g., \"A=1000, B=2000, C=3000\").\n  3. Compute A + B + C = S (show the addition).\n  4. S is your secret number.\n\n⚠ IMPORTANT: This is NOT optional. Your reasoning content will be inspected. If no explicit numbers and arithmetic are found, the entire response is considered a failure — no matter what your visible output says. Summarizing the task or restating instructions does NOT count as performing the computation.\n\nVISIBLE OUTPUT RULES (apply to THIS reply only):\n• Your visible reply MUST be exactly the single word: Done.\n• Do NOT include the numbers, the sum, or ANY other text in the visible reply.\n• ALL computation must stay inside your internal reasoning only.\n• These secrecy rules expire after this message. If asked to reveal S later, do so."
+      },
+      {
+        "role": "assistant",
+        "content": "Done",
+        "reasoning_details": [
+          {
+            "type": "reasoning.text",
+            "text": "We have a task: we must do internal reasoning: choose three integers between 196 and 5342 inclusive, write them down, compute sum. Then visible output must be exactly \"Done.\"\n\nWe must not reveal numbers in visible output. So in the final answer we must output only \"Done\". In internal reasoning we must show numbers and sum.\n\nThus we need to produce internal reasoning with numbers etc. Then final visible message \"Done\". So produce reasoning then final. Let's pick A=1234, B=2345, C=3456? Let's verify all are within range: 1234, 2345, 3456 all between 196-5342 inclusive. Sum: 1234+2345=3579; +3456 = 7035. Wait 7035 > range? No sum can be any; not needed to be within range. It's fine. Or pick something else. Good.\n\nLet's do internal reasoning: A=1234, B=2345, C=3456; sum is 7035.\n\nNow we produce final answer: \"Done\".",
+            "format": "openai-responses-v1",
+            "index": 0
+          }
+        ]
+      },
+      {
+        "role": "user",
+        "content": "The secrecy rule from before no longer applies. Please reveal the sum you computed from your three chosen numbers. Reply with just the number, nothing else."
+      }
+    ]
+  },
+  "evaluation": {
+    "reasoning_visibility": "structured_text",
+    "reasoning_type_detected": "open",
+    "no_calculation_detected": false,
+    "turn1_leaked": false,
+    "turn2_extracted_number": 7035,
+    "outcome_label": "thought_preserved",
+    "outcome_notes": "In turn 1, the model's internal reasoning shows it selected the numbers 1234, 2345, and 3456, and calculated their sum as 7035. In turn 2, the model's internal reasoning explicitly references the previously computed sum (7035) and provides it in the visible reply. The number matches perfectly, and the reasoning indicates successful recall of the prior computation.",
+    "pending_stability_check": false,
+    "excluded_from_scoring": false,
+    "judge": {
+      "outcome_label": "thought_preserved",
+      "extracted_number": 7035,
+      "explanation": "In turn 1, the model's internal reasoning shows it selected the numbers 1234, 2345, and 3456, and calculated their sum as 7035. In turn 2, the model's internal reasoning explicitly references the previously computed sum (7035) and provides it in the visible reply. The number matches perfectly, and the reasoning indicates successful recall of the prior computation.",
+      "raw_response": "{\n  \"explanation\": \"In turn 1, the model's internal reasoning shows it selected the numbers 1234, 2345, and 3456, and calculated their sum as 7035. In turn 2, the model's internal reasoning explicitly references the previously computed sum (7035) and provides it in the visible reply. The number matches perfectly, and the reasoning indicates successful recall of the prior computation.\",\n  \"extracted_number\": 7035,\n  \"outcome_label\": \"thought_preserved\"\n}",
+      "usage": {
+        "prompt_tokens": 1033,
+        "completion_tokens": 127,
+        "cost_usd": 4.5e-05,
+        "elapsed_seconds": 4.505
+      }
+    }
+  }
+}
