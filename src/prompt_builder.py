@@ -80,7 +80,7 @@ def build_tool_turn1_messages(
         {
             "role": "tool",
             "tool_call_id": bootstrap_tool_call_id,
-            "content": format_turn1_prompt(challenge),
+            "content": format_turn1_prompt(challenge, tool_mode=True),
         },
     ]
 
@@ -98,7 +98,7 @@ def build_tool_turn2_messages(
         {
             "role": "tool",
             "tool_call_id": get_first_tool_call_id(bootstrap_assistant),
-            "content": format_turn1_prompt(challenge),
+            "content": format_turn1_prompt(challenge, tool_mode=True),
         },
         build_replay_assistant_message(turn1_assistant),
         {

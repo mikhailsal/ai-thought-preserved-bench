@@ -59,7 +59,7 @@ def test_build_plain_turn_messages() -> None:
 
 def test_build_tool_messages_preserve_call_ids_and_ordering() -> None:
     challenge = _challenge()
-    turn1_prompt = format_turn1_prompt(challenge)
+    turn1_prompt = format_turn1_prompt(challenge, tool_mode=True)
     bootstrap = _assistant_artifact()
     turn1_messages = prompt_builder.build_tool_turn1_messages(challenge, bootstrap)
     turn2_messages = prompt_builder.build_tool_turn2_messages(
